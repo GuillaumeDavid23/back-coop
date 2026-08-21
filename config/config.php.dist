@@ -1,0 +1,15 @@
+<?php
+// Copier ce fichier en config.php et renseigner les vraies valeurs.
+// config.php ne doit JAMAIS être versionné (contient des identifiants).
+
+return [
+    'db' => [
+        'host' => 'db',            // "db" en local Docker, host MySQL fourni par IONOS en prod
+        'port' => 3306,
+        'name' => 'back_coop',
+        'user' => 'back_coop',
+        'pass' => 'change-me',
+    ],
+    // URL de base de la passerelle (utilisée pour les redirections absolues si besoin)
+    'base_url' => 'http://localhost:8080',
+];

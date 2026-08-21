@@ -1,0 +1,50 @@
+# Nom de projet explicite : évite toute collision de noms de conteneurs/réseaux
+# avec un autre projet Docker (ex: le back-office d'un futur site) tournant
+# en parallèle, même si les dossiers portent des noms proches.
+name: back-coop
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    ports:
+      - "${APP_PORT:-8080}:80"
+    volumes:
+      - .:/var/www/html
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: ${MYSQL_DATABASE:-back_coop}
+      DB_USER: ${MYSQL_USER:-back_coop}
+      DB_PASS: ${MYSQL_PASSWORD:-back_coop_secret}
+      BASE_URL: http://localhost:${APP_PORT:-8080}
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_secret}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-back_coop}
+      MYSQL_USER: ${MYSQL_USER:-back_coop}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-back_coop_secret}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    ports:
+      - "${DB_PORT:-3307}:3306"
+
+  phpmyadmin:
+    image: phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+    ports:
+      - "${PHPMYADMIN_PORT:-8081}:80"
+    depends_on:
+      - db
+
+volumes:
+  db_data:

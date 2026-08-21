@@ -1,0 +1,8 @@
+RewriteEngine On
+
+# Sert les fichiers statiques existants directement (css, images...)
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+# Tout le reste passe par le front controller
+RewriteRule ^ index.php [L]
