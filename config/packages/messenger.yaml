@@ -30,3 +30,4 @@ framework:
 
             App\Message\GenerateInvoicePdfMessage: async
             App\Message\SendInvoiceEmailMessage: async
+            App\Message\SendRegistrationConfirmationMessage: async
