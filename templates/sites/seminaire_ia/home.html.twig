@@ -1,0 +1,327 @@
+{% extends 'sites/seminaire_ia/base.html.twig' %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block body %}
+	<header class="header-background">
+		<div class="header-overlay"></div>
+		<div class="container header-content">
+			<div class="header-text d-flex justify-content-center flex-column h-100">
+				<div class="row justify-content-center">
+					<img src="/images/sites/seminaire_ia/logo-blanc.png" class="logo" alt="CLCOM" style="max-height: 250px; width: auto; border-radius: 50%">
+				</div>
+				<h3 class="mb-0">DEAUVILLE – JEUDI 22 ET VENDREDI 23 OCTOBRE 2026</h3>
+				<div class="separator"></div>
+				<h1 class="fw-bold text-uppercase my-2">Comment intégrer l'IA dans vos pratiques</h1>
+				<h3 class="fw-bolder text-uppercase mb-0">Hôtel du Golf – Le Mont Canisy, 14800 Saint-Arnoult</h3>
+			</div>
+			<div class="timer row justify-content-center d-lg-flex d-none w-100 align-self-center mt-4" data-end="2026-10-22T11:00:00">
+				<div class="col-auto d-flex justify-content-center px-2">
+					<div class="timer-item text-white">
+						<span data-timer="days" class="fw-bolder timer-number">00</span>
+						<span class="timer-label">Jours</span>
+					</div>
+				</div>
+				<div class="col-auto d-flex justify-content-center px-2">
+					<div class="timer-item text-white">
+						<span data-timer="hours" class="fw-bolder timer-number">00</span>
+						<span class="timer-label">Heures</span>
+					</div>
+				</div>
+				<div class="col-auto d-flex justify-content-center px-2">
+					<div class="timer-item text-white">
+						<span data-timer="minutes" class="fw-bolder timer-number">00</span>
+						<span class="timer-label">Minutes</span>
+					</div>
+				</div>
+				<div class="col-auto d-flex justify-content-center px-2">
+					<div class="timer-item text-white">
+						<span data-timer="seconds" class="fw-bolder timer-number">00</span>
+						<span class="timer-label">Secondes</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</header>
+
+	<section class="edito" id="edito">
+		<div class="container" style="max-width:900px">
+			<h2 class="edito-title">
+				<span class="line"></span>
+				ÉDITO
+				<span class="line ms-0"></span>
+			</h2>
+			<div class="row mt-5 align-items-center">
+				{# La photo de l'édito sera fournie par la cliente. Une fois reçue,
+				   déposer le fichier dans public/images/sites/seminaire_ia/ et
+				   remettre la colonne image (col-md-4) + passer le texte en col-md-8,
+				   comme sur le site de référence :
+				<div class="col-md-4 px-0 px-md-2">
+					<div class="edito-images">
+						<div class="edito-image-container mb-4 mx-0 mx-md-2">
+							<img src="/images/sites/seminaire_ia/edito.jpg" alt="" class="img-fluid">
+							<div class="edito-accent-line"></div>
+						</div>
+					</div>
+				</div>
+				#}
+				<div class="col-12">
+					<div class="edito-content">
+						<div class="edito-text-wrapper">
+							<p style="text-align: justify; font-size: 1rem;" class="fw-bold">
+								L'IA transforme déjà les cabinets. Comment en tirer avantage et créer plus de valeur ?
+							</p>
+							<p style="text-align: justify; font-size: 1rem;" class="fw-bold">
+								Vision stratégique, retours d'expérience, démonstrations et ateliers : deux jours pour faire de l'IA un levier de transformation et de création de valeur.
+							</p>
+							<p style="text-align: justify; font-size: 1rem;">
+								L'intelligence artificielle s'impose progressivement comme un levier de transformation pour les cabinets d'expertise comptable. Au-delà de l'engouement qu'elle suscite, elle offre aujourd'hui des opportunités très concrètes pour automatiser certaines tâches, fiabiliser les analyses, gagner en efficacité et renforcer l'accompagnement des dirigeants.
+							</p>
+							<p style="text-align: justify; font-size: 1rem;">
+								Pour les cabinets, le défi n'est plus de savoir si l'IA trouvera sa place dans les pratiques professionnelles, mais comment l'intégrer de manière pertinente, sécurisée et conforme aux exigences de la profession.
+							</p>
+							<p style="text-align: justify; font-size: 1rem;">
+								Pendant deux jours, experts-comptables et collaborateurs découvriront comment l'intelligence artificielle peut devenir un véritable partenaire du quotidien, au service de leurs missions et de la performance du cabinet. Conçu dans une approche résolument opérationnelle, ce séminaire alterne conférences, retours d'expérience, démonstrations et ateliers pratiques.
+							</p>
+							<p style="text-align: justify; font-size: 1rem;">
+								Au programme : un panorama des solutions disponibles, un éclairage sur les bonnes pratiques et les règles à respecter, des démonstrations de cas d'usage directement applicables aux métiers du cabinet, ainsi que des ateliers pratiques pour créer ses propres outils. Tableaux de bord, bilans illustrés, supports RH, modèles de prévision, business plans ou encore outils d'analyse stratégique : chaque participant expérimentera des solutions concrètes, personnalisables et immédiatement réutilisables.
+							</p>
+							<p style="text-align: justify; font-size: 1rem;">
+								À l'issue de ces deux journées, chaque participant repartira avec une vision claire des opportunités offertes par l'intelligence artificielle, des méthodes éprouvées, des exemples concrets et des outils personnalisés, immédiatement mobilisables dans son activité quotidienne. L'objectif est simple : faire de l'IA un véritable levier de performance, d'innovation et de création de valeur au service du cabinet et de ses clients.
+							</p>
+							<p style="text-align: justify; font-size: 1rem;">
+								Parce que l'avenir de la profession ne se résume pas à l'automatisation, mais repose plus que jamais sur la capacité à transformer les données en analyses, les analyses en décisions et les décisions en accompagnement à forte valeur ajoutée, ce séminaire se veut résolument tourné vers l'action.
+							</p>
+							<div class="edito-read-more-fade"></div>
+						</div>
+						<div class="text-center text-md-start mt-4 mb-4">
+							<span class="read-more-btn" data-read-more="edito">Lire la suite</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="soirees" id="formation">
+		<div class="container">
+			<div class="d-flex justify-content-center w-100">
+				<h2 class="edito-title w-100">
+					<span class="line"></span>
+					FORMATION
+					<span class="line ms-0"></span>
+				</h2>
+			</div>
+			<div class="row p-lg-5 justify-content-center">
+				<div class="col-md-4 col-12">
+					<div class="soiree d-flex flex-column justify-content-center soiree-container">
+						<a href="https://www.hotelsbarriere.com/deauville/l-hotel-du-golf" target="_blank" rel="noopener">
+							<img src="/images/sites/seminaire_ia/hotel-du-golf.jpg" class="soiree-img soiree-img-hover img-fluid" alt="Hôtel du Golf — Deauville">
+						</a>
+					</div>
+				</div>
+				<div class="col-md-4 col-12">
+					<div class="soiree d-flex flex-column justify-content-center soiree-container mt-3 mt-md-0">
+						<a href="https://www.restaurantledeauville.com/" target="_blank" rel="noopener">
+							<img src="/images/sites/seminaire_ia/restaurant-le-deauville.jpg" class="soiree-img soiree-img-hover img-fluid" alt="Restaurant Le Deauville">
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="programme my-5" id="programme">
+		<div class="container">
+			<div class="d-flex justify-content-center w-100">
+				<h2 class="edito-title w-100">
+					<span class="line"></span>
+					PROGRAMME
+					<span class="line ms-0"></span>
+				</h2>
+			</div>
+			<div class="nav-scroll-container">
+				<ul class="nav nav-tabs justify-content-center mb-3" id="ia-tabs">
+					<li class="nav-item">
+						<a class="nav-link active" data-target="#day1" href="#">JEUDI 22 OCTOBRE</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" data-target="#day2" href="#">VENDREDI 23 OCTOBRE</a>
+					</li>
+				</ul>
+			</div>
+			<div class="tab-content">
+				<div id="day1" class="tab-pane fade show active">
+					<div class="timeline">
+						{% for slot in day1 %}
+							<div class="timeline-event {{ loop.index is odd ? 'left' : 'right' }}">
+								<div class="timeline-content">
+									<h4>{{ slot.time }}</h4>
+									<h5>{{ slot.label }}</h5>
+								</div>
+							</div>
+						{% endfor %}
+					</div>
+				</div>
+
+				<div id="day2" class="tab-pane fade">
+					<div class="timeline">
+						{% for slot in day2 %}
+							<div class="timeline-event {{ loop.index is odd ? 'left' : 'right' }}">
+								<div class="timeline-content">
+									<h4>{{ slot.time }}</h4>
+									<h5>{{ slot.label }}</h5>
+								</div>
+							</div>
+						{% endfor %}
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="py-5" id="inscription">
+		<div class="container">
+			<div class="d-flex justify-content-center w-100 mb-5">
+				<h2 class="edito-title w-100">
+					<span class="line"></span>
+					INSCRIPTION
+					<span class="line ms-0"></span>
+				</h2>
+			</div>
+
+			<div class="row g-4">
+				{% for code, fare in fares %}
+					<div class="col-md-6 col-lg-3">
+						<div class="card pricing-card">
+							<div class="card-body text-center d-flex flex-column">
+								<h5 class="mb-3">
+									{{ fare.accommodation ? 'Forfait hébergement' : 'Forfait sans hébergement' }}<br>
+									<strong>{{ fare.shortLabel }}</strong>
+								</h5>
+								<div class="separator w-75 mb-4 mt-1" style="height: 3px"></div>
+
+								<table class="fare-table">
+									{% for statusCode, statusLabel in statuses %}
+										<tr>
+											<td>{{ statusLabel }}</td>
+											<td>{{ fare.prices[statusCode]|number_format(0, ',', ' ') }} €<small class="fs-6 text-muted-ht"> HT</small></td>
+										</tr>
+									{% endfor %}
+								</table>
+
+								<div class="fare-includes flex-grow-1">
+									<p class="fw-bold mb-1">Comprend :</p>
+									<ul class="list-unstyled mb-0">
+										{% for item in fare.includes %}
+											<li>{{ item }}</li>
+										{% endfor %}
+									</ul>
+
+									{% if code == 'sans_heb' %}
+										<p class="fw-bold mb-1 mt-3">Soirée en option :</p>
+										<table class="fare-table">
+											{% for statusCode, statusLabel in statuses %}
+												<tr>
+													<td>{{ statusLabel }}</td>
+													<td>{{ eveningPrices[statusCode]|number_format(0, ',', ' ') }} €<small class="fs-6 text-muted-ht"> HT</small></td>
+												</tr>
+											{% endfor %}
+										</table>
+									{% endif %}
+								</div>
+							</div>
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+
+			{# Un seul bouton sous les quatre blocs de prix, comme sur les webinaires. #}
+			<div class="text-center mt-5">
+				<a href="{{ path('ia_registration_step1') }}" class="btn-inscription-pill">Je m'inscris à la formation</a>
+			</div>
+
+		</div>
+	</section>
+
+	<section class="my-5" id="contact">
+		<div class="container">
+			<div class="d-flex justify-content-center w-100">
+				<h2 class="edito-title w-100">
+					<span class="line"></span>
+					CONTACT
+					<span class="line ms-0"></span>
+				</h2>
+			</div>
+
+			<div class="text-center m-5">
+				<p style="font-weight:500">Pour toute information, merci de contacter Marion BROYER au
+					<a href="tel:0688205812">06 88 20 58 12</a>
+					ou
+					<a href="mailto:mbroyer@clcom.fr">mbroyer@clcom.fr</a>
+				</p>
+			</div>
+		</div>
+	</section>
+{% endblock %}
+
+{% block javascripts %}
+	<script>
+		// Compte à rebours (équivalent du timer_controller Stimulus).
+		(function () {
+			var timer = document.querySelector('.timer');
+			if (!timer) return;
+			var end = new Date(timer.dataset.end).getTime();
+			var units = ['days', 'hours', 'minutes', 'seconds'].reduce(function (acc, unit) {
+				acc[unit] = timer.querySelector('[data-timer="' + unit + '"]');
+				return acc;
+			}, {});
+
+			function update() {
+				var remaining = end - Date.now();
+				if (remaining <= 0) {
+					clearInterval(interval);
+					return;
+				}
+				units.days.textContent = Math.floor(remaining / 86400000);
+				units.hours.textContent = Math.floor((remaining % 86400000) / 3600000);
+				units.minutes.textContent = Math.floor((remaining % 3600000) / 60000);
+				units.seconds.textContent = Math.floor((remaining % 60000) / 1000);
+			}
+
+			update();
+			var interval = setInterval(update, 1000);
+		})();
+
+		// Onglets du programme (équivalent du tabs_controller Stimulus).
+		(function () {
+			var tabs = document.querySelectorAll('#ia-tabs .nav-link');
+			if (!tabs.length) return;
+
+			tabs.forEach(function (tab) {
+				tab.addEventListener('click', function (event) {
+					event.preventDefault();
+					tabs.forEach(function (t) { t.classList.remove('active'); });
+					tab.classList.add('active');
+
+					var targetId = tab.dataset.target.substring(1);
+					document.querySelectorAll('.tab-pane').forEach(function (pane) {
+						pane.classList.toggle('show', pane.id === targetId);
+						pane.classList.toggle('active', pane.id === targetId);
+					});
+				});
+			});
+		})();
+
+		// "Lire la suite" de l'édito.
+		(function () {
+			var button = document.querySelector('[data-read-more="edito"]');
+			if (!button) return;
+			button.addEventListener('click', function () {
+				var wrapper = button.closest('.edito-content').querySelector('.edito-text-wrapper');
+				wrapper.classList.toggle('expanded');
+				button.textContent = wrapper.classList.contains('expanded') ? 'Lire moins' : 'Lire la suite';
+			});
+		})();
+	</script>
+{% endblock %}

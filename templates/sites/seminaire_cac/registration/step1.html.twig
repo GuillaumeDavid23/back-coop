@@ -1,0 +1,101 @@
+{% extends 'sites/seminaire_cac/base.html.twig' %}
+
+{% block title %}Inscription — Séminaire CAC{% endblock %}
+
+{% block body %}
+<section style="background:#FBF9F6;border-bottom:1px solid #EDE4D8">
+    <div style="max-width:900px;margin:0 auto;padding:56px 28px 76px">
+        <a href="{{ path('cac_home') }}" style="display:block;background:none;border:0;padding:0;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:600;font-size:13px;color:#1E6685;margin-bottom:26px;text-decoration:none">← Retour à l'accueil</a>
+        <div style="display:flex;align-items:center;gap:18px;margin-bottom:26px">
+            <div style="display:flex;align-items:center;gap:11px">
+                <span style="width:26px;height:26px;border-radius:50%;background:#1E6685;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Montserrat',sans-serif;font-weight:700;font-size:12px">1</span>
+                <span style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:13px;color:#1E6685">Vos informations</span>
+            </div>
+            <span style="flex:1;max-width:90px;height:1px;background:#D2C1AD"></span>
+            <div style="display:flex;align-items:center;gap:11px">
+                <span style="width:26px;height:26px;border-radius:50%;border:1px solid #D2C1AD;color:#A79B87;display:flex;align-items:center;justify-content:center;font-family:'Montserrat',sans-serif;font-weight:700;font-size:12px">2</span>
+                <span style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:13px;color:#A79B87">Récapitulatif</span>
+            </div>
+        </div>
+        <span style="display:block;font-family:'Montserrat',sans-serif;font-size:11px;letter-spacing:0.24em;color:#8A7A66;font-weight:600">INSCRIPTION</span>
+        <h1 style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:34px;color:#1E6685;margin:12px 0 28px">Séminaire CAC — 26 &amp; 27 novembre 2026</h1>
+
+        <div style="background:#fff;border:1px solid #E4D8C6;border-radius:4px;padding:22px 26px;display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:28px;flex-wrap:wrap">
+            <div style="display:flex;flex-direction:column;gap:4px">
+                <span style="font-size:12px;letter-spacing:0.14em;color:#8A7A66;font-family:'Montserrat',sans-serif;font-weight:600">FORFAIT SÉLECTIONNÉ</span>
+                <span style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:17px;color:#2E2E2E">{{ selectedFare.label }}</span>
+            </div>
+            <div style="display:flex;align-items:baseline;gap:8px">
+                <span style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:30px;color:#1E6685">{{ selectedFare.amount|number_format(0, ',', ' ') }} €</span>
+                <span style="font-size:13px;color:#6B6B6B;font-weight:600">HT</span>
+            </div>
+        </div>
+
+        {% if form_errors(form)|length %}
+            <div style="background:#FDECEB;border:1px solid #F0B8B3;color:#A3352C;padding:12px 16px;border-radius:4px;margin-bottom:20px;font-size:14px">
+                {{ form_errors(form) }}
+            </div>
+        {% endif %}
+
+        {{ form_start(form, {attr: {class: 'sc-form', style: 'background:#fff;border:1px solid #E4D8C6;border-radius:4px;padding:36px 34px;display:flex;flex-direction:column;gap:26px'}}) }}
+            {{ form_widget(form.fare) }}
+
+            <div style="display:flex;flex-direction:column;gap:18px">
+                <span style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:13px;letter-spacing:0.14em;color:#1E6685">PARTICIPANT</span>
+                <div class="sc-grid" style="display:grid;grid-template-columns:170px 1fr 1fr;gap:18px">
+                    {{ form_row(form.civility) }}
+                    {{ form_row(form.lastName) }}
+                    {{ form_row(form.firstName) }}
+                </div>
+                <div class="sc-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+                    {{ form_row(form.mobile) }}
+                    {{ form_row(form.email) }}
+                </div>
+            </div>
+
+            <div style="height:1px;background:#F1E9DC"></div>
+
+            <div style="display:flex;flex-direction:column;gap:18px">
+                <span style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:13px;letter-spacing:0.14em;color:#1E6685">CABINET</span>
+                {{ form_row(form.company) }}
+                {{ form_row(form.address) }}
+                <div class="sc-grid" style="display:grid;grid-template-columns:200px 1fr 1fr;gap:18px">
+                    {{ form_row(form.postalCode) }}
+                    {{ form_row(form.city) }}
+                    {{ form_row(form.status) }}
+                </div>
+            </div>
+
+            <div style="height:1px;background:#F1E9DC"></div>
+
+            <div style="display:flex;flex-direction:column;gap:18px">
+                <span style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:13px;letter-spacing:0.14em;color:#1E6685">VOTRE DEMANDE</span>
+                {{ form_row(form.motivation) }}
+                {{ form_row(form.specialNeeds) }}
+            </div>
+
+            <div style="height:1px;background:#F1E9DC"></div>
+
+            <div style="background:#F6F0E8;border-radius:3px;padding:22px 24px;display:flex;align-items:center;gap:20px;">
+                {{ form_label(form.cocktailAttendance, null, {label_attr: {style: 'margin:0; flex:1; font-size:15px; color:#2E2E2E; font-weight:500;'}}) }}
+                {{ form_widget(form.cocktailAttendance, {attr: {style: 'width:200px; flex:none;'}}) }}
+                {{ form_errors(form.cocktailAttendance) }}
+            </div>
+
+            <label style="display:flex;gap:14px;align-items:flex-start;background:#FBF9F6;border:1px solid #E4D8C6;border-radius:3px;padding:20px 22px">
+                {{ form_widget(form.consentAccepted) }}
+                {# flex:1 : le texte occupe toute la largeur disponible plutôt que de
+                   laisser un vide à droite, ce qui réduit d'autant la hauteur du bloc. #}
+                <span style="flex:1;font-size:13.5px;line-height:1.7;color:#3A3A3A;text-align:justify">
+                    Les données collectées sont sauvegardées et utilisées afin de vous communiquer plus d'informations concernant le déroulement de l'évènement. En remplissant ce formulaire, j'autorise la Coop' des Experts à diffuser mon adresse mail auprès des partenaires présents lors de l'évènement. Vous disposez d'un droit d'accès, de modification, de rectification et de suppression des données vous concernant. Pour toute demande, envoyez un email à <a href="mailto:contact@ecfservices.fr">contact@ecfservices.fr</a>. Si votre situation nécessite un aménagement particulier (handicap, trouble de santé invalidant, autre…), merci de nous en faire part à <a href="mailto:l.boyer@clcom.fr">l.boyer@clcom.fr</a>.
+                </span>
+            </label>
+            {{ form_errors(form.consentAccepted) }}
+
+            <div style="display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap">
+                <button type="submit" class="sc-btn-primary" style="padding:16px 34px;font-size:15px;">Étape suivante →</button>
+            </div>
+        {{ form_end(form) }}
+    </div>
+</section>
+{% endblock %}

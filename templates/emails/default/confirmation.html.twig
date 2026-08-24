@@ -1,0 +1,151 @@
+{# Reprise à l'identique du mail de confirmation "rendez-vous" du projet
+   backoffice-clcom (templates/mails/confirmation_rdv.html.twig) : même
+   structure, mêmes libellés, même signature. Seules les variables ont été
+   remappées sur le modèle de données de ce projet (Registration/Participant),
+   et les blocs propres à l'ancien modèle (accompagnant, options soirée) sont
+   remplacés par les réponses libres de l'inscription (voir Registration::answers). #}
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Confirmation d'inscription</title>
+		<style>
+			body {
+				font-family: "Calibri", sans-serif;
+				color: #333;
+				line-height: 1.6;
+				font-size: 15px;
+				margin: 0;
+				padding: 0;
+			}
+			.content {
+				max-width: 700px;
+				margin: auto;
+				padding: 20px;
+				border: 1px solid #ddd;
+				border-radius: 6px;
+				background-color: #fafafa;
+			}
+			p {
+				margin: 10px 0;
+			}
+			.section-title {
+				color: #b9004b;
+				font-weight: bold;
+				font-size: 16px;
+				border-bottom: 1px solid #ddd;
+				padding-bottom: 3px;
+				margin-top: 20px;
+			}
+			.info-block {
+				padding-left: 10px;
+				margin: 8px 0;
+			}
+			.info-line {
+				margin: 4px 0;
+			}
+
+			.info-label {
+				font-weight: bold;
+				color: #555;
+			}
+			.strong {
+				font-weight: bold;
+			}
+			.footer {
+				margin-top: 20px;
+				font-size: 12px;
+				color: #666;
+			}
+			a {
+				color: #0056b3;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="content">
+			<p>Madame, Monsieur,</p>
+
+			<p>
+				Nous avons enregistré votre participation selon les modalités ci-dessous.<br>
+				Si vous constatez une erreur ou un oubli, merci de nous en faire part :
+				{{ contact.name }} au {{ contact.phone }} ou par mail
+				<a href="mailto:{{ contact.email }}">{{ contact.email }}</a>
+			</p>
+
+			<div class="section-title">Rappel de vos coordonnées</div>
+			<div class="info-block">
+				<div class="info-line strong">
+					{{ participant.firstName }}
+					{{ participant.lastName }}
+				</div>
+				<div class="info-line">
+					<span class="info-label">Cabinet :</span>
+					{{ participant.company }}
+				</div>
+				<div class="info-line">
+					<span class="info-label">Adresse :</span>
+					{{ participant.address }}
+					{{ participant.postalCode }}
+					{{ participant.city }}
+				</div>
+				<div class="info-line">
+					<span class="info-label">Mobile :</span>
+					{{ participant.phone }}
+				</div>
+				<div class="info-line">
+					<span class="info-label">E-mail :</span>
+					<a href="mailto:{{ participant.email }}">{{ participant.email }}</a>
+				</div>
+			</div>
+
+
+			<div class="section-title">Rappel de votre inscription</div>
+			<div class="info-block">
+				<div>
+					<span class="info-label">Formule :</span>
+					{{ pricing_label }}</div>
+				{% if participant.motivation %}
+					<div>
+						<span class="info-label">Attentes :</span>
+						{{ participant.motivation }}</div>
+				{% endif %}
+				{% if participant.specialNeeds %}
+					<div>
+						<span class="info-label">Accessibilité :</span>
+						{{ participant.specialNeeds }}</div>
+				{% endif %}
+			</div>
+
+			{% if answers is not empty %}
+				<div class="section-title">Options souscrites</div>
+				<div class="info-block">
+					{% for label, value in answers %}
+						<div>
+							<span class="info-label">{{ label }} :</span>
+							{{ value }}</div>
+					{% endfor %}
+				</div>
+			{% endif %}
+
+			<div class="section-title">Montant</div>
+			<div class="info-block">
+				<div>MONTANT TOTAL :
+					<span class="strong">{{ total_amount }}
+						€ TTC</span>
+				</div>
+				{% if invoice_enabled %}
+					<div>Vous trouverez votre facture mentionnant les montants de TVA en pièce jointe de ce mail.</div>
+				{% else %}
+					<div>Une facture détaillée mentionnant les montants de TVA vous sera adressée sous quelques jours</div>
+				{% endif %}
+			</div>
+
+			<p>Dans l'attente et le plaisir de vous retrouver, nous vous prions d'agréer l'expression de nos sentiments les meilleurs.</p>
+
+			<div class="footer">
+				<img src="cid:signature.png" alt="Signature de {{ contact.name }}" width="400">
+			</div>
+		</div>
+	</body>
+</html>

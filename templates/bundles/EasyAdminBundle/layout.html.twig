@@ -1,0 +1,130 @@
+{# Surcharge du layout EasyAdmin pour remplacer la recherche "par écran" par une
+   recherche globale façon Stripe (participants, factures, avoirs, inscriptions).
+   Le "!" cible le template original du bundle et évite la récursion. #}
+{% extends '@!EasyAdmin/layout.html.twig' %}
+
+{% block search_wrapper %}
+    <div class="content-search gsearch" data-gsearch data-gsearch-url="{{ path('admin_global_search') }}">
+        <div class="gsearch-field">
+            <input type="search" class="form-control gsearch-input" data-gsearch-input
+                   placeholder="Rechercher un participant, un email, un cabinet, une facture, un avoir…"
+                   autocomplete="off" spellcheck="false" aria-label="Recherche globale">
+        </div>
+        <div class="gsearch-panel" data-gsearch-panel hidden></div>
+    </div>
+
+    <style>
+        .gsearch { position: relative; width: 100%; max-width: 620px; }
+        .gsearch-field { position: relative; }
+        .gsearch-input { width: 100%; }
+        .gsearch-panel {
+            position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 1080;
+            background: #fff; border: 1px solid #dee2e6; border-radius: 8px;
+            box-shadow: 0 12px 32px rgba(0,0,0,.14); max-height: 420px; overflow-y: auto; padding: 6px;
+        }
+        .gsearch-group { font-size: .68rem; text-transform: uppercase; letter-spacing: .04em;
+                         color: #8b93a1; padding: 8px 10px 4px; }
+        .gsearch-item { display: flex; align-items: baseline; gap: 10px; padding: 8px 10px;
+                        border-radius: 6px; text-decoration: none; color: inherit; cursor: pointer; }
+        .gsearch-item:hover, .gsearch-item.is-active { background: #eef0fc; }
+        .gsearch-label { font-weight: 600; font-size: .88rem; }
+        .gsearch-sub { color: #6c757d; font-size: .78rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .gsearch-badge { margin-left: auto; font-size: .7rem; color: #495057;
+                         background: #f1f3f5; border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+        .gsearch-empty { padding: 14px 12px; color: #6c757d; font-size: .85rem; }
+    </style>
+
+    <script>
+        (function () {
+            var root = document.querySelector('[data-gsearch]');
+            if (!root) { return; }
+
+            var input = root.querySelector('[data-gsearch-input]');
+            var panel = root.querySelector('[data-gsearch-panel]');
+            var endpoint = root.getAttribute('data-gsearch-url');
+            var timer = null;
+            var controller = null;
+            var activeIndex = -1;
+
+            function close() { panel.hidden = true; panel.innerHTML = ''; activeIndex = -1; }
+
+            function items() { return Array.prototype.slice.call(panel.querySelectorAll('.gsearch-item')); }
+
+            function highlight(index) {
+                var list = items();
+                if (!list.length) { return; }
+                activeIndex = (index + list.length) % list.length;
+                list.forEach(function (el, i) { el.classList.toggle('is-active', i === activeIndex); });
+                list[activeIndex].scrollIntoView({ block: 'nearest' });
+            }
+
+            function render(results, message) {
+                if (!results.length) {
+                    panel.innerHTML = '<div class="gsearch-empty">' + (message || 'Aucun résultat.') + '</div>';
+                    panel.hidden = false;
+                    return;
+                }
+
+                var html = '';
+                var currentType = null;
+                results.forEach(function (r) {
+                    if (r.type !== currentType) {
+                        currentType = r.type;
+                        html += '<div class="gsearch-group">' + escapeHtml(currentType) + '</div>';
+                    }
+                    html += '<a class="gsearch-item" href="' + escapeHtml(r.url) + '">'
+                          + '<span class="gsearch-label">' + escapeHtml(r.label) + '</span>'
+                          + '<span class="gsearch-sub">' + escapeHtml(r.sublabel || '') + '</span>'
+                          + (r.badge ? '<span class="gsearch-badge">' + escapeHtml(r.badge) + '</span>' : '')
+                          + '</a>';
+                });
+
+                panel.innerHTML = html;
+                panel.hidden = false;
+                activeIndex = -1;
+            }
+
+            function escapeHtml(value) {
+                return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
+                    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+                });
+            }
+
+            function run(term) {
+                if (controller) { controller.abort(); }
+                controller = new AbortController();
+
+                fetch(endpoint + '?q=' + encodeURIComponent(term), {
+                    signal: controller.signal,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                    .then(function (response) { return response.json(); })
+                    .then(function (data) { render(data.results || [], data.message); })
+                    .catch(function (error) { if (error.name !== 'AbortError') { close(); } });
+            }
+
+            input.addEventListener('input', function () {
+                var term = input.value.trim();
+                window.clearTimeout(timer);
+
+                // Un identifiant d'inscription peut tenir en un seul chiffre.
+                var minLength = /^\d+$/.test(term) ? 1 : 2;
+                if (term.length < minLength) { close(); return; }
+                timer = window.setTimeout(function () { run(term); }, 180);
+            });
+
+            input.addEventListener('keydown', function (event) {
+                if (panel.hidden) { return; }
+
+                if (event.key === 'ArrowDown') { event.preventDefault(); highlight(activeIndex + 1); }
+                else if (event.key === 'ArrowUp') { event.preventDefault(); highlight(activeIndex - 1); }
+                else if (event.key === 'Enter' && activeIndex >= 0) { event.preventDefault(); items()[activeIndex].click(); }
+                else if (event.key === 'Escape') { close(); }
+            });
+
+            document.addEventListener('click', function (event) {
+                if (!root.contains(event.target)) { close(); }
+            });
+        })();
+    </script>
+{% endblock %}

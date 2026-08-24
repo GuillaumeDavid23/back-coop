@@ -1,0 +1,5 @@
+seminaire_ia:
+    resource: ../../../src/Site/SeminaireIA/Controller/
+    type: attribute
+    host: '%app.seminaire_ia_domain%'
+    name_prefix: 'ia_'

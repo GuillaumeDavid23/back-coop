@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=../vendor/symfony/routing/Loader/schema/routing.schema.json
+
+# This file is the entry point to configure the routes of your app.
+# Methods with the #[Route] attribute are automatically imported.
+# See also https://symfony.com/doc/current/routing.html
+
+# To list all registered routes, run the following command:
+#   bin/console debug:router
+
+# Les routes de sites (contrainte "host") doivent être évaluées avant les
+# routes génériques ("ANY" host) : Symfony teste les routes dans l'ordre
+# d'import et prend la première qui correspond, donc une route "/" sans
+# contrainte de host masquerait sinon systématiquement celle d'un site.
+sites:
+    resource: 'routes/sites/*.yaml'
+
+controllers:
+    resource: routing.controllers

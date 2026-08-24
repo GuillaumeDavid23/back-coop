@@ -1,0 +1,13 @@
+{% extends 'sites/seminaire_cac/base.html.twig' %}
+
+{% block title %}Paiement annulé — Séminaire CAC{% endblock %}
+
+{% block body %}
+<section style="background:#FBF9F6;border-bottom:1px solid #EDE4D8">
+    <div style="max-width:700px;margin:0 auto;padding:76px 28px">
+        <h1 style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:28px;color:#1E6685;margin:0 0 14px">Paiement annulé</h1>
+        <p style="font-size:15.5px;line-height:1.7;color:#3A3A3A;margin:0 0 26px">Votre inscription n'a pas été finalisée. Vous pouvez reprendre votre inscription depuis le début.</p>
+        <a href="{{ path('cac_registration_step1') }}" class="sc-btn-primary">Reprendre mon inscription</a>
+    </div>
+</section>
+{% endblock %}

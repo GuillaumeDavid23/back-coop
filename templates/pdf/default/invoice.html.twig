@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+        <style>
+            body {
+                font-family: 'Roboto', sans-serif;
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            .header {
+                text-align: center;
+                margin-bottom: 20px;
+                padding: 20px;
+            }
+            .header img {
+                max-width: 250px;
+            }
+            .content {
+                padding: 20px;
+                margin-bottom: 100px;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+            }
+            th,
+            td {
+                border: 1px solid #000;
+                padding: 10px;
+                text-align: left;
+            }
+            th {
+                background-color: #f2f2f2;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <img src="data:image/png;base64,{{ logo }}" alt="Logo CLCOM">
+        </div>
+        <div class="content">
+            {% set billing = invoice.billingDataSnapshot %}
+            <p style="margin-left: 60%; margin-bottom: 100px; background-color: #ebebeb; padding: 10px">
+                {{ billing.name|default('') }}<br>
+                {% if billing.company is defined and billing.company %}{{ billing.company }}<br>{% endif %}
+                {{ billing.address|default('') }}<br>
+                {{ billing.postalCode|default('') }} {{ billing.city|default('') }}
+            </p>
+
+            <p>
+                <strong>Facture N°:</strong>
+                {{ invoice.number }}
+                du
+                {{ invoice.issuedAt|date('d/m/Y') }}
+                – {{ invoice.site.name }}
+                <br>
+                <strong>Inscription N°:</strong>
+                {{ invoice.registration.id }}
+            </p>
+
+            <table style="margin-top: 70px;">
+                <thead>
+                    <tr>
+                        <th>Libellé</th>
+                        <th>Prix unit.</th>
+                        <th>Qté.</th>
+                        <th>Total HT</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Inscription — {{ invoice.site.name }} ({{ invoice.registration.fareLabel }})</td>
+                        <td>{{ invoice.amountExclTax|number_format(2, ',', ' ') }} €</td>
+                        <td>1</td>
+                        <td>{{ invoice.amountExclTax|number_format(2, ',', ' ') }} €</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p>
+                <strong>MODE DE RÈGLEMENT :</strong>
+                CB – {{ invoice.payment.stripeCheckoutSessionId|default('Manuel') }}
+            </p>
+            <p>
+                FR76 1870 6000 0097 5730 8179 358
+                <br>
+                AGRIFRPP887
+            </p>
+
+            <p style="text-align: right; margin-top: 100px;">
+                <strong>Total montant HT :</strong> {{ invoice.amountExclTax|number_format(2, ',', ' ') }} €<br>
+                <strong>Total montant TVA :</strong> {{ invoice.taxAmount|number_format(2, ',', ' ') }} €<br>
+                <strong>Total montant TTC :</strong> {{ invoice.amountInclTax|number_format(2, ',', ' ') }} €<br>
+                Facture acquittée
+            </p>
+        </div>
+    </body>
+</html>

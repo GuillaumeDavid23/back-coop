@@ -1,0 +1,17 @@
+{% extends '@EasyAdmin/crud/detail.html.twig' %}
+
+{% block main %}
+    {{ parent() }}
+
+    <div style="margin-top: 24px; border: 1px solid #dee2e6; border-radius: 6px; padding: 16px 20px; max-width: 520px;">
+        <div style="font-size: 0.8rem; color: #6c757d; text-transform: uppercase; margin-bottom: 12px;">Documents de facturation</div>
+        <div style="display: flex; justify-content: space-between; padding: 4px 0;">
+            <span>Facture</span>
+            <strong>{{ invoice_number ?? '—' }}</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 4px 0;">
+            <span>Avoir</span>
+            <strong>{{ credit_note_number ?? '—' }}</strong>
+        </div>
+    </div>
+{% endblock %}

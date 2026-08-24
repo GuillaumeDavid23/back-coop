@@ -1,0 +1,33 @@
+Madame, Monsieur,
+
+Nous avons enregistré votre participation au Séminaire IA des jeudi 22 et vendredi 23 octobre 2026 à l'Hôtel du Golf (Le Mont Canisy, 14800 Saint-Arnoult) selon les modalités ci-dessous.
+Si vous constatez une erreur ou un oubli, merci de nous en faire part : {{ contact.name }} au {{ contact.phone }} ou par mail {{ contact.email }}
+
+Rappel de vos coordonnées:
+{{ participant.firstName }} {{ participant.lastName }}
+Cabinet : {{ participant.company }}
+Adresse : {{ participant.address }} {{ participant.postalCode }} {{ participant.city }}
+Mobile : {{ participant.phone }}
+E-mail : {{ participant.email }}
+{% if registration.participants|length > 1 %}
+{% set companion = registration.participants|last %}
+Deuxième participant :
+{{ companion.firstName }} {{ companion.lastName }}{% if companion.company %} — {{ companion.company }}{% endif %}
+
+E-mail : {{ companion.email }}
+{% endif %}
+
+Rappel de votre inscription:
+{{ pricing_label }}
+{% for label, value in answers %}
+{{ label }} : {{ value }}
+{%- endfor %}
+
+MONTANT TOTAL : {{ total_amount }} € TTC
+Votre paiement a été encaissé par CLCOM Academy.
+
+Dans l'attente et le plaisir de vous retrouver, nous vous prions d'agréer l'expression de nos sentiments les meilleurs.
+
+{{ contact.name }}
+{{ contact.phone }}
+{{ contact.email }}

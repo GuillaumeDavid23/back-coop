@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Séminaire CAC — 26 & 27 novembre 2026 — La Coop' des Experts{% endblock %}</title>
+    <link rel="icon" type="image/png" href="/images/sites/seminaire_cac/logo-coop.png">
+    <link rel="apple-touch-icon" href="/images/sites/seminaire_cac/logo-coop.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/sites/seminaire_cac.css">
+    <script type="module" src="/js/csrf-protection.js"></script>
+</head>
+<body>
+<div style="width:100%" id="top">
+
+    <header style="position:sticky;top:0;z-index:40;background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);border-bottom:1px solid #EDE4D8">
+        <div style="max-width:1180px;margin:0 auto;padding:12px 28px;display:flex;align-items:center;justify-content:space-between;gap:24px">
+            <a href="{{ path('cac_home') }}" style="display:flex;align-items:center;gap:12px;text-decoration:none">
+                <img src="/images/sites/seminaire_cac/logo-coop.png" alt="La Coop' des Experts" style="width:38px;height:auto">
+                <span style="display:flex;flex-direction:column;line-height:1">
+                    <span style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:9px;letter-spacing:0.22em;color:#1E6685">SÉMINAIRE</span>
+                    <span style="font-family:'Montserrat',sans-serif;font-weight:300;font-size:26px;letter-spacing:0.02em;color:#1E6685;margin-top:2px">CAC</span>
+                </span>
+            </a>
+            <nav class="sc-main-nav" style="display:flex;align-items:center;gap:28px;font-size:14px;font-weight:500">
+                <a href="{{ path('cac_home') }}#edito" class="sc-nav-link">Édito</a>
+                <a href="{{ path('cac_home') }}#programme" class="sc-nav-link">Programme</a>
+                <a href="{{ path('cac_home') }}#lieu" class="sc-nav-link">Lieu</a>
+                <a href="{{ path('cac_home') }}#inscription" class="sc-nav-link">Tarifs</a>
+                <a href="{{ path('cac_home') }}#cooperateur" class="sc-nav-link">Coopérative</a>
+                <a href="{{ path('cac_home') }}#contact" class="sc-nav-link">Contact</a>
+            </nav>
+            <div style="display:flex;align-items:center;gap:10px;">
+                <button type="button" class="sc-nav-toggle" id="sc-nav-toggle" aria-label="Menu" aria-expanded="false">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                </button>
+                <a href="{{ path('cac_registration_step1') }}" class="sc-btn-primary">Je m'inscris</a>
+            </div>
+        </div>
+    </header>
+    <script>
+        (function () {
+            var toggle = document.getElementById('sc-nav-toggle');
+            var nav = document.querySelector('.sc-main-nav');
+            if (!toggle || !nav) return;
+            toggle.addEventListener('click', function () {
+                var open = nav.classList.toggle('sc-nav-open');
+                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            });
+            nav.querySelectorAll('a').forEach(function (link) {
+                link.addEventListener('click', function () {
+                    nav.classList.remove('sc-nav-open');
+                    toggle.setAttribute('aria-expanded', 'false');
+                });
+            });
+        })();
+    </script>
+
+    {% block body %}{% endblock %}
+
+    <section id="contact" style="border-top:1px solid #EDE4D8">
+        <div style="max-width:1180px;margin:0 auto;padding:64px 28px 68px;display:flex;flex-direction:column;align-items:center;gap:34px">
+            <div style="display:flex;align-items:center;gap:22px;width:100%;max-width:620px">
+                <span style="flex:1;height:2px;background:#D2C1AD"></span>
+                <span style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:15px;letter-spacing:0.4em;color:#1E6685">CONTACT</span>
+                <span style="flex:1;height:2px;background:#D2C1AD"></span>
+            </div>
+            <p style="margin:0;font-size:16px;line-height:1.7;color:#2E2E2E;text-align:center">Pour toute information, merci de contacter Lola BOYER au <a href="tel:0478084274">04 78 08 42 74</a> ou <a href="mailto:l.boyer@clcom.fr">l.boyer@clcom.fr</a></p>
+            <div style="display:flex;align-items:center;justify-content:center;gap:34px">
+                <img src="/images/sites/seminaire_cac/certifopac-logo.png" alt="Certif OPAC" style="height:70px;width:auto">
+                <img src="/images/sites/seminaire_cac/cofrac-logo.png" alt="COFRAC Essais — Accréditation n° 1-5879" style="height:70px;width:auto">
+            </div>
+        </div>
+    </section>
+
+    <footer style="background:#1E6685;color:#fff;margin-top:0">
+        <div class="sc-grid" style="max-width:1180px;margin:0 auto;padding:64px 28px 28px;display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:56px">
+            <div style="display:flex;flex-direction:column;gap:16px">
+                <img src="/images/sites/seminaire_cac/logo-coop.png" alt="La Coop' des Experts" style="width:46px;height:auto;filter:brightness(0) invert(1)">
+                <span style="font-family:'Montserrat',sans-serif;font-weight:300;font-size:26px;letter-spacing:0.02em">SÉMINAIRE CAC</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+                <span style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:12px;letter-spacing:0.18em;opacity:0.7">INFOS PRATIQUES</span>
+                <span style="font-size:14.5px;line-height:1.7;opacity:0.9">26 &amp; 27 novembre 2026<br>Crowne Plaza République<br>10 Place de la République, 75011 Paris</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+                <span style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:12px;letter-spacing:0.18em;opacity:0.7">CONTACT</span>
+                <span style="font-size:14.5px;line-height:1.8;opacity:0.9">Lola BOYER<br><a href="tel:0478084274" style="color:#fff">04 78 08 42 74</a><br><a href="mailto:l.boyer@clcom.fr" style="color:#fff">l.boyer@clcom.fr</a></span>
+            </div>
+        </div>
+        <div style="max-width:1180px;margin:0 auto;padding:20px 28px 34px;border-top:1px solid rgba(255,255,255,0.16);display:flex;justify-content:space-between;gap:20px;font-size:12.5px;opacity:0.7;flex-wrap:wrap">
+            <span>© 2026 La Coop' des Experts — Tous droits réservés</span>
+            <span style="display:flex;gap:18px"><a href="{{ path('cac_legal_notice') }}" style="color:#fff">Mentions légales</a><a href="{{ path('cac_terms') }}" style="color:#fff">Conditions générales de vente</a></span>
+        </div>
+    </footer>
+
+</div>
+</body>
+</html>

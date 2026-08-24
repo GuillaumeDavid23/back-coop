@@ -1,0 +1,167 @@
+{% extends '@EasyAdmin/layout.html.twig' %}
+
+{% block title %}Logs — CLCOM Events{% endblock %}
+
+{% block content_title %}Explorateur de logs{% endblock %}
+
+{% block main %}
+    {% set f = files[currentFile] %}
+
+    <style>
+        .logx-filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin-bottom: 18px; }
+        .logx-filters .fx { display: flex; flex-direction: column; gap: 4px; }
+        .logx-filters label { font-size: .72rem; text-transform: uppercase; color: #6c757d; letter-spacing: .03em; }
+        .logx-filters select, .logx-filters input { padding: 6px 10px; border: 1px solid #dee2e6; border-radius: 6px; font-size: .88rem; background: #fff; }
+        .logx-stats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+        .logx-chip { border: 1px solid #dee2e6; border-radius: 999px; padding: 4px 12px; font-size: .8rem; text-decoration: none; color: inherit; }
+        .logx-chip.on { border-color: #5a6acf; background: #eef0fc; color: #3b48a8; font-weight: 600; }
+        .logx-table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+        .logx-table th { text-align: left; font-size: .72rem; text-transform: uppercase; color: #6c757d; border-bottom: 1px solid #dee2e6; padding: 8px 10px; }
+        .logx-table td { border-bottom: 1px solid #f1f3f5; padding: 8px 10px; vertical-align: top; }
+        .logx-table tr:hover td { background: #fafbfc; }
+        .logx-date { white-space: nowrap; color: #6c757d; font-variant-numeric: tabular-nums; }
+        .logx-msg { font-family: "Cascadia Code", Consolas, monospace; word-break: break-word; }
+        .logx-refs { margin-top: 5px; display: flex; flex-wrap: wrap; gap: 6px; }
+        .logx-ref { background: #f1f3f5; border-radius: 4px; padding: 1px 7px; font-size: .74rem; color: #495057; }
+        .logx-ctx { margin: 8px 0 0; background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 6px;
+                    font-family: "Cascadia Code", Consolas, monospace; font-size: .78rem; white-space: pre-wrap; word-break: break-word; max-height: 340px; overflow: auto; }
+        .logx-toggle { cursor: pointer; background: none; border: 1px solid #dee2e6; border-radius: 4px; font-size: .72rem; padding: 1px 7px; color: #495057; }
+        .logx-empty { padding: 40px; text-align: center; color: #6c757d; }
+        .logx-meta { color: #6c757d; font-size: .8rem; margin-bottom: 14px; }
+    </style>
+
+    {# Toutes les URL passent par l'indirection "/admin?routeName=..." : la route
+       /admin/logs appelée en direct n'a pas de contexte EasyAdmin, donc pas de
+       sidebar (voir DashboardController). #}
+    <form method="get" action="{{ path('admin') }}" class="logx-filters">
+        <input type="hidden" name="routeName" value="admin_logs">
+
+        <div class="fx">
+            <label for="lf-file">Fichier</label>
+            <select id="lf-file" name="file" onchange="this.form.submit()">
+                {% for key, file in files %}
+                    <option value="{{ key }}" {{ key == currentFile ? 'selected' }}>{{ file.label }}{{ file.exists ? '' : ' (absent)' }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="fx">
+            <label for="lf-level">Niveau minimum</label>
+            <select id="lf-level" name="level" onchange="this.form.submit()">
+                {% for level in levels %}
+                    <option value="{{ level }}" {{ level == query.minLevel ? 'selected' }}>{{ level }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="fx">
+            <label for="lf-channel">Canal</label>
+            <select id="lf-channel" name="channel" onchange="this.form.submit()">
+                <option value="">Tous</option>
+                {% for channel in channels %}
+                    <option value="{{ channel }}" {{ channel == query.channel ? 'selected' }}>{{ channel }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="fx">
+            <label for="lf-since">Période</label>
+            <select id="lf-since" name="since" onchange="this.form.submit()">
+                {% set sinceValue = app.request.query.get('since', 'all') %}
+                {% for value, label in {'all': 'Tout', '-1 hour': 'Dernière heure', '-24 hours': '24 dernières heures', '-7 days': '7 derniers jours', '-30 days': '30 derniers jours'} %}
+                    <option value="{{ value }}" {{ value == sinceValue ? 'selected' }}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="fx" style="flex: 1; min-width: 220px;">
+            <label for="lf-q">Recherche (message, contexte, id…)</label>
+            <input id="lf-q" type="search" name="q" value="{{ query.search }}" placeholder="ex : registration_id, cs_test_, numbering.failed">
+        </div>
+
+        <div class="fx">
+            <label for="lf-limit">Lignes</label>
+            <select id="lf-limit" name="limit" onchange="this.form.submit()">
+                {% for limit in limits %}
+                    <option value="{{ limit }}" {{ limit == query.limit ? 'selected' }}>{{ limit }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="fx">
+            <label>&nbsp;</label>
+            <button type="submit" class="btn btn-primary">Filtrer</button>
+        </div>
+    </form>
+
+    <div class="logx-stats">
+        {% for level, count in stats %}
+            {% set isOn = level == query.minLevel %}
+            <a class="logx-chip {{ isOn ? 'on' }}"
+               href="{{ path('admin', app.request.query.all|merge({'routeName': 'admin_logs', 'level': level})) }}">{{ level }} · {{ count }}</a>
+        {% else %}
+            <span class="logx-chip">Aucune entrée</span>
+        {% endfor %}
+    </div>
+
+    <div class="logx-meta">
+        {{ total }} entrée(s) correspondent — {{ entries|length }} affichée(s).
+        {% if f.exists %}Fichier : <code>{{ f.path }}</code> ({{ (f.size / 1024)|round }} Ko{% if f.mtime %}, modifié {{ f.mtime|date('d/m/Y H:i') }}{% endif %}){% else %}Fichier absent.{% endif %}
+        {% if truncated %}<br><strong>Note :</strong> fichier volumineux — seule la fin du fichier a été analysée.{% endif %}
+        &nbsp;·&nbsp;<a href="{{ path('admin', app.request.query.all|merge({'routeName': 'admin_logs', 'raw': 1})) }}" target="_blank" rel="noopener">Voir en texte brut</a>
+    </div>
+
+    {% if entries is empty %}
+        <div class="logx-empty">Aucune ligne ne correspond à ces critères.</div>
+    {% else %}
+        <table class="logx-table">
+            <thead>
+                <tr>
+                    <th style="width: 165px;">Date</th>
+                    <th style="width: 90px;">Niveau</th>
+                    <th style="width: 110px;">Canal</th>
+                    <th>Message</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in entries %}
+                    <tr>
+                        <td class="logx-date">{{ entry.date ? entry.date|date('d/m/Y H:i:s') : '—' }}</td>
+                        <td><span class="badge badge-{{ entry.variant }}">{{ entry.level }}</span></td>
+                        <td><code>{{ entry.channel }}</code></td>
+                        <td>
+                            <div class="logx-msg">{{ entry.message }}</div>
+
+                            {% set refs = entry.businessRefs %}
+                            {% if refs is not empty %}
+                                <div class="logx-refs">
+                                    {% for label, value in refs %}
+                                        <span class="logx-ref">{{ label }} : {{ value }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            {% if entry.hasContext %}
+                                <div style="margin-top: 6px;">
+                                    <button type="button" class="logx-toggle" data-logx-toggle>contexte</button>
+                                </div>
+                                <pre class="logx-ctx" hidden>{{ entry.contextAsJson }}</pre>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    <script>
+        document.querySelectorAll('[data-logx-toggle]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                var pre = button.parentElement.nextElementSibling;
+                if (!pre) { return; }
+                pre.hidden = !pre.hidden;
+                button.textContent = pre.hidden ? 'contexte' : 'masquer';
+            });
+        });
+    </script>
+{% endblock %}

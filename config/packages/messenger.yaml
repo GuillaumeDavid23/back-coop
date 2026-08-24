@@ -1,0 +1,32 @@
+framework:
+    messenger:
+        failure_transport: failed
+
+        transports:
+            # https://symfony.com/doc/current/messenger.html#transport-configuration
+            async:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    # Un worker tué en cours de traitement (crash, fin de cron,
+                    # redémarrage) laisse le message "en cours de livraison".
+                    # 300s au lieu de l'heure par défaut : une facture et son
+                    # mail ne doivent pas attendre 1h à cause d'un worker coupé.
+                    redeliver_timeout: 300
+                retry_strategy:
+                    max_retries: 3
+                    multiplier: 2
+            failed: 'doctrine://default?queue_name=failed'
+            # sync: 'sync://'
+
+        default_bus: messenger.bus.default
+
+        buses:
+            messenger.bus.default: []
+
+        routing:
+            Symfony\Component\Mailer\Messenger\SendEmailMessage: async
+            Symfony\Component\Notifier\Message\ChatMessage: async
+            Symfony\Component\Notifier\Message\SmsMessage: async
+
+            App\Message\GenerateInvoicePdfMessage: async
+            App\Message\SendInvoiceEmailMessage: async

@@ -1,8 +1,23 @@
-RewriteEngine On
+DirectoryIndex disabled
 
-# Sert les fichiers statiques existants directement (css, images...)
-RewriteCond %{REQUEST_FILENAME} -f
-RewriteRule ^ - [L]
+<IfModule mod_negotiation.c>
+    Options -MultiViews
+</IfModule>
 
-# Tout le reste passe par le front controller
-RewriteRule ^ index.php [L]
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    RewriteCond %{REQUEST_URI}::$1 ^(/.+)/(.*)::\2$
+    RewriteRule .? %1 [L]
+
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule .? - [L]
+
+    RewriteRule .? %{ENV:BASE}/index.php [L]
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+    <IfModule mod_alias.c>
+        RedirectMatch 307 ^/$ /index.php/
+    </IfModule>
+</IfModule>

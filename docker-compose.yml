@@ -1,10 +1,11 @@
-# Nom de projet explicite : évite toute collision de noms de conteneurs/réseaux
-# avec un autre projet Docker (ex: le back-office d'un futur site) tournant
-# en parallèle, même si les dossiers portent des noms proches.
-name: back-coop
+# Environnement de développement local UNIQUEMENT. La production tourne sur
+# de l'hébergement mutualisé IONOS sans root/sudo : pas de Docker en prod,
+# déploiement par upload classique (voir README.md).
+name: clcom-events
 
 services:
   app:
+    restart: unless-stopped
     build:
       context: .
       dockerfile: docker/php/Dockerfile
@@ -13,38 +14,63 @@ services:
     volumes:
       - .:/var/www/html
     environment:
-      DB_HOST: db
-      DB_PORT: 3306
-      DB_NAME: ${MYSQL_DATABASE:-back_coop}
-      DB_USER: ${MYSQL_USER:-back_coop}
-      DB_PASS: ${MYSQL_PASSWORD:-back_coop_secret}
-      BASE_URL: http://localhost:${APP_PORT:-8080}
+      APP_ENV: dev
+      DATABASE_URL: "mysql://${MYSQL_USER:-clcom}:${MYSQL_PASSWORD:-clcom_secret}@db:3306/${MYSQL_DATABASE:-clcom_events}?serverVersion=8.0&charset=utf8mb4"
+      MAILER_DSN: "smtp://mailpit:1025"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+
+  worker:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    command: ["php", "bin/console", "messenger:consume", "async", "-vv"]
+    volumes:
+      - .:/var/www/html
+    environment:
+      APP_ENV: dev
+      DATABASE_URL: "mysql://${MYSQL_USER:-clcom}:${MYSQL_PASSWORD:-clcom_secret}@db:3306/${MYSQL_DATABASE:-clcom_events}?serverVersion=8.0&charset=utf8mb4"
+      MAILER_DSN: "smtp://mailpit:1025"
+    depends_on:
+      db:
+        condition: service_healthy
 
   db:
     image: mysql:8
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_secret}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-back_coop}
-      MYSQL_USER: ${MYSQL_USER:-back_coop}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-back_coop_secret}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-clcom_events}
+      MYSQL_USER: ${MYSQL_USER:-clcom}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-clcom_secret}
     volumes:
       - db_data:/var/lib/mysql
-      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     ports:
       - "${DB_PORT:-3307}:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root_secret}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    ports:
+      - "${MAILPIT_UI_PORT:-8025}:8025"
 
   phpmyadmin:
-    image: phpmyadmin
+    image: phpmyadmin:latest
     restart: unless-stopped
     environment:
       PMA_HOST: db
     ports:
       - "${PHPMYADMIN_PORT:-8081}:80"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
 volumes:
   db_data:

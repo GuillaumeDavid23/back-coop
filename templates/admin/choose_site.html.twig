@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Choisir un site — CLCOM Events{% endblock %}
+
+{% block body %}
+<div class="auth-page">
+    <div class="card wide">
+        <div class="topbar">
+            <h1>Bienvenue {{ app.user.email }}</h1>
+            <div>
+                {% if isSuperAdmin %}
+                    <a href="{{ ea_url().setController('App\\Controller\\Admin\\SiteCrudController') }}" class="muted-link">Gérer les sites</a> ·
+                    <a href="{{ ea_url().setController('App\\Controller\\Admin\\UserCrudController') }}" class="muted-link">Gérer les utilisateurs</a> ·
+                    <a href="{{ path('admin_logs') }}" class="muted-link">Logs</a> ·
+                {% endif %}
+                <a href="{{ path('app_logout') }}" class="muted-link">Déconnexion</a>
+            </div>
+        </div>
+
+        <p>Choisissez un site à administrer :</p>
+
+        {% if sites is empty %}
+            <p class="empty">Aucun site ne vous est encore attribué. Contactez un administrateur.</p>
+        {% else %}
+            <div class="site-grid">
+                {% for site in sites %}
+                    <a class="site-card" href="{{ path('admin_site_context', {id: site.id}) }}">
+                        <div class="name">{{ site.name }}</div>
+                        <div class="code">{{ site.domain }}</div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

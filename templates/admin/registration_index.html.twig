@@ -1,0 +1,28 @@
+{% extends '@EasyAdmin/crud/index.html.twig' %}
+
+{% block main %}
+    {% set stats = registration_stats %}
+    <div style="display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 190px; border: 1px solid #dee2e6; border-radius: 6px; padding: 16px 20px;">
+            <div style="font-size: 0.8rem; color: #6c757d; text-transform: uppercase;">Inscrits (confirmés)</div>
+            <div style="font-size: 1.75rem; font-weight: 700;">{{ stats.confirmed }}</div>
+        </div>
+        <div style="flex: 1; min-width: 190px; border: 1px solid #dee2e6; border-radius: 6px; padding: 16px 20px;">
+            <div style="font-size: 0.8rem; color: #6c757d; text-transform: uppercase;">Chiffre d'affaires</div>
+            <div style="font-size: 1.75rem; font-weight: 700;">{{ stats.revenue|number_format(2, ',', ' ') }} €</div>
+        </div>
+        <div style="flex: 1; min-width: 190px; border: 1px solid #dee2e6; border-radius: 6px; padding: 16px 20px;">
+            <div style="font-size: 0.8rem; color: #6c757d; text-transform: uppercase;">En attente de paiement</div>
+            <div style="font-size: 1.75rem; font-weight: 700; color: #b58105;">{{ stats.pending }}</div>
+        </div>
+        <div style="flex: 1; min-width: 190px; border: 1px solid #dee2e6; border-radius: 6px; padding: 16px 20px;">
+            <div style="font-size: 0.8rem; color: #6c757d; text-transform: uppercase;">Désinscrits</div>
+            <div style="font-size: 1.75rem; font-weight: 700; color: #b02a37;">{{ stats.cancelled }}</div>
+            {% if stats.cancelledRevenue > 0 %}
+                <div style="font-size: 0.8rem; color: #6c757d;">{{ stats.cancelledRevenue|number_format(2, ',', ' ') }} € avoirs émis</div>
+            {% endif %}
+        </div>
+    </div>
+
+    {{ parent() }}
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'sites/seminaire_ia/base.html.twig' %}
+
+{% block title %}Inscription confirmée{% endblock %}
+
+{% block body %}
+	<div class="payment-status-card">
+		<div class="payment-status-icon-wrapper bg-success-light">
+			<i class="fas fa-check"></i>
+		</div>
+
+		<h1>{% if participant %}Merci {{ participant.firstName }} !{% else %}Merci !{% endif %}</h1>
+
+		<p>
+			{% if isConfirmed %}
+				Votre paiement a bien été encaissé et votre inscription est enregistrée. Un email de confirmation vient de vous être envoyé{% if participant %} à <strong>{{ participant.email }}</strong>{% endif %}.
+			{% else %}
+				Votre inscription est enregistrée. Votre paiement est en cours de validation par notre prestataire bancaire : dès qu'il est confirmé, un email récapitulatif vous est envoyé{% if participant %} à <strong>{{ participant.email }}</strong>{% endif %}.
+			{% endif %}
+			Pensez à vérifier vos courriers indésirables si vous ne le recevez pas.
+		</p>
+
+		{% if registration %}
+			<div class="recap-box">
+				<div class="recap-line">
+					<span>Référence</span>
+					<strong>N° {{ registration.id }}</strong>
+				</div>
+				<div class="recap-line">
+					<span>Forfait</span>
+					<strong>{{ registration.fareLabel }}</strong>
+				</div>
+				<div class="recap-line">
+					<span>Montant</span>
+					<strong>{{ registration.amountInclTax|number_format(2, ',', ' ') }} € TTC</strong>
+				</div>
+			</div>
+		{% endif %}
+
+		<div class="event-callout">
+			<i class="fas fa-location-dot"></i>
+			<div>
+				<strong>Jeudi 22 et vendredi 23 octobre 2026</strong><br>
+				Hôtel du Golf — Le Mont Canisy, 14800 Saint-Arnoult
+			</div>
+		</div>
+
+		<p class="status-contact">
+			Une question ou un aménagement particulier à signaler ? Contactez Marion BROYER au
+			<a href="tel:0688205812">06 88 20 58 12</a> ou <a href="mailto:mbroyer@clcom.fr">mbroyer@clcom.fr</a>.
+		</p>
+
+		<div class="payment-status-actions">
+			<a href="{{ path('ia_registration_ics') }}" class="btn btn-outline-primary">Ajouter à mon agenda</a>
+			<a href="{{ path('ia_home') }}" class="btn btn-primary text-white">Retour à l'accueil</a>
+		</div>
+	</div>
+{% endblock %}

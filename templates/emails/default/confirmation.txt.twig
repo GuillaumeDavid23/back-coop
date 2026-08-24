@@ -1,0 +1,27 @@
+Madame, Monsieur,
+
+Nous avons enregistré votre participation selon les modalités ci-dessous.
+Si vous constatez une erreur ou un oubli, merci de nous en faire part : {{ contact.name }} au {{ contact.phone }} ou par mail {{ contact.email }}
+
+Rappel de vos coordonnées:
+{{ participant.firstName }} {{ participant.lastName }}
+Cabinet : {{ participant.company }}
+Adresse : {{ participant.address }} {{ participant.postalCode }} {{ participant.city }}
+Mobile : {{ participant.phone }}
+E-mail : {{ participant.email }}
+
+Rappel de votre inscription:
+{{ pricing_label }}
+{% for label, value in answers %}
+{{ label }} : {{ value }}
+{%- endfor %}
+
+MONTANT TOTAL : {{ total_amount }} € TTC
+{% if invoice_enabled %}Vous trouverez votre facture mentionnant les montants de TVA en pièce jointe de ce mail.{% else %}Une facture détaillée mentionnant les montants de TVA vous sera adressée sous quelques jours{% endif %}
+
+Dans l'attente et le plaisir de vous retrouver, nous vous prions d'agréer l'expression de nos sentiments les meilleurs.
+
+{{ contact.name }}
+{{ contact.phone }}
+{{ contact.email }}
+152 grande rue de Saint Clair, 69300 Caluire

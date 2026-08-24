@@ -1,0 +1,284 @@
+{% extends 'sites/seminaire_ia/base.html.twig' %}
+{% form_theme form 'bootstrap_5_layout.html.twig' %}
+
+{% block title %}Inscription{% endblock %}
+
+{% block body %}
+	<div class="container mt-5 mb-5" style="max-width: 1040px">
+		<div class="d-flex justify-content-center w-100 mb-4">
+			<h2 class="edito-title w-100">
+				<span class="line"></span>
+				INSCRIPTION
+				<span class="line"></span>
+			</h2>
+		</div>
+
+		<div class="steps mb-4">
+			<span class="step active"><span class="step-num">1</span>Vos informations</span>
+			<span class="step-bar"></span>
+			<span class="step"><span class="step-num">2</span>Récapitulatif</span>
+			<span class="step-bar"></span>
+			<span class="step"><span class="step-num">3</span>Paiement</span>
+		</div>
+
+		{% if form_errors(form)|length or not form.vars.valid %}
+			<div class="alert alert-danger">
+				{{ form_errors(form) }}
+				{% if not form.vars.valid %}Certains champs doivent être corrigés, ils sont signalés ci-dessous.{% endif %}
+			</div>
+		{% endif %}
+
+		{{ form_start(form, {attr: {class: 'registration-form'}}) }}
+
+		{# ---------- 1. Statut ---------- #}
+		<div class="form-block">
+			<h3>Votre statut</h3>
+			<p class="form-hint">Il détermine le tarif qui vous est appliqué.</p>
+
+			<div class="option-row" role="radiogroup" id="ia-statut-group">
+				{% for choice in form.statut %}
+					<label class="option-label">
+						{# required retiré de l'attribut HTML : le bouton radio est masqué
+						   derrière la carte, et le navigateur refuse de signaler un champ
+						   invisible. La contrainte NotBlank côté serveur reste la
+						   référence, doublée du garde-fou JS à la soumission. #}
+						{{ form_widget(choice, {required: false, attr: {class: 'option-input'}}) }}
+						<span class="statut-pill">{{ choice.vars.label }}</span>
+					</label>
+				{% endfor %}
+			</div>
+			{{ form_errors(form.statut) }}
+
+			<div class="row mt-3 d-none" id="ia-subscription-wrap">
+				<div class="col-md-6">
+					{{ form_row(form.subscriptionNumber) }}
+				</div>
+			</div>
+		</div>
+
+		{# ---------- 2. Forfait ---------- #}
+		<div class="form-block">
+			<h3>Votre forfait</h3>
+			<p class="form-hint" id="ia-fare-hint">Sélectionnez d'abord votre statut pour afficher les tarifs.</p>
+
+			<div class="row g-3" role="radiogroup" id="ia-fare-group">
+				{% for choice in form.fare %}
+					{% set fare = fares[choice.vars.value] %}
+					<div class="col-md-6 col-lg-3">
+						<label class="option-label h-100">
+							{# required retiré de l'attribut HTML : le bouton radio est masqué
+						   derrière la carte, et le navigateur refuse de signaler un champ
+						   invisible. La contrainte NotBlank côté serveur reste la
+						   référence, doublée du garde-fou JS à la soumission. #}
+						{{ form_widget(choice, {required: false, attr: {class: 'option-input'}}) }}
+							<span class="fare-card">
+								<span class="fare-card-head">
+									{{ fare.accommodation ? 'Avec hébergement' : 'Sans hébergement' }}
+								</span>
+								<span class="fare-card-title">{{ fare.shortLabel }}</span>
+								<span class="fare-card-price" data-prices='{{ fare.prices|json_encode }}'>—</span>
+								<span class="fare-card-includes">
+									{% for item in fare.includes %}
+										<span class="d-block">{{ item }}</span>
+									{% endfor %}
+								</span>
+								<span class="fare-card-check"><i class="fas fa-check"></i></span>
+							</span>
+						</label>
+					</div>
+				{% endfor %}
+			</div>
+			{{ form_errors(form.fare) }}
+
+			<div class="row g-3 mt-1">
+				<div class="col-md-6 d-none" id="ia-room-wrap">
+					{{ form_row(form.roomType) }}
+				</div>
+				<div class="col-md-6 d-none" id="ia-evening-wrap">
+					<label class="option-label">
+						{{ form_widget(form.eveningOption, {attr: {class: 'option-input'}}) }}
+						<span class="evening-card">
+							<span class="evening-card-label">Ajouter la soirée du jeudi 22 octobre</span>
+							<span class="evening-card-price" data-prices='{{ eveningPrices|json_encode }}'>—</span>
+						</span>
+					</label>
+				</div>
+			</div>
+		</div>
+
+		{# ---------- 3. Participant ---------- #}
+		<div class="form-block">
+			<h3>Participant</h3>
+			<div class="row g-3">
+				<div class="col-md-4">{{ form_row(form.civility) }}</div>
+				<div class="col-md-4">{{ form_row(form.lastName) }}</div>
+				<div class="col-md-4">{{ form_row(form.firstName) }}</div>
+				<div class="col-md-4">{{ form_row(form.mobile) }}</div>
+				<div class="col-md-4">{{ form_row(form.email) }}</div>
+				<div class="col-md-4">{{ form_row(form.company) }}</div>
+				<div class="col-md-4">{{ form_row(form.address) }}</div>
+				<div class="col-md-4">{{ form_row(form.postalCode) }}</div>
+				<div class="col-md-4">{{ form_row(form.city) }}</div>
+				<div class="col-md-4">{{ form_row(form.category) }}</div>
+			</div>
+		</div>
+
+		{# ---------- 4. Second participant (forfaits 2 personnes) ---------- #}
+		<div class="form-block d-none" id="ia-companion-wrap">
+			<h3 id="ia-companion-title">2<sup>e</sup> participant</h3>
+			<div class="row g-3">
+				<div class="col-md-4">{{ form_row(form.civility2) }}</div>
+				<div class="col-md-4">{{ form_row(form.lastName2) }}</div>
+				<div class="col-md-4">{{ form_row(form.firstName2) }}</div>
+				<div class="col-md-4">{{ form_row(form.mobile2) }}</div>
+				<div class="col-md-4">{{ form_row(form.email2) }}</div>
+				<div class="col-md-4">{{ form_row(form.company2) }}</div>
+				<div class="col-md-4">{{ form_row(form.category2) }}</div>
+			</div>
+		</div>
+
+		{# ---------- 5. Demande ---------- #}
+		<div class="form-block">
+			<h3>Votre demande</h3>
+			<div class="row g-3">
+				<div class="col-md-6">{{ form_row(form.motivation) }}</div>
+				<div class="col-md-6">{{ form_row(form.specialNeeds) }}</div>
+			</div>
+		</div>
+
+		{# ---------- 6. Consentement ---------- #}
+		<div class="form-block consent-block">
+			{{ form_row(form.consentAccepted) }}
+			<p class="rgpd-text mb-0">
+				Les données collectées sont sauvegardées et utilisées afin de vous communiquer plus d'informations concernant le déroulement de l'évènement. En remplissant ce formulaire, j'autorise CLCOM Academy à diffuser mon adresse mail auprès des partenaires présents lors de l'évènement. Vous disposez d'un droit d'accès, de modification, de rectification et de suppression des données vous concernant. Pour toute demande, envoyez un email à <a href="mailto:mbroyer@clcom.fr">mbroyer@clcom.fr</a>. La formation se déroule uniquement en présentiel. Si votre situation nécessite un aménagement particulier à prendre en compte pour la formation (handicap divers, troubles de santé invalidant, autres…), nous vous invitons à nous en faire part par mail à <a href="mailto:mbroyer@clcom.fr">mbroyer@clcom.fr</a>.
+			</p>
+		</div>
+
+		{# Barre de total, collée en bas de l'écran tant que le formulaire est ouvert. #}
+		<div class="summary-bar">
+			<div class="summary-bar-inner">
+				<div class="summary-text">
+					<span class="summary-caption">VOTRE FORFAIT</span>
+					<span class="summary-label" id="ia-price-label">Statut et forfait à sélectionner</span>
+				</div>
+				<div class="summary-price">
+					<span class="summary-ht" id="ia-price-ht">—</span>
+					<span class="summary-ttc" id="ia-price-ttc"></span>
+				</div>
+				<button type="submit" class="btn btn-primary text-white">Étape suivante</button>
+			</div>
+		</div>
+
+		{{ form_end(form) }}
+	</div>
+{% endblock %}
+
+{% block javascripts %}
+	<script>
+		(function () {
+			var form = document.querySelector('.registration-form');
+			if (!form) return;
+
+			var statutInputs = form.querySelectorAll('[name="{{ form.statut.vars.full_name }}"]');
+			var fareInputs = form.querySelectorAll('[name="{{ form.fare.vars.full_name }}"]');
+			var evening = document.getElementById('{{ form.eveningOption.vars.id }}');
+			var subscription = document.getElementById('{{ form.subscriptionNumber.vars.id }}');
+
+			var participants = {{ fares|map(f => f.participants)|json_encode|raw }};
+			var labels = {{ fares|map(f => f.label)|json_encode|raw }};
+
+			var subscriptionWrap = document.getElementById('ia-subscription-wrap');
+			var eveningWrap = document.getElementById('ia-evening-wrap');
+			var roomWrap = document.getElementById('ia-room-wrap');
+			var companionWrap = document.getElementById('ia-companion-wrap');
+			var companionTitle = document.getElementById('ia-companion-title');
+			var fareHint = document.getElementById('ia-fare-hint');
+
+			var priceLabel = document.getElementById('ia-price-label');
+			var priceHt = document.getElementById('ia-price-ht');
+			var priceTtc = document.getElementById('ia-price-ttc');
+
+			function checkedValue(inputs) {
+				for (var i = 0; i < inputs.length; i++) {
+					if (inputs[i].checked) return inputs[i].value;
+				}
+				return null;
+			}
+
+			function formatEuros(amount) {
+				return amount.toLocaleString('fr-FR', {minimumFractionDigits: 0, maximumFractionDigits: 2}) + ' €';
+			}
+
+			function sync() {
+				var statut = checkedValue(statutInputs);
+				var fare = checkedValue(fareInputs);
+
+				// Numéro d'adhésion : obligatoire pour les coopérateurs uniquement.
+				var isCooperateur = statut === 'cooperateur';
+				subscriptionWrap.classList.toggle('d-none', !isCooperateur);
+				subscription.required = isCooperateur;
+				if (!isCooperateur) subscription.value = '';
+
+				// Prix affiché sur chaque carte de forfait, selon le statut choisi.
+				form.querySelectorAll('[data-prices]').forEach(function (el) {
+					var prices = JSON.parse(el.dataset.prices);
+					el.textContent = statut && prices[statut] ? formatEuros(parseFloat(prices[statut])) + ' HT' : '—';
+				});
+				fareHint.textContent = statut
+					? 'Les tarifs affichés correspondent à votre statut.'
+					: "Sélectionnez d'abord votre statut pour afficher les tarifs.";
+
+				// Options dépendantes du forfait.
+				var allowsEvening = fare === 'sans_heb';
+				eveningWrap.classList.toggle('d-none', !allowsEvening);
+				if (!allowsEvening) evening.checked = false;
+
+				var twoPerson = fare !== null && participants[fare] === 2;
+				roomWrap.classList.toggle('d-none', !twoPerson);
+				companionWrap.classList.toggle('d-none', !twoPerson);
+				if (twoPerson) {
+					companionTitle.textContent = fare === 'heb_1ec_acc' ? 'Accompagnant' : '2e Expert-Comptable';
+				}
+
+				// Total.
+				var card = fare ? form.querySelector('[value="' + fare + '"]').closest('.option-label').querySelector('.fare-card-price') : null;
+				if (statut && fare && card) {
+					var total = parseFloat(JSON.parse(card.dataset.prices)[statut]);
+					if (allowsEvening && evening.checked) {
+						var eveningPrices = JSON.parse(document.querySelector('.evening-card-price').dataset.prices);
+						total += parseFloat(eveningPrices[statut]);
+					}
+					priceLabel.textContent = labels[fare] + (allowsEvening && evening.checked ? ' + soirée' : '');
+					priceHt.textContent = formatEuros(total) + ' HT';
+					priceTtc.textContent = 'soit ' + formatEuros(total * 1.2) + ' TTC';
+				} else {
+					priceLabel.textContent = 'Statut et forfait à sélectionner';
+					priceHt.textContent = '—';
+					priceTtc.textContent = '';
+				}
+			}
+
+			form.addEventListener('change', sync);
+			sync();
+
+			// Les boutons radio étant masqués derrière les cartes, la validation
+			// HTML native ne peut pas les signaler : on s'en charge ici.
+			form.addEventListener('submit', function (event) {
+				var missing = null;
+				if (!checkedValue(statutInputs)) {
+					missing = document.getElementById('ia-statut-group');
+				} else if (!checkedValue(fareInputs)) {
+					missing = document.getElementById('ia-fare-group');
+				}
+				if (!missing) return;
+
+				event.preventDefault();
+				missing.classList.add('option-group-invalid');
+				missing.scrollIntoView({behavior: 'smooth', block: 'center'});
+				missing.addEventListener('change', function () {
+					missing.classList.remove('option-group-invalid');
+				}, {once: true});
+			});
+		})();
+	</script>
+{% endblock %}

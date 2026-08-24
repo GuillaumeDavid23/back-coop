@@ -1,7 +1,0 @@
-# Filet de sécurité si le document root IONOS ne peut pas être pointé
-# directement sur le dossier public/ : on bloque l'accès direct à tout
-# sauf public/. Idéalement, configurez plutôt le document root sur public/
-# depuis le panneau IONOS et ce fichier devient inutile.
-RewriteEngine On
-RewriteCond %{REQUEST_URI} !^/public/
-RewriteRule ^(src|config|database|docker)/ - [F,L]

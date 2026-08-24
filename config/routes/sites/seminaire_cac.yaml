@@ -1,0 +1,5 @@
+seminaire_cac:
+    resource: ../../../src/Site/SeminaireCAC/Controller/
+    type: attribute
+    host: '%app.seminaire_cac_domain%'
+    name_prefix: 'cac_'
