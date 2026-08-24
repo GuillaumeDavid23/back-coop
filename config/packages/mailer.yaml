@@ -1,3 +1,8 @@
 framework:
     mailer:
         dsn: '%env(MAILER_DSN)%'
+        # Le détournement des emails vers des adresses de recette n'est pas
+        # configuré ici : "envelope.recipients" n'accepte pas de valeur
+        # dynamique (liste figée au moment de la compilation du conteneur).
+        # Voir App\EventListener\TestRecipientsListener, piloté par
+        # MAILER_TEST_RECIPIENTS.
