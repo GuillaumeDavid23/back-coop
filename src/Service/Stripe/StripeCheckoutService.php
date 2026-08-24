@@ -26,6 +26,7 @@ final class StripeCheckoutService
     {
         $site = $registration->getSite();
         $amountInCents = (int) round(((float) $registration->getAmountInclTax()) * 100);
+        $email = $registration->getPrimaryParticipant()?->getEmail();
 
         $context = [
             'site_id' => $site->getId(),
@@ -37,27 +38,36 @@ final class StripeCheckoutService
 
         $this->logger->info('stripe.checkout.create.start', $context);
 
-        try {
-            $session = $this->client->checkout->sessions->create([
-                'mode' => 'payment',
-                'success_url' => $successUrl,
-                'cancel_url' => $cancelUrl,
-                'line_items' => [[
-                    'quantity' => 1,
-                    'price_data' => [
-                        'currency' => 'eur',
-                        'unit_amount' => $amountInCents,
-                        'product_data' => [
-                            'name' => sprintf('%s — %s', $site->getName(), $registration->getFareLabel()),
-                        ],
+        $payload = [
+            'mode' => 'payment',
+            'success_url' => $successUrl,
+            'cancel_url' => $cancelUrl,
+            'line_items' => [[
+                'quantity' => 1,
+                'price_data' => [
+                    'currency' => 'eur',
+                    'unit_amount' => $amountInCents,
+                    'product_data' => [
+                        'name' => sprintf('%s — %s', $site->getName(), $registration->getFareLabel()),
                     ],
-                ]],
-                'metadata' => [
-                    'site_id' => (string) $site->getId(),
-                    'site_code' => $site->getCode(),
-                    'registration_id' => (string) $registration->getId(),
                 ],
-            ]);
+            ]],
+            'metadata' => [
+                'site_id' => (string) $site->getId(),
+                'site_code' => $site->getCode(),
+                'registration_id' => (string) $registration->getId(),
+            ],
+        ];
+
+        // Préremplit l'email déjà saisi dans le formulaire d'inscription : le
+        // champ est alors affiché en lecture seule par Stripe, ce qui garantit
+        // que le reçu part sur la même adresse que la confirmation d'inscription.
+        if (null !== $email) {
+            $payload['customer_email'] = $email;
+        }
+
+        try {
+            $session = $this->client->checkout->sessions->create($payload);
         } catch (ApiErrorException $e) {
             $this->logger->error('stripe.checkout.create.failed', $context + [
                 'exception' => $e->getMessage(),
