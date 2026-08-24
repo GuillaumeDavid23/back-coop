@@ -882,41 +882,50 @@ a:hover {
 
 /* Bouton d'inscription principal — même traitement que sur clcom-academy.fr :
    pastille pleine cerclée d'un liseré. */
-.btn-inscription-pill {
-    position: relative;
+/* Bouton "pilule" repris à l'identique de clcom-front (pages webinaire) :
+   classes .btn-pill + .btn-demo. Le liseré latéral vient d'un cadre qui ne
+   déclare QUE ses bords gauche et droit — déclarer les quatre bords en rendant
+   le haut et le bas transparents ne donne pas le même tracé aux extrémités. */
+.btn-pill {
     display: inline-block;
-    background: #b9004b;
-    color: #fff !important;
-    border: 1px solid #b9004b;
+    padding: 0.5rem 1.5rem;
     border-radius: 50px;
-    padding: 0.6rem 2rem;
-    font-weight: 400;
+    color: #fff;
+    background-color: #b9004b;
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-decoration: none;
+    border: none;
     font-size: 0.9rem;
-    line-height: 1.5;
-    transition: all 0.25s ease;
 }
 
-/* Liseré en arc aux deux extrémités seulement : un cadre arrondi entoure le
-   bouton, mais ses bords haut et bas sont transparents — ne subsistent que les
-   bords gauche et droit avec la moitié de chaque coin arrondi, ce qui dessine
-   deux parenthèses. */
-.btn-inscription-pill::before {
+.btn-demo {
+    position: relative;
+    z-index: 1;
+    background-color: #b9004b;
+    color: #fff;
+}
+
+.btn-demo::before {
     content: "";
     position: absolute;
-    top: -5px;
-    right: -5px;
-    bottom: -5px;
-    left: -5px;
-    border: 1px solid #b9004b;
-    border-top-color: transparent;
-    border-bottom-color: transparent;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border-left: 1px solid #b9004b;
+    border-right: 1px solid #b9004b;
     border-radius: 50px;
-    pointer-events: none;
+    z-index: -1;
 }
 
-.btn-inscription-pill:hover {
-    background: #fff;
-    color: #b9004b !important;
+.btn-pill:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.btn-demo:hover {
+    background-color: #9e004f !important;
+    color: #fff !important;
 }
 
 /* ------------------------------------------------------------------ *
