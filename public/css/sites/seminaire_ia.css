@@ -883,6 +883,7 @@ a:hover {
 /* Bouton d'inscription principal — même traitement que sur clcom-academy.fr :
    pastille pleine cerclée d'un liseré. */
 .btn-inscription-pill {
+    position: relative;
     display: inline-block;
     background: #b9004b;
     color: #fff !important;
@@ -892,8 +893,25 @@ a:hover {
     font-weight: 400;
     font-size: 0.9rem;
     line-height: 1.5;
-    box-shadow: 0 0 0 3px #fff, 0 0 0 4px #b9004b;
     transition: all 0.25s ease;
+}
+
+/* Liseré en arc aux deux extrémités seulement : un cadre arrondi entoure le
+   bouton, mais ses bords haut et bas sont transparents — ne subsistent que les
+   bords gauche et droit avec la moitié de chaque coin arrondi, ce qui dessine
+   deux parenthèses. */
+.btn-inscription-pill::before {
+    content: "";
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    bottom: -5px;
+    left: -5px;
+    border: 1px solid #b9004b;
+    border-top-color: transparent;
+    border-bottom-color: transparent;
+    border-radius: 50px;
+    pointer-events: none;
 }
 
 .btn-inscription-pill:hover {
