@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Registration;
+use App\Entity\RegistrationStatus;
 use App\Entity\Site;
 use App\Repository\SiteRepository;
 use App\Service\Export\ParticipantExportBuilder;
@@ -66,11 +67,15 @@ final class DashboardController extends AbstractDashboardController
         }
         $this->denyAccessUnlessGranted('SITE_ACCESS', $site);
 
+        // Uniquement les inscriptions payées : l'export sert de liste de
+        // présence et de base de facturation, une inscription en attente de
+        // paiement ou désinscrite n'y a pas sa place.
         $registrations = $this->em->createQueryBuilder()
             ->select('r', 'p')
             ->from(Registration::class, 'r')
             ->leftJoin('r.participants', 'p')->addSelect('p')
             ->andWhere('r.site = :site')->setParameter('site', $site)
+            ->andWhere('r.status = :confirmed')->setParameter('confirmed', RegistrationStatus::CONFIRMED)
             ->orderBy('r.createdAt', 'DESC')
             ->getQuery()
             ->getResult();

@@ -81,7 +81,6 @@ final class ParticipantExportBuilder
     {
         $participantCount = 0;
         $byFare = [];
-        $byStatus = [];
         /** @var array<string, array<string, int>> $byAnswerKey */
         $byAnswerKey = [];
 
@@ -90,9 +89,6 @@ final class ParticipantExportBuilder
             $byFare[$fareLabel] ??= ['count' => 0, 'amount' => 0.0];
             $byFare[$fareLabel]['count']++;
             $byFare[$fareLabel]['amount'] += (float) $registration->getAmountInclTax();
-
-            $statusLabel = AnswerHumanizer::registrationStatus($registration->getStatus()->value);
-            $byStatus[$statusLabel] = ($byStatus[$statusLabel] ?? 0) + 1;
 
             foreach ($registration->getParticipants() as $participant) {
                 $participantCount++;
@@ -109,6 +105,9 @@ final class ParticipantExportBuilder
 
         $rows = [];
         $rows[] = ['Site', $site->getName()];
+        // Le périmètre est écrit noir sur blanc : sans cette mention, un total
+        // plus bas que celui du back-office passerait pour une anomalie.
+        $rows[] = ['Périmètre', 'Inscriptions au paiement confirmé uniquement'];
         $rows[] = ['Total inscriptions', count($registrations)];
         $rows[] = ['Total participants', $participantCount];
         $rows[] = [];
@@ -119,12 +118,6 @@ final class ParticipantExportBuilder
             $rows[] = [$label, $data['count'], $data['amount']];
         }
         $rows[] = [];
-
-        $rows[] = ['RÉPARTITION PAR STATUT D\'INSCRIPTION'];
-        $rows[] = ['Statut', 'Nombre'];
-        foreach ($byStatus as $label => $count) {
-            $rows[] = [$label, $count];
-        }
 
         foreach ($byAnswerKey as $key => $values) {
             $rows[] = [];
