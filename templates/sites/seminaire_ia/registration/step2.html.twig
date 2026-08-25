@@ -72,6 +72,29 @@
 					]},
 				]) %}
 
+				{% set questionnaire_labels = {
+					aiLevel: "Niveau d'utilisation de l'IA",
+					aiFrequency: "Fréquence d'utilisation",
+					paidSubscription: 'Abonnement payant',
+					paidSubscriptionTools: 'Abonnement(s)',
+					claudeUsage: 'Utilisation de Claude au cabinet',
+					claudeLicense: 'Licence Claude pour les ateliers',
+					priorityUseCases: "Cas d'usage prioritaires",
+					dailyTools: 'Outils du quotidien',
+					toolsToBuild: 'Outils à développer',
+					timeConsumingTasks: 'Tâches les plus chronophages',
+				} %}
+				{% set questionnaire_rows = [] %}
+				{% for key, label in questionnaire_labels %}
+					{% if questionnaire[key] is defined and questionnaire[key] is not empty %}
+						{% set value = questionnaire[key] is iterable ? questionnaire[key]|join(', ') : questionnaire[key] %}
+						{% set questionnaire_rows = questionnaire_rows|merge([{label: label, value: value}]) %}
+					{% endif %}
+				{% endfor %}
+				{% if questionnaire_rows is not empty %}
+					{% set recap_groups = recap_groups|merge([{title: 'Questionnaire', rows: questionnaire_rows}]) %}
+				{% endif %}
+
 				{% for group in recap_groups %}
 					<h3 class="text-primary {{ not loop.first ? 'mt-4' : '' }}">{{ group.title }}</h3>
 					{% for row in group.rows %}

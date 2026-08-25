@@ -14,11 +14,13 @@
 		</div>
 
 		<div class="steps mb-4">
-			<span class="step active"><span class="step-num">1</span>Vos informations</span>
+			<a class="step done" href="{{ path('ia_registration_questionnaire') }}"><span class="step-num">✓</span>Questionnaire</a>
 			<span class="step-bar"></span>
-			<span class="step"><span class="step-num">2</span>Récapitulatif</span>
+			<span class="step active"><span class="step-num">2</span>Vos informations</span>
 			<span class="step-bar"></span>
-			<span class="step"><span class="step-num">3</span>Paiement</span>
+			<span class="step"><span class="step-num">3</span>Récapitulatif</span>
+			<span class="step-bar"></span>
+			<span class="step"><span class="step-num">4</span>Paiement</span>
 		</div>
 
 		{% if form_errors(form)|length or not form.vars.valid %}

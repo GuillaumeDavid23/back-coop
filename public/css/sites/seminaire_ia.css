@@ -974,6 +974,21 @@ a:hover {
     color: #b9004b;
 }
 
+/* Étape franchie : cliquable pour revenir en arrière. */
+.steps a.step.done {
+    color: #7f8c8d;
+    text-decoration: none;
+}
+
+.steps a.step.done:hover {
+    color: #b9004b;
+}
+
+.steps .step.done .step-num {
+    border-color: #b9004b;
+    color: #b9004b;
+}
+
 .steps .step-num {
     width: 26px;
     height: 26px;

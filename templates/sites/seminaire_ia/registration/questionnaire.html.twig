@@ -1,0 +1,131 @@
+{% extends 'sites/seminaire_ia/base.html.twig' %}
+{% form_theme form 'bootstrap_5_layout.html.twig' %}
+
+{% block title %}Questionnaire{% endblock %}
+
+{% macro pills(field) %}
+	<div class="option-row">
+		{% for choice in field %}
+			<label class="option-label">
+				{{ form_widget(choice, {required: false, attr: {class: 'option-input'}}) }}
+				<span class="statut-pill">{{ choice.vars.label }}</span>
+			</label>
+		{% endfor %}
+	</div>
+	{{ form_errors(field) }}
+{% endmacro %}
+
+{% block body %}
+	<div class="container mt-5 mb-5" style="max-width: 1040px">
+		<div class="d-flex justify-content-center w-100 mb-4">
+			<h2 class="edito-title w-100">
+				<span class="line"></span>
+				QUESTIONNAIRE
+				<span class="line"></span>
+			</h2>
+		</div>
+
+		<div class="steps mb-4">
+			<span class="step active"><span class="step-num">1</span>Questionnaire</span>
+			<span class="step-bar"></span>
+			<span class="step"><span class="step-num">2</span>Vos informations</span>
+			<span class="step-bar"></span>
+			<span class="step"><span class="step-num">3</span>Récapitulatif</span>
+			<span class="step-bar"></span>
+			<span class="step"><span class="step-num">4</span>Paiement</span>
+		</div>
+
+		<p class="text-center text-muted mb-4" style="font-size: 0.95rem">
+			Vos réponses nous permettent d'adapter les ateliers pratiques à votre niveau et à vos outils.
+			Comptez deux minutes.
+		</p>
+
+		{% if form_errors(form)|length or not form.vars.valid %}
+			<div class="alert alert-danger">
+				{{ form_errors(form) }}
+				{% if not form.vars.valid %}Certaines réponses doivent être complétées, elles sont signalées ci-dessous.{% endif %}
+			</div>
+		{% endif %}
+
+		{{ form_start(form, {attr: {class: 'registration-form'}}) }}
+
+		<div class="form-block">
+			<h3>Niveau</h3>
+			<div class="row g-3">
+				<div class="col-md-6">{{ form_row(form.aiLevel) }}</div>
+				<div class="col-md-6">{{ form_row(form.aiFrequency) }}</div>
+			</div>
+		</div>
+
+		<div class="form-block">
+			<h3>Abonnement ou licence IA</h3>
+			<div class="row g-3">
+				<div class="col-md-6">{{ form_row(form.paidSubscription) }}</div>
+				<div class="col-md-6">{{ form_row(form.claudeUsage) }}</div>
+			</div>
+
+			<div class="mt-3 d-none" id="ia-subscription-tools">
+				{{ form_label(form.paidSubscriptionTools) }}
+				{{ _self.pills(form.paidSubscriptionTools) }}
+			</div>
+
+			<div class="mt-4">
+				{{ form_row(form.claudeLicense) }}
+			</div>
+
+			<div class="event-callout mt-3">
+				<i class="fas fa-circle-info"></i>
+				<div>
+					Les ateliers pratiques nécessitent une licence Claude. Nous vous accompagnerons dans sa création
+					et son activation avant le séminaire. Nous serons également en mesure de vous en mettre une à
+					disposition si vous n'avez pas votre propre licence Claude.
+				</div>
+			</div>
+		</div>
+
+		<div class="form-block">
+			<h3>Outils &amp; cas d'usage</h3>
+
+			<div class="mb-4">
+				{{ form_label(form.priorityUseCases) }}
+				{{ _self.pills(form.priorityUseCases) }}
+			</div>
+
+			<div class="row g-3">
+				<div class="col-md-12">{{ form_row(form.dailyTools) }}</div>
+				<div class="col-md-6">{{ form_row(form.toolsToBuild) }}</div>
+				<div class="col-md-6">{{ form_row(form.timeConsumingTasks) }}</div>
+			</div>
+		</div>
+
+		<div class="text-center mb-5">
+			<button type="submit" class="btn btn-pill btn-demo">Continuer vers l'inscription</button>
+		</div>
+
+		{{ form_end(form) }}
+	</div>
+{% endblock %}
+
+{% block javascripts %}
+	<script>
+		// « Si oui, le(s)quel(s) ? » n'a de sens qu'avec un abonnement payant.
+		(function () {
+			var subscription = document.getElementById('{{ form.paidSubscription.vars.id }}');
+			var tools = document.getElementById('ia-subscription-tools');
+			if (!subscription || !tools) return;
+
+			function sync() {
+				var hasSubscription = subscription.value === 'Oui';
+				tools.classList.toggle('d-none', !hasSubscription);
+				if (!hasSubscription) {
+					tools.querySelectorAll('input:checked').forEach(function (input) {
+						input.checked = false;
+					});
+				}
+			}
+
+			subscription.addEventListener('change', sync);
+			sync();
+		})();
+	</script>
+{% endblock %}

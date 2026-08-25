@@ -32,6 +32,17 @@ final class AnswerHumanizer
         'category' => 'Catégorie',
         'eveningOption' => 'Soirée en option',
         'roomType' => 'Type de chambre',
+        // Questionnaire préalable du Séminaire IA
+        'aiLevel' => "Niveau d'utilisation de l'IA",
+        'aiFrequency' => "Fréquence d'utilisation d'une IA générative",
+        'paidSubscription' => 'Abonnement payant à une IA générative',
+        'paidSubscriptionTools' => 'Abonnement(s) détenu(s)',
+        'claudeUsage' => 'Utilisation de Claude au cabinet',
+        'claudeLicense' => 'Licence Claude pour les ateliers',
+        'priorityUseCases' => "Cas d'usage prioritaires",
+        'dailyTools' => 'Outils utilisés au quotidien',
+        'toolsToBuild' => 'Outils à développer',
+        'timeConsumingTasks' => 'Tâches les plus chronophages',
     ];
 
     public static function key(string $key): string
@@ -51,8 +62,10 @@ final class AnswerHumanizer
             return $value ? 'Oui' : 'Non';
         }
 
+        // Réponses à choix multiples : lisibles telles quelles dans un tableur
+        // ou un mail, là où un encodage JSON afficherait crochets et guillemets.
         if (is_array($value)) {
-            return json_encode($value, JSON_UNESCAPED_UNICODE);
+            return implode(', ', array_map(self::value(...), $value));
         }
 
         return match ($value) {

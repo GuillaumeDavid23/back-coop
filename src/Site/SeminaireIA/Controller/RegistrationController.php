@@ -9,6 +9,7 @@ use App\Repository\PaymentRepository;
 use App\Repository\SiteRepository;
 use App\Service\Stripe\PaymentSynchronizer;
 use App\Service\Stripe\StripeCheckoutService;
+use App\Site\SeminaireIA\Form\QuestionnaireType;
 use App\Site\SeminaireIA\Form\RegistrationStep1Type;
 use App\Site\SeminaireIA\Service\FareCatalog;
 use Doctrine\ORM\EntityManagerInterface;
@@ -24,6 +25,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 final class RegistrationController extends AbstractController
 {
     private const string SESSION_KEY = 'ia_registration_data';
+    private const string QUESTIONNAIRE_KEY = 'ia_questionnaire_data';
     private const string SITE_CODE = 'seminaire_ia';
 
     public function __construct(
@@ -36,9 +38,32 @@ final class RegistrationController extends AbstractController
     ) {
     }
 
+    /**
+     * Questionnaire préalable : sert à calibrer les ateliers pratiques. Placé
+     * avant le formulaire d'inscription à la demande de l'organisatrice.
+     */
+    #[Route('/inscription/questionnaire', name: 'registration_questionnaire', methods: ['GET', 'POST'])]
+    public function questionnaire(Request $request): Response
+    {
+        $form = $this->createForm(QuestionnaireType::class, $request->getSession()->get(self::QUESTIONNAIRE_KEY));
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $request->getSession()->set(self::QUESTIONNAIRE_KEY, $form->getData());
+
+            return $this->redirectToRoute('ia_registration_step1');
+        }
+
+        return $this->render('sites/seminaire_ia/registration/questionnaire.html.twig', ['form' => $form]);
+    }
+
     #[Route('/inscription', name: 'registration_step1', methods: ['GET', 'POST'])]
     public function step1(Request $request): Response
     {
+        if (null === $request->getSession()->get(self::QUESTIONNAIRE_KEY)) {
+            return $this->redirectToRoute('ia_registration_questionnaire');
+        }
+
         $fare = $request->query->get('fare');
         $data = [
             'fare' => null !== FareCatalog::find((string) $fare) ? $fare : null,
@@ -74,6 +99,7 @@ final class RegistrationController extends AbstractController
         }
 
         return $this->render('sites/seminaire_ia/registration/step2.html.twig', [
+            'questionnaire' => $request->getSession()->get(self::QUESTIONNAIRE_KEY, []),
             'data' => $data,
             'fare' => FareCatalog::find($data['fare']),
             'statusLabel' => FareCatalog::statuses()[$data['statut']] ?? $data['statut'],
@@ -134,7 +160,10 @@ final class RegistrationController extends AbstractController
                 'roomType' => $isTwoPerson ? $data['roomType'] : null,
                 'motivation' => $data['motivation'],
                 'specialNeeds' => $data['specialNeeds'] ?? null,
-            ], static fn ($value) => null !== $value && '' !== $value));
+                // Réponses du questionnaire préalable, conservées avec
+                // l'inscription pour préparer les ateliers.
+                ...$request->getSession()->get(self::QUESTIONNAIRE_KEY, []),
+            ], static fn ($value) => null !== $value && '' !== $value && [] !== $value));
 
         $participant = new Participant();
         $participant->setCivility($data['civility'])
@@ -193,6 +222,7 @@ final class RegistrationController extends AbstractController
         $this->paymentSynchronizer->createPendingPayment($registration, $session);
 
         $request->getSession()->remove(self::SESSION_KEY);
+        $request->getSession()->remove(self::QUESTIONNAIRE_KEY);
 
         return $this->redirect($session->url);
     }
