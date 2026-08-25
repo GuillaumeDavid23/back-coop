@@ -30,7 +30,7 @@ class SiteRepository extends ServiceEntityRepository
     /** @return Site[] */
     public function findAccessibleToUser(User $user): array
     {
-        if ($user->isSuperAdmin()) {
+        if ($user->hasAccessToAllSites()) {
             return $this->findBy(['enabled' => true], ['name' => 'ASC']);
         }
 

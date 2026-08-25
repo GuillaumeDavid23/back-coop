@@ -11,7 +11,10 @@
                 {% if isSuperAdmin %}
                     <a href="{{ ea_url().setController('App\\Controller\\Admin\\SiteCrudController') }}" class="muted-link">Gérer les sites</a> ·
                     <a href="{{ ea_url().setController('App\\Controller\\Admin\\UserCrudController') }}" class="muted-link">Gérer les utilisateurs</a> ·
-                    <a href="{{ path('admin_logs') }}" class="muted-link">Logs</a> ·
+                    {# ea_url() et non path() : le gabarit des logs étend la mise
+                       en page d'EasyAdmin, qui exige d'être atteinte par son
+                       indirection — un lien direct produit une erreur 500. #}
+                    <a href="{{ ea_url().setRoute('admin_logs') }}" class="muted-link">Logs</a> ·
                 {% endif %}
                 <a href="{{ path('app_logout') }}" class="muted-link">Déconnexion</a>
             </div>

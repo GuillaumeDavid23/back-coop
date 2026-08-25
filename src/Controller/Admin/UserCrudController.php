@@ -14,12 +14,14 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\EmailField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
- * Réservé à ROLE_SUPER_ADMIN (voir DashboardController::configureMenuItems
- * qui ne montre ce menu qu'à ce rôle, et access_control global sur /admin
- * qui exige déjà ROLE_ADMIN a minima).
+ * Réservé à ROLE_SUPER_ADMIN. Le contrôle est porté par l'attribut ci-dessous
+ * et non par le seul menu : sans lui, tout compte disposant de ROLE_ADMIN
+ * pouvait ouvrir cet écran par son URL et s'octroyer les pleins pouvoirs.
  */
+#[IsGranted('ROLE_SUPER_ADMIN')]
 final class UserCrudController extends AbstractCrudController
 {
     public function __construct(
@@ -47,6 +49,7 @@ final class UserCrudController extends AbstractCrudController
         yield ChoiceField::new('roles')
             ->setChoices([
                 'Administrateur (sites autorisés)' => 'ROLE_ADMIN',
+                'Administrateur de tous les sites' => 'ROLE_ALL_SITES',
                 'Super administrateur (tous droits)' => 'ROLE_SUPER_ADMIN',
             ])
             ->allowMultipleChoices()
@@ -58,7 +61,7 @@ final class UserCrudController extends AbstractCrudController
             ->setHelp('Laisser vide pour ne pas changer le mot de passe existant.');
         yield BooleanField::new('enabled', 'Actif');
         yield AssociationField::new('sites')
-            ->setHelp('Sites que cet utilisateur peut administrer (ignoré pour un super administrateur, qui voit tous les sites).');
+            ->setHelp('Sites que cet utilisateur peut administrer. Sans effet pour un « administrateur de tous les sites » ou un super administrateur, qui les voient tous.');
         yield DateTimeField::new('createdAt')->hideOnForm();
         yield DateTimeField::new('lastLoginAt')->hideOnForm();
     }

@@ -101,6 +101,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return in_array('ROLE_SUPER_ADMIN', $this->getRoles(), true);
     }
 
+    /**
+     * Accès à l'ensemble des sites sans rattachement explicite — sans pour
+     * autant ouvrir l'administration de la plateforme (sites, utilisateurs,
+     * journaux), réservée aux super administrateurs.
+     */
+    public function hasAccessToAllSites(): bool
+    {
+        return $this->isSuperAdmin() || in_array('ROLE_ALL_SITES', $this->getRoles(), true);
+    }
+
     public function getPassword(): string
     {
         return $this->password;
@@ -167,7 +177,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function hasAccessToSite(Site $site): bool
     {
-        return $this->isSuperAdmin() || $this->sites->contains($site);
+        return $this->hasAccessToAllSites() || $this->sites->contains($site);
     }
 
     public function addSite(Site $site): static

@@ -143,6 +143,10 @@ final class CreditNoteCrudController extends AbstractSiteScopedCrudController
         yield IdField::new('id')->hideOnForm();
         yield TextField::new('number', 'Numéro');
         yield AssociationField::new('invoice', 'Facture liée');
+        // Voir InvoiceCrudController : libellé calculé, donc non triable.
+        yield TextField::new('invoice.registration.participantsFullNames', 'Participant(s)')
+            ->setSortable(false)
+            ->hideOnForm();
         yield MoneyField::new('amount', 'Montant')->setCurrency('EUR')->setStoredAsCents(false);
         yield TextareaField::new('reason', 'Motif');
         yield DateTimeField::new('issuedAt', 'Émis le');

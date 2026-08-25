@@ -1,6 +1,8 @@
 security:
     role_hierarchy:
-        ROLE_SUPER_ADMIN: ROLE_ADMIN
+        # Accès à tous les sites, mais pas à l'administration de la plateforme.
+        ROLE_ALL_SITES: ROLE_ADMIN
+        ROLE_SUPER_ADMIN: ROLE_ALL_SITES
 
     password_hashers:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'

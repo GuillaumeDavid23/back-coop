@@ -184,6 +184,11 @@ final class InvoiceCrudController extends AbstractSiteScopedCrudController
         yield IdField::new('id')->hideOnForm();
         yield TextField::new('number', 'Numéro');
         yield AssociationField::new('registration', 'Inscription')->hideOnForm();
+        // Tri désactivé : ce libellé est reconstitué à partir des participants
+        // et ne correspond à aucune colonne triable en base.
+        yield TextField::new('registration.participantsFullNames', 'Participant(s)')
+            ->setSortable(false)
+            ->hideOnForm();
         yield MoneyField::new('amountInclTax', 'Montant TTC')->setCurrency('EUR')->setStoredAsCents(false);
         yield DateTimeField::new('issuedAt', 'Émise le');
         yield TextField::new('pdfPath', 'PDF')->hideOnIndex();

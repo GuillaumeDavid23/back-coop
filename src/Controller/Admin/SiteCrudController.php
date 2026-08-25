@@ -9,8 +9,13 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-/** Réservé à ROLE_SUPER_ADMIN (voir DashboardController::configureMenuItems). */
+/**
+ * Réservé à ROLE_SUPER_ADMIN. La restriction est portée ici et non par le seul
+ * menu : masquer une entrée n'empêche personne d'ouvrir l'URL correspondante.
+ */
+#[IsGranted('ROLE_SUPER_ADMIN')]
 final class SiteCrudController extends AbstractCrudController
 {
     public static function getEntityFqcn(): string
