@@ -1046,20 +1046,16 @@ a:hover {
     margin: 0;
 }
 
-/* Le thème Bootstrap enveloppe le bouton radio dans un "div.form-check" avec
-   son propre libellé : on replie ce bloc (sans display:none, qui empêcherait
-   le navigateur de cibler un champ requis) et on le remplace par la carte. */
-.option-label .form-check {
+/* La case native reste dans le document — pour la validation et la navigation
+   au clavier — mais sort du flux : seule la carte est visible. Ces champs sont
+   rendus avec le thème de formulaire de base (voir les gabarits), afin que la
+   case soit bien l'unique élément associé au <label> qui l'enveloppe. */
+.option-input {
     position: absolute;
+    opacity: 0;
     width: 0;
     height: 0;
     margin: 0;
-    padding: 0;
-    overflow: hidden;
-}
-
-.option-input {
-    opacity: 0;
     pointer-events: none;
 }
 

@@ -1,5 +1,11 @@
 {% extends 'sites/seminaire_ia/base.html.twig' %}
 {% form_theme form 'bootstrap_5_layout.html.twig' %}
+{# Les choix rendus en pastilles utilisent le thème de base : celui de Bootstrap
+   enveloppe chaque case dans son propre <label>, or un <label> imbriqué dans un
+   autre est du HTML invalide et le navigateur cesse d'associer le clic à la
+   case — les pastilles devenaient impossibles à cocher. #}
+{% form_theme form.paidSubscriptionTools 'form_div_layout.html.twig' %}
+{% form_theme form.priorityUseCases 'form_div_layout.html.twig' %}
 
 {% block title %}Questionnaire{% endblock %}
 
@@ -39,6 +45,10 @@
 			Vos réponses nous permettent d'adapter les ateliers pratiques à votre niveau et à vos outils.
 			Comptez deux minutes.
 		</p>
+
+		{% for message in app.flashes('ia_notice') %}
+			<div class="alert alert-warning">{{ message }}</div>
+		{% endfor %}
 
 		{% if form_errors(form)|length or not form.vars.valid %}
 			<div class="alert alert-danger">

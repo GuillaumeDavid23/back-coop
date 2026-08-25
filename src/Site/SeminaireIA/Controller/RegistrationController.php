@@ -61,6 +61,10 @@ final class RegistrationController extends AbstractController
     public function step1(Request $request): Response
     {
         if (null === $request->getSession()->get(self::QUESTIONNAIRE_KEY)) {
+            // Renvoi explicite : sans message, l'utilisateur qui revient ici
+            // après expiration de sa session croit à un bouton défaillant.
+            $this->addFlash('ia_notice', 'Merci de répondre au questionnaire avant de poursuivre votre inscription.');
+
             return $this->redirectToRoute('ia_registration_questionnaire');
         }
 

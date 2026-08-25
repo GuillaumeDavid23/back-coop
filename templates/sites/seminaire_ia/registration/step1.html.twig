@@ -1,5 +1,10 @@
 {% extends 'sites/seminaire_ia/base.html.twig' %}
 {% form_theme form 'bootstrap_5_layout.html.twig' %}
+{# Voir questionnaire.html.twig : le thème de base est indispensable pour les
+   choix rendus en cartes, sous peine de <label> imbriqués non cliquables. #}
+{% form_theme form.statut 'form_div_layout.html.twig' %}
+{% form_theme form.fare 'form_div_layout.html.twig' %}
+{% form_theme form.eveningOption 'form_div_layout.html.twig' %}
 
 {% block title %}Inscription{% endblock %}
 
