@@ -27,13 +27,17 @@ final class SpreadsheetExporter
             $worksheet = $spreadsheet->createSheet();
             $worksheet->setTitle(mb_substr($title, 0, 31));
 
-            $worksheet->fromArray($sheet['headers'], null, 'A1');
+            // strictNullComparison : sans lui, fromArray() compare chaque valeur
+            // à null de façon lâche et laisse donc la cellule vide pour un 0 ou
+            // une chaîne vide. Un décompte nul disparaîtrait du tableau, sans
+            // qu'on puisse distinguer « aucun » d'une donnée manquante.
+            $worksheet->fromArray($sheet['headers'], null, 'A1', true);
             $headerStyle = $worksheet->getStyle('A1:'.$worksheet->getHighestColumn().'1');
             $headerStyle->getFont()->setBold(true);
             $headerStyle->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('E4D8C6');
 
             if ($sheet['rows'] !== []) {
-                $worksheet->fromArray($sheet['rows'], null, 'A2');
+                $worksheet->fromArray($sheet['rows'], null, 'A2', true);
             }
 
             foreach (range('A', $worksheet->getHighestColumn()) as $column) {

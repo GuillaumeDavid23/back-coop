@@ -3,6 +3,23 @@
 {% block main %}
     {{ parent() }}
 
+    {# Réponses libres de l'inscription : questionnaire préalable, options
+       souscrites… Rendues ici plutôt que dans les champs EasyAdmin, car leurs
+       clés varient d'un événement à l'autre. Motif et besoins spécifiques ont
+       déjà leur propre champ au-dessus. #}
+    {% set answers = entity.instance.answers|filter((value, key) => key not in ['motivation', 'specialNeeds', 'consentAccepted'] and value is not empty) %}
+    {% if answers is not empty %}
+        <div style="margin-top: 24px; border: 1px solid #dee2e6; border-radius: 6px; padding: 16px 20px; max-width: 720px;">
+            <div style="font-size: 0.8rem; color: #6c757d; text-transform: uppercase; margin-bottom: 12px;">Réponses et options</div>
+            {% for key, value in answers %}
+                <div style="display: flex; justify-content: space-between; gap: 24px; padding: 6px 0; border-bottom: 1px solid #f1f3f5;">
+                    <span style="color: #6c757d;">{{ key|answer_key }}</span>
+                    <strong style="text-align: right;">{{ value|answer_value }}</strong>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     <div style="margin-top: 24px; border: 1px solid #dee2e6; border-radius: 6px; padding: 16px 20px; max-width: 520px;">
         <div style="font-size: 0.8rem; color: #6c757d; text-transform: uppercase; margin-bottom: 12px;">Documents de facturation</div>
         <div style="display: flex; justify-content: space-between; padding: 4px 0;">

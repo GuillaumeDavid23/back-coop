@@ -76,30 +76,45 @@ final class ParticipantExportBuilder
         return ['headers' => $headers, 'rows' => $rows];
     }
 
-    /** @param Registration[] $registrations */
+    /**
+     * Récapitulatif volontairement court : combien d'inscrits, de quel type, et
+     * combien de personnes à prévoir sur place. Les réponses libres n'y sont pas
+     * ventilées — elles se lisent inscription par inscription dans l'onglet
+     * Participants, et leur décompte ne veut rien dire (« Sur quelles tâches
+     * perdez-vous le plus de temps ? » ne se totalise pas).
+     *
+     * @param Registration[] $registrations
+     */
     private function buildRecapSheet(Site $site, array $registrations): array
     {
         $participantCount = 0;
+        $withCompanion = 0;
         $byFare = [];
-        /** @var array<string, array<string, int>> $byAnswerKey */
-        $byAnswerKey = [];
+        $byType = [];
 
         foreach ($registrations as $registration) {
+            $participants = \count($registration->getParticipants());
+            $participantCount += $participants;
+
+            if ($participants > 1) {
+                ++$withCompanion;
+            }
+
             $fareLabel = $registration->getFareLabel();
-            $byFare[$fareLabel] ??= ['count' => 0, 'amount' => 0.0];
-            $byFare[$fareLabel]['count']++;
+            $byFare[$fareLabel] ??= ['count' => 0, 'participants' => 0, 'amount' => 0.0];
+            ++$byFare[$fareLabel]['count'];
+            $byFare[$fareLabel]['participants'] += $participants;
             $byFare[$fareLabel]['amount'] += (float) $registration->getAmountInclTax();
 
-            foreach ($registration->getParticipants() as $participant) {
-                $participantCount++;
-                $mergedAnswers = array_merge($registration->getAnswers(), $participant->getAnswers());
-                foreach ($mergedAnswers as $key => $value) {
-                    if (in_array($key, self::TYPED_ANSWER_KEYS, true) || $value === null || $value === '') {
-                        continue;
-                    }
-                    $valueLabel = AnswerHumanizer::value($value);
-                    $byAnswerKey[$key][$valueLabel] = ($byAnswerKey[$key][$valueLabel] ?? 0) + 1;
-                }
+            // "Type d'inscrit" au sens de l'organisateur : coopérateur, non
+            // coopérateur, adhérent… Absent des événements dont le tarif ne
+            // dépend pas d'un statut, auquel cas la section n'est pas rendue.
+            $type = $registration->getAnswers()['statut'] ?? null;
+            if (null !== $type && '' !== $type) {
+                $label = AnswerHumanizer::value($type);
+                $byType[$label] ??= ['count' => 0, 'participants' => 0];
+                ++$byType[$label]['count'];
+                $byType[$label]['participants'] += $participants;
             }
         }
 
@@ -108,25 +123,30 @@ final class ParticipantExportBuilder
         // Le périmètre est écrit noir sur blanc : sans cette mention, un total
         // plus bas que celui du back-office passerait pour une anomalie.
         $rows[] = ['Périmètre', 'Inscriptions au paiement confirmé uniquement'];
-        $rows[] = ['Total inscriptions', count($registrations)];
+        $rows[] = ['Total inscriptions', \count($registrations)];
         $rows[] = ['Total participants', $participantCount];
         $rows[] = [];
 
+        if ([] !== $byType) {
+            $rows[] = ["RÉPARTITION PAR TYPE D'INSCRIT"];
+            $rows[] = ['Type', 'Inscriptions', 'Participants'];
+            foreach ($byType as $label => $data) {
+                $rows[] = [$label, $data['count'], $data['participants']];
+            }
+            $rows[] = [];
+        }
+
         $rows[] = ['RÉPARTITION PAR FORFAIT'];
-        $rows[] = ['Forfait', 'Nombre', 'Montant total TTC'];
+        $rows[] = ['Forfait', 'Inscriptions', 'Participants', 'Montant total TTC'];
         foreach ($byFare as $label => $data) {
-            $rows[] = [$label, $data['count'], $data['amount']];
+            $rows[] = [$label, $data['count'], $data['participants'], $data['amount']];
         }
         $rows[] = [];
 
-        foreach ($byAnswerKey as $key => $values) {
-            $rows[] = [];
-            $rows[] = [mb_strtoupper(AnswerHumanizer::key($key))];
-            $rows[] = ['Réponse', 'Nombre'];
-            foreach ($values as $valueLabel => $count) {
-                $rows[] = [$valueLabel, $count];
-            }
-        }
+        $rows[] = ['NOMBRE DE PARTICIPANTS'];
+        $rows[] = ['Inscriptions sans accompagnant', \count($registrations) - $withCompanion];
+        $rows[] = ['Inscriptions avec accompagnant', $withCompanion];
+        $rows[] = ['Total participants attendus', $participantCount];
 
         return ['headers' => ['RÉCAPITULATIF — '.$site->getName()], 'rows' => $rows];
     }
