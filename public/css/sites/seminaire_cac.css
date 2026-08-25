@@ -6,6 +6,12 @@ input, select, textarea { font-family:'Work Sans', sans-serif; font-size:15px; }
 input:focus, select:focus, textarea:focus { outline:2px solid #1E6685; outline-offset:1px; }
 textarea { resize:vertical; }
 
+/* Défilement doux vers les ancres de la page (nav, CTA « Je m'inscris dès maintenant »).
+   Le scroll-margin compense le header sticky, sinon le titre de section finit dessous. */
+html { scroll-behavior: smooth; }
+section[id] { scroll-margin-top: 84px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
 .sc-btn-primary { border:0; cursor:pointer; background:#1E6685; color:#fff; font-family:'Montserrat',sans-serif; font-weight:600; font-size:14px; padding:13px 26px; border-radius:999px; display:inline-block; text-decoration:none; }
 .sc-btn-primary:hover { background:#10465C; color:#fff; text-decoration:none; }
 
@@ -51,6 +57,9 @@ textarea { resize:vertical; }
     padding-right:36px;
 }
 .sc-form textarea { min-height: 90px; }
+.sc-form textarea::placeholder, .sc-form input::placeholder { color:#A79B87; }
+/* Astérisque des champs obligatoires (Symfony pose la classe .required sur le label). */
+.sc-form label.required::after { content:' *'; color:#1E6685; }
 .sc-form .form-widget-checkbox { display:flex; gap:14px; align-items:flex-start; }
 .sc-form input[type="checkbox"] { margin-top:3px; width:16px; height:16px; accent-color:#1E6685; flex:none; }
 .sc-form ul.form-errors { color:#B0453C; font-size:13px; padding-left:0; list-style:none; margin:4px 0 0; }

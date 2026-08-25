@@ -92,17 +92,18 @@ final class RegistrationStep1Type extends AbstractType
             ])
             ->add('motivation', TextareaType::class, [
                 'constraints' => [new Assert\NotBlank()],
-                'label' => "Motif de votre inscription et vos attentes",
+                'label' => "Dans une démarche qualité et afin de répondre au mieux à votre demande, merci de nous indiquer le motif de votre inscription et vos attentes",
             ])
             ->add('specialNeeds', TextareaType::class, [
                 'required' => false,
-                'label' => 'Besoins spécifiques (accessibilité, régime alimentaire, aménagement particulier…)',
+                'label' => 'Avez-vous des besoins spécifiques pour suivre la formation ?',
+                'attr' => ['placeholder' => 'Accessibilité, régime alimentaire, aménagement particulier…'],
             ])
             ->add('cocktailAttendance', ChoiceType::class, [
                 'choices' => ['Oui' => 'oui', 'Non' => 'non'],
                 'placeholder' => '—',
                 'constraints' => [new Assert\NotBlank()],
-                'label' => 'Je confirme ma présence au cocktail apéritif du jeudi à l\'issue de la formation',
+                'label' => 'Je confirme ma présence au cocktail apéritif du mardi à l\'issue de la formation',
             ])
             ->add('consentAccepted', CheckboxType::class, [
                 'constraints' => [new Assert\IsTrue()],

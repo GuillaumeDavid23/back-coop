@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Séminaire CAC — 26 & 27 novembre 2026 — La Coop' des Experts{% endblock %}</title>
+    <title>{% block title %}Séminaire CAC — 24 & 25 novembre 2026 — La Coop' des Experts{% endblock %}</title>
     <link rel="icon" type="image/png" href="/images/sites/seminaire_cac/logo-coop.png">
     <link rel="apple-touch-icon" href="/images/sites/seminaire_cac/logo-coop.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,7 +36,7 @@
                 <button type="button" class="sc-nav-toggle" id="sc-nav-toggle" aria-label="Menu" aria-expanded="false">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                 </button>
-                <a href="{{ path('cac_registration_step1') }}" class="sc-btn-primary">Je m'inscris</a>
+                <a href="{{ path('cac_home') }}#inscription" class="sc-btn-primary">Je m'inscris</a>
             </div>
         </div>
     </header>
@@ -80,10 +80,16 @@
             <div style="display:flex;flex-direction:column;gap:16px">
                 <img src="/images/sites/seminaire_cac/logo-coop.png" alt="La Coop' des Experts" style="width:46px;height:auto;filter:brightness(0) invert(1)">
                 <span style="font-family:'Montserrat',sans-serif;font-weight:300;font-size:26px;letter-spacing:0.02em">SÉMINAIRE CAC</span>
+                {# Mêmes comptes que le pied de page clcom-academy.fr, en blanc pour le fond bleu. #}
+                <div style="display:flex;align-items:center;gap:14px;margin-top:4px">
+                    <a href="https://www.facebook.com/clcomevents" target="_blank" rel="noopener" aria-label="Facebook"><img src="/images/sites/seminaire_cac/facebook.svg" alt="Facebook" height="20"></a>
+                    <a href="https://www.instagram.com/clcomevents/" target="_blank" rel="noopener" aria-label="Instagram"><img src="/images/sites/seminaire_cac/instagram.svg" alt="Instagram" height="20"></a>
+                    <a href="https://www.linkedin.com/company/clcom/" target="_blank" rel="noopener" aria-label="LinkedIn"><img src="/images/sites/seminaire_cac/linkedin.svg" alt="LinkedIn" height="20"></a>
+                </div>
             </div>
             <div style="display:flex;flex-direction:column;gap:12px">
                 <span style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:12px;letter-spacing:0.18em;opacity:0.7">INFOS PRATIQUES</span>
-                <span style="font-size:14.5px;line-height:1.7;opacity:0.9">26 &amp; 27 novembre 2026<br>Crowne Plaza République<br>10 Place de la République, 75011 Paris</span>
+                <span style="font-size:14.5px;line-height:1.7;opacity:0.9">24 &amp; 25 novembre 2026<br>Crowne Plaza République<br>10 Place de la République, 75011 Paris</span>
             </div>
             <div style="display:flex;flex-direction:column;gap:12px">
                 <span style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:12px;letter-spacing:0.18em;opacity:0.7">CONTACT</span>
