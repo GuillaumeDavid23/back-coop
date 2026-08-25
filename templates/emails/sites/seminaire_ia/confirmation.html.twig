@@ -134,13 +134,36 @@
 				{% endif %}
 			</div>
 
-			{% if answers is not empty %}
-				<div class="section-title">Options souscrites</div>
+			{# Deux natures d'information à ne pas confondre : ce que le participant
+			   a réservé, et ce qu'il a répondu au questionnaire de préparation
+			   des ateliers. #}
+			{% set questionnaire_keys = [
+				'aiLevel', 'aiFrequency', 'paidSubscription', 'paidSubscriptionTools',
+				'claudeUsage', 'claudeLicense', 'dailyTools', 'priorityUseCases',
+				'toolsToBuild', 'timeConsumingTasks',
+			] %}
+			{% set skipped_keys = ['motivation', 'specialNeeds', 'consentAccepted'] %}
+
+			{% set booking = registration.answers|filter((v, k) => k not in questionnaire_keys and k not in skipped_keys and v is not empty) %}
+			{% if booking is not empty %}
+				<div class="section-title">Détail de votre réservation</div>
 				<div class="info-block">
-					{% for label, value in answers %}
+					{% for key, value in booking %}
 						<div>
-							<span class="info-label">{{ label }} :</span>
-							{{ value }}</div>
+							<span class="info-label">{{ key|answer_key }} :</span>
+							{{ value|answer_value }}</div>
+					{% endfor %}
+				</div>
+			{% endif %}
+
+			{% set survey = registration.answers|filter((v, k) => k in questionnaire_keys and v is not empty) %}
+			{% if survey is not empty %}
+				<div class="section-title">Vos réponses au questionnaire</div>
+				<div class="info-block">
+					{% for key, value in survey %}
+						<div>
+							<span class="info-label">{{ key|answer_key }} :</span>
+							{{ value|answer_value }}</div>
 					{% endfor %}
 				</div>
 			{% endif %}

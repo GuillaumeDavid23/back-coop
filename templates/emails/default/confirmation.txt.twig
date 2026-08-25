@@ -14,7 +14,7 @@ Rappel de votre inscription:
 {{ pricing_label }}
 {% for label, value in answers %}
 {{ label }} : {{ value }}
-{%- endfor %}
+{% endfor %}
 
 MONTANT TOTAL : {{ total_amount }} € TTC
 {% if invoice_enabled %}Vous trouverez votre facture mentionnant les montants de TVA en pièce jointe de ce mail.{% else %}Une facture détaillée mentionnant les montants de TVA vous sera adressée sous quelques jours{% endif %}

@@ -19,9 +19,20 @@ E-mail : {{ companion.email }}
 
 Rappel de votre inscription:
 {{ pricing_label }}
-{% for label, value in answers %}
-{{ label }} : {{ value }}
-{%- endfor %}
+{% set questionnaire_keys = [
+    'aiLevel', 'aiFrequency', 'paidSubscription', 'paidSubscriptionTools',
+    'claudeUsage', 'claudeLicense', 'dailyTools', 'priorityUseCases',
+    'toolsToBuild', 'timeConsumingTasks',
+] %}
+{% set skipped_keys = ['motivation', 'specialNeeds', 'consentAccepted'] %}
+{% for key, value in registration.answers|filter((v, k) => k not in questionnaire_keys and k not in skipped_keys and v is not empty) %}
+{{ key|answer_key }} : {{ value|answer_value }}
+{% endfor %}
+
+Vos réponses au questionnaire:
+{% for key, value in registration.answers|filter((v, k) => k in questionnaire_keys and v is not empty) %}
+{{ key|answer_key }} : {{ value|answer_value }}
+{% endfor %}
 
 MONTANT TOTAL : {{ total_amount }} € TTC
 Votre paiement a été encaissé par CLCOM Academy.
