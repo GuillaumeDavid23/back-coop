@@ -62,7 +62,7 @@
 			<h3>Forfait</h3>
 			<p class="form-hint" id="ia-fare-hint">Merci de sélectionner votre forfait</p>
 
-			<div class="row g-3 fare-group-locked" role="radiogroup" id="ia-fare-group">
+			<div class="row g-3 fare-group-locked" role="radiogroup" id="ia-fare-group" data-required-choice="Merci de sélectionner un forfait pour continuer.">
 				{% for choice in form.fare %}
 					{% set fare = fares[choice.vars.value] %}
 					<div class="col-md-6 col-lg-3">
@@ -107,7 +107,6 @@
 					{{ form_label(form.eveningGuests) }}
 					<span class="evening-price d-block mb-2" data-prices='{{ eveningPrices|json_encode }}'>-</span>
 					{{ form_widget(form.eveningGuests) }}
-					{{ form_help(form.eveningGuests) }}
 					{{ form_errors(form.eveningGuests) }}
 				</div>
 			</div>
@@ -137,10 +136,12 @@
 				<div class="col-md-4">{{ form_row(form.civility2) }}</div>
 				<div class="col-md-4">{{ form_row(form.lastName2) }}</div>
 				<div class="col-md-4">{{ form_row(form.firstName2) }}</div>
-				<div class="col-md-4">{{ form_row(form.mobile2) }}</div>
-				<div class="col-md-4">{{ form_row(form.email2) }}</div>
-				<div class="col-md-4">{{ form_row(form.company2) }}</div>
-				<div class="col-md-4">{{ form_row(form.category2) }}</div>
+				{# Coordonnées professionnelles : un accompagnant n'en a pas à donner,
+				   elles ne concernent que le forfait « 2 Experts-Comptables ». #}
+				<div class="col-md-4 ia-companion-contact">{{ form_row(form.mobile2) }}</div>
+				<div class="col-md-4 ia-companion-contact">{{ form_row(form.email2) }}</div>
+				<div class="col-md-4 ia-companion-contact">{{ form_row(form.company2) }}</div>
+				<div class="col-md-4 ia-companion-contact">{{ form_row(form.category2) }}</div>
 			</div>
 		</div>
 
@@ -200,6 +201,7 @@
 			var roomWrap = document.getElementById('ia-room-wrap');
 			var companionWrap = document.getElementById('ia-companion-wrap');
 			var companionTitle = document.getElementById('ia-companion-title');
+			var companionContacts = form.querySelectorAll('.ia-companion-contact');
 			var fareGroup = document.getElementById('ia-fare-group');
 			var fareHint = document.getElementById('ia-fare-hint');
 
@@ -255,7 +257,12 @@
 				// Options dépendantes du forfait.
 				var allowsEvening = fare === 'sans_heb';
 				eveningWrap.classList.toggle('d-none', !allowsEvening);
-				if (!allowsEvening) eveningGuests.value = '0';
+				// La liste s'ouvre sur "Sélectionner" : elle n'est exigée que lorsqu'elle
+				// est visible, le navigateur refusant de signaler un champ masqué.
+				// Ailleurs elle est remise à vide - et non à 0 - pour que le choix
+				// reste à faire si l'on revient sur le forfait sans hébergement.
+				eveningGuests.required = allowsEvening;
+				if (!allowsEvening) eveningGuests.value = '';
 
 				var guests = parseInt(eveningGuests.value, 10) || 0;
 				var eveningPriceEl = document.querySelector('.evening-price');
@@ -267,11 +274,22 @@
 					: '-';
 
 				var twoPerson = fare !== null && participants[fare] === 2;
+				var isCompanion = fare === 'heb_1ec_acc';
 				roomWrap.classList.toggle('d-none', !twoPerson);
 				companionWrap.classList.toggle('d-none', !twoPerson);
 				if (twoPerson) {
-					companionTitle.textContent = fare === 'heb_1ec_acc' ? 'Accompagnant' : '2e Expert-Comptable';
+					companionTitle.textContent = isCompanion ? 'Accompagnant' : '2e Expert-Comptable';
 				}
+
+				// D'un accompagnant on ne demande que l'identité. Ses coordonnées
+				// professionnelles sont vidées en même temps qu'elles disparaissent,
+				// sinon une saisie faite pour « 2 EC » resterait dans le récapitulatif.
+				companionContacts.forEach(function (column) {
+					column.classList.toggle('d-none', isCompanion);
+					if (isCompanion) {
+						column.querySelectorAll('input, select').forEach(function (field) { field.value = ''; });
+					}
+				});
 
 				// Total.
 				var card = fare ? form.querySelector('[value="' + fare + '"]').closest('.option-label').querySelector('.fare-card-price') : null;
@@ -290,21 +308,11 @@
 				}
 			}
 
+			// Le garde-fou de sélection du forfait est mutualisé (voir base.html.twig) :
+			// les boutons radio étant masqués derrière les cartes, la validation HTML
+			// native ne peut pas les signaler.
 			form.addEventListener('change', sync);
 			sync();
-
-			// Le forfait est rendu en cartes, ses boutons radio sont donc masqués :
-			// la validation HTML native ne peut pas les signaler, on s'en charge ici.
-			form.addEventListener('submit', function (event) {
-				if (!statut.value || checkedValue(fareInputs)) return;
-
-				event.preventDefault();
-				fareGroup.classList.add('option-group-invalid');
-				fareGroup.scrollIntoView({behavior: 'smooth', block: 'center'});
-				fareGroup.addEventListener('change', function () {
-					fareGroup.classList.remove('option-group-invalid');
-				}, {once: true});
-			});
 		})();
 	</script>
 {% endblock %}

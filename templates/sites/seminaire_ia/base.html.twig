@@ -91,6 +91,55 @@
             });
         })();
 
+        // Choix obligatoires rendus en pastilles ou en cartes : leur case est
+        // masquée, le navigateur refuse donc d'afficher sa bulle de validation.
+        // On la reproduit - même alerte lisible, et on amène l'utilisateur sur le
+        // champ resté vide.
+        (function () {
+            var form = document.querySelector('.registration-form');
+            if (!form) return;
+
+            var groups = form.querySelectorAll('[data-required-choice]');
+            if (!groups.length) return;
+
+            function alertFor(group) {
+                var alert = group.nextElementSibling;
+                if (alert && alert.classList.contains('field-alert')) return alert;
+
+                alert = document.createElement('p');
+                alert.className = 'field-alert';
+                alert.innerHTML = '<i class="fas fa-circle-exclamation"></i>';
+                alert.appendChild(document.createTextNode(group.dataset.requiredChoice));
+                group.parentNode.insertBefore(alert, group.nextSibling);
+
+                return alert;
+            }
+
+            groups.forEach(function (group) {
+                group.addEventListener('change', function () {
+                    if (!group.querySelector('.option-input:checked')) return;
+                    group.classList.remove('option-group-invalid');
+                    var alert = group.nextElementSibling;
+                    if (alert && alert.classList.contains('field-alert')) alert.remove();
+                });
+            });
+
+            form.addEventListener('submit', function (event) {
+                for (var i = 0; i < groups.length; i++) {
+                    var group = groups[i];
+                    // Un choix caché (question conditionnelle) n'est pas à remplir.
+                    if (group.closest('.d-none') || group.querySelector('.option-input:checked')) continue;
+
+                    event.preventDefault();
+                    group.classList.add('option-group-invalid');
+                    alertFor(group);
+                    group.scrollIntoView({behavior: 'smooth', block: 'center'});
+
+                    return;
+                }
+            });
+        })();
+
         // Bouton "retour en haut".
         (function () {
             var button = document.getElementById('backToTop');

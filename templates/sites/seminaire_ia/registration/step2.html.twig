@@ -54,12 +54,12 @@
 				] %}
 				{% if isTwoPerson %}
 					{% set recap_groups = recap_groups|merge([
-						{title: data.fare == 'heb_1ec_acc' ? 'Accompagnant' : '2ème Participant', rows: [
+						{title: isCompanion ? 'Accompagnant' : '2ème Participant', rows: [
 							{label: 'Civilité', value: civilities[data.civility2]|default('-')},
 							{label: 'Nom', value: data.lastName2},
 							{label: 'Prénom', value: data.firstName2},
-							{label: 'Mobile', value: data.mobile2},
-							{label: 'Email', value: data.email2},
+							not isCompanion ? {label: 'Mobile', value: data.mobile2} : null,
+							not isCompanion ? {label: 'Email', value: data.email2} : null,
 							data.company2 ? {label: 'Cabinet', value: data.company2} : null,
 							data.category2 ? {label: 'Catégorie', value: categories[data.category2]|default('-')} : null,
 						]|filter(r => r is not null)},
@@ -107,7 +107,7 @@
 
 				<form method="post" action="{{ path('ia_registration_pay') }}" class="mt-4">
 					<input type="hidden" name="_token" value="{{ csrf_token('ia_payment') }}" data-controller="csrf-protection">
-					<div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+					<div class="d-flex align-items-center justify-content-start gap-3 flex-wrap">
 						<a href="{{ path('ia_registration_step1') }}" class="btn btn-outline-primary">Précédent</a>
 						<button type="submit" class="btn btn-primary text-white">Payer {{ amountInclTax|number_format(2, ',', ' ') }} € TTC</button>
 					</div>

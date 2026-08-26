@@ -115,6 +115,7 @@ final class RegistrationController extends AbstractController
             'amountInclTax' => $amounts['inclTax'],
             'eveningGuests' => $amounts['eveningGuests'],
             'isTwoPerson' => FareCatalog::isTwoPerson($data['fare']),
+            'isCompanion' => FareCatalog::isCompanionFare($data['fare']),
         ]);
     }
 
@@ -194,12 +195,16 @@ final class RegistrationController extends AbstractController
         $this->em->persist($participant);
 
         if ($isTwoPerson) {
+            // Un accompagnant ne donne que son identité : ses coordonnées
+            // professionnelles ne sont pas demandées (voir RegistrationStep1Type),
+            // d'où l'email vide - la colonne ne peut pas l'être et seul le
+            // participant principal reçoit la confirmation.
             $companion = new Participant();
             $companion->setCivility($data['civility2'])
                 ->setFirstName($data['firstName2'])
                 ->setLastName($data['lastName2'])
-                ->setEmail($data['email2'])
-                ->setPhone($data['mobile2'])
+                ->setEmail((string) ($data['email2'] ?? ''))
+                ->setPhone($data['mobile2'] ?? null)
                 ->setCompany($data['company2'] ?? null)
                 ->setStatus($data['category2'] ?? null)
                 ->setConsentAccepted((bool) $data['consentAccepted'])

@@ -119,6 +119,16 @@ final class FareCatalog
     }
 
     /**
+     * Forfait « 1 EC + 1 accompagnant » : le second inscrit n'est pas un
+     * professionnel, on ne lui demande que son identité (ni mobile, ni email,
+     * ni cabinet, ni catégorie - demande de la cliente).
+     */
+    public static function isCompanionFare(string $fareCode): bool
+    {
+        return 'heb_1ec_acc' === $fareCode;
+    }
+
+    /**
      * Montant HT du forfait pour un statut, soirée comprise le cas échéant. La
      * soirée est facturée par convive : le participant peut venir accompagné.
      */

@@ -21,7 +21,11 @@ use Symfony\Component\Validator\Constraints as Assert;
  *  - "cooperateur" : le numéro de facture d'adhésion (FA1234567) devient
  *    obligatoire quand Statut = Coopérateur ;
  *  - "two_person"  : le bloc participant 2 et le type de chambre deviennent
- *    obligatoires pour les forfaits à deux personnes.
+ *    obligatoires pour les forfaits à deux personnes ;
+ *  - "second_expert": mobile et email du participant 2, exigés seulement quand
+ *    ce second inscrit est un expert-comptable et non un accompagnant ;
+ *  - "evening"     : le nombre de convives à la soirée, exigé pour le seul
+ *    forfait qui la propose en option.
  * L'affichage conditionnel côté navigateur est géré dans step1.html.twig - la
  * validation serveur reste la seule source de vérité.
  */
@@ -90,11 +94,14 @@ final class RegistrationStep1Type extends AbstractType
                     range(0, FareCatalog::MAX_EVENING_GUESTS),
                 ),
                 // Pas d'option "data" ici : elle écraserait la valeur restituée
-                // au retour du récapitulatif. Sans choix présélectionné, le
-                // navigateur retient la première entrée, soit 0.
-                'constraints' => [new Assert\NotNull()],
+                // au retour du récapitulatif. Le placeholder évite qu'un "0" se
+                // retrouve choisi par défaut, la quantité doit être décidée.
+                'placeholder' => 'Sélectionner',
+                'constraints' => [new Assert\NotNull(
+                    message: 'Merci d\'indiquer le nombre de personnes pour la soirée du jeudi.',
+                    groups: ['evening'],
+                )],
                 'label' => 'Soirée du jeudi 22 octobre',
-                'help' => 'Nombre de personnes, accompagnant compris.',
             ])
             ->add('roomType', ChoiceType::class, [
                 'choices' => ['1 grand lit' => 'grand_lit', '2 lits séparés' => 'lits_separes'],
@@ -178,13 +185,13 @@ final class RegistrationStep1Type extends AbstractType
             ])
             ->add('mobile2', TelType::class, [
                 'required' => false,
-                'constraints' => [new Assert\NotBlank(groups: ['two_person'])],
+                'constraints' => [new Assert\NotBlank(groups: ['second_expert'])],
                 'label' => 'Mobile',
                 'attr' => self::NO_AUTOFILL_ATTR,
             ])
             ->add('email2', EmailType::class, [
                 'required' => false,
-                'constraints' => [new Assert\NotBlank(groups: ['two_person']), new Assert\Email()],
+                'constraints' => [new Assert\NotBlank(groups: ['second_expert']), new Assert\Email()],
                 'label' => 'Email',
                 'attr' => self::NO_AUTOFILL_ATTR,
             ])
@@ -222,12 +229,22 @@ final class RegistrationStep1Type extends AbstractType
                 /** @var array{statut?: ?string, fare?: ?string} $data */
                 $data = $form->getData() ?? [];
 
+                $fare = (string) ($data['fare'] ?? '');
+
                 $groups = ['Default'];
                 if ('cooperateur' === ($data['statut'] ?? null)) {
                     $groups[] = 'cooperateur';
                 }
-                if (FareCatalog::isTwoPerson((string) ($data['fare'] ?? ''))) {
+                if (FareCatalog::isTwoPerson($fare)) {
                     $groups[] = 'two_person';
+                    // L'accompagnant ne renseigne que son identité, contrairement
+                    // au second expert-comptable.
+                    if (!FareCatalog::isCompanionFare($fare)) {
+                        $groups[] = 'second_expert';
+                    }
+                }
+                if (FareCatalog::allowsEveningOption($fare)) {
+                    $groups[] = 'evening';
                 }
 
                 return $groups;

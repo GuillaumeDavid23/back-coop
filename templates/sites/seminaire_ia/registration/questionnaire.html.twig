@@ -9,8 +9,10 @@
 
 {% block title %}Questionnaire{% endblock %}
 
-{% macro pills(field) %}
-	<div class="option-row">
+{# requiredMessage : message repris par le garde-fou de base.html.twig quand
+   aucune pastille n'est cochée, les cases à cocher étant masquées. #}
+{% macro pills(field, requiredMessage) %}
+	<div class="option-row{{ field.vars.errors|length ? ' option-group-invalid' : '' }}"{% if requiredMessage %} data-required-choice="{{ requiredMessage }}"{% endif %}>
 		{% for choice in field %}
 			<label class="option-label">
 				{{ form_widget(choice, {required: false, attr: {class: 'option-input'}}) }}
@@ -18,7 +20,11 @@
 			</label>
 		{% endfor %}
 	</div>
-	{{ form_errors(field) }}
+	{# Une alerte plutôt que la liste à puces du thème de formulaire de base :
+	   une question obligatoire laissée vide doit se voir. #}
+	{% for error in field.vars.errors %}
+		<p class="field-alert"><i class="fas fa-circle-exclamation"></i>{{ error.message }}</p>
+	{% endfor %}
 {% endmacro %}
 
 {% block body %}
@@ -71,7 +77,7 @@
 
 			<div class="mt-3 d-none" id="ia-subscription-tools">
 				{{ form_label(form.paidSubscriptionTools) }}
-				{{ _self.pills(form.paidSubscriptionTools) }}
+				{{ _self.pills(form.paidSubscriptionTools, 'Merci de préciser au moins un abonnement.') }}
 			</div>
 
 			<div class="mt-4">
@@ -93,7 +99,7 @@
 
 			<div class="mb-4">
 				{{ form_label(form.priorityUseCases) }}
-				{{ _self.pills(form.priorityUseCases) }}
+				{{ _self.pills(form.priorityUseCases, "Merci de sélectionner au moins un cas d'usage.") }}
 			</div>
 
 			<div class="row g-3">

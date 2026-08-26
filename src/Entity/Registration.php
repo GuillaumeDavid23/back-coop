@@ -208,10 +208,12 @@ class Registration
 
     public function getParticipantsEmails(): string
     {
-        return implode(', ', array_map(
+        // Certains inscrits n'ont pas d'email à eux (un accompagnant, par
+        // exemple) : inutile de les faire apparaître comme une entrée vide.
+        return implode(', ', array_filter(array_map(
             static fn (Participant $participant) => $participant->getEmail(),
             $this->participants->toArray(),
-        ));
+        )));
     }
 
     public function addParticipant(Participant $participant): static
