@@ -53,7 +53,7 @@ final class DashboardController extends AbstractDashboardController
         // Redirection via AdminUrlGenerator (pas redirectToRoute) : c'est ce
         // qui fait passer la requête par l'indirection "/admin?routeName=..."
         // d'EasyAdmin, seule façon d'obtenir le layout (menu/sidebar) sur une
-        // route Symfony classique — voir AdminRouterSubscriber, qui ignore
+        // route Symfony classique - voir AdminRouterSubscriber, qui ignore
         // toute route qui n'a pas été générée par son propre chargeur.
         return $this->redirect($this->adminUrlGenerator->setController(RegistrationCrudController::class)->generateUrl());
     }

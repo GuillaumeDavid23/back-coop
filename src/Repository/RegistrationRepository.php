@@ -25,7 +25,7 @@ class RegistrationRepository extends ServiceEntityRepository
     }
 
     /**
-     * Compteurs + CA par statut — voir RegistrationCrudController (bandeau de
+     * Compteurs + CA par statut - voir RegistrationCrudController (bandeau de
      * stats au-dessus du tableau). Le CA ne compte que les inscriptions
      * confirmées : une inscription en attente n'est pas encaissée, une
      * désinscription a fait l'objet d'un avoir.

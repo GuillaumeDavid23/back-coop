@@ -40,7 +40,7 @@ final class QuestionnaireType extends AbstractType
                     "J'utilise ponctuellement",
                     "J'utilise régulièrement et je crée déjà des outils",
                 ]),
-                'placeholder' => '—',
+                'placeholder' => '-',
                 'constraints' => [new Assert\NotBlank()],
             ])
             ->add('aiFrequency', ChoiceType::class, [
@@ -51,7 +51,7 @@ final class QuestionnaireType extends AbstractType
                     'Chaque semaine',
                     'Chaque jour',
                 ]),
-                'placeholder' => '—',
+                'placeholder' => '-',
                 'constraints' => [new Assert\NotBlank()],
             ])
 
@@ -59,7 +59,7 @@ final class QuestionnaireType extends AbstractType
             ->add('paidSubscription', ChoiceType::class, [
                 'label' => "Disposez-vous d'un abonnement payant à une IA générative ?",
                 'choices' => self::choices(['Non', 'Oui']),
-                'placeholder' => '—',
+                'placeholder' => '-',
                 'constraints' => [new Assert\NotBlank()],
             ])
             ->add('paidSubscriptionTools', ChoiceType::class, [
@@ -73,13 +73,13 @@ final class QuestionnaireType extends AbstractType
             ->add('claudeUsage', ChoiceType::class, [
                 'label' => 'Utilisez-vous déjà Claude au cabinet ?',
                 'choices' => self::choices(['Non', 'Oui, version gratuite', 'Oui, version payante']),
-                'placeholder' => '—',
+                'placeholder' => '-',
                 'constraints' => [new Assert\NotBlank()],
             ])
             ->add('claudeLicense', ChoiceType::class, [
                 'label' => "Pour les ateliers, disposez-vous de votre propre licence Claude ou souhaitez-vous qu'on vous en mette une à disposition ?",
                 'choices' => self::choices(["J'ai ma licence", "J'ai besoin qu'on m'en prête une"]),
-                'placeholder' => '—',
+                'placeholder' => '-',
                 'constraints' => [new Assert\NotBlank()],
             ])
 

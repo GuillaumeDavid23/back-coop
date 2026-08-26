@@ -18,7 +18,7 @@ use Symfony\Component\Messenger\MessageBusInterface;
 /**
  * Rattrapage : retrouve les inscriptions payées qui n'ont pas de facture et
  * relance leur génération. Utile quand le handler a échoué (extension PHP
- * manquante, PDF en erreur, message perdu…) — la numérotation reste continue
+ * manquante, PDF en erreur, message perdu…) - la numérotation reste continue
  * puisque le handler ne tire un numéro qu'une fois sûr de pouvoir aboutir.
  */
 #[AsCommand(name: 'app:generate-missing-invoices', description: 'Génère les factures manquantes des inscriptions payées')]

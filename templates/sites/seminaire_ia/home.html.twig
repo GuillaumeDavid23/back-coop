@@ -8,12 +8,13 @@
 		<div class="container header-content">
 			<div class="header-text d-flex justify-content-center flex-column h-100">
 				<div class="row justify-content-center">
-					<img src="/images/sites/seminaire_ia/logo-blanc.png" class="logo" alt="CLCOM" style="max-height: 250px; width: auto; border-radius: 50%">
+					{# Le logo Academy est fourni en noir sur fond transparent : le filtre le passe en blanc pour le bandeau. #}
+					<img src="/images/sites/seminaire_ia/logo-clcom-academy.png" class="logo" alt="CLCOM Academy" style="max-height: 250px; width: auto; border-radius: 50%; filter: brightness(0) invert(1)">
 				</div>
-				<h3 class="mb-0">DEAUVILLE – JEUDI 22 ET VENDREDI 23 OCTOBRE 2026</h3>
+				<h3 class="mb-0">DEAUVILLE - JEUDI 22 ET VENDREDI 23 OCTOBRE 2026</h3>
 				<div class="separator"></div>
 				<h1 class="fw-bold text-uppercase my-2">Comment intégrer l'IA dans vos pratiques</h1>
-				<h3 class="fw-bolder text-uppercase mb-0">Hôtel du Golf – Le Mont Canisy, 14800 Saint-Arnoult</h3>
+				<h3 class="fw-bolder text-uppercase mb-0">Hôtel du Golf - Le Mont Canisy, 14800 Saint-Arnoult</h3>
 			</div>
 			<div class="timer row justify-content-center d-lg-flex d-none w-100 align-self-center mt-4" data-end="2026-10-22T11:00:00">
 				<div class="col-auto d-flex justify-content-center px-2">
@@ -52,20 +53,15 @@
 				<span class="line ms-0"></span>
 			</h2>
 			<div class="row mt-5 align-items-center">
-				{# La photo de l'édito sera fournie par la cliente. Une fois reçue,
-				   déposer le fichier dans public/images/sites/seminaire_ia/ et
-				   remettre la colonne image (col-md-4) + passer le texte en col-md-8,
-				   comme sur le site de référence :
 				<div class="col-md-4 px-0 px-md-2">
 					<div class="edito-images">
 						<div class="edito-image-container mb-4 mx-0 mx-md-2">
-							<img src="/images/sites/seminaire_ia/edito.jpg" alt="" class="img-fluid">
+							<img src="/images/sites/seminaire_ia/edito.jpg" alt="Charles Basset et David Fourrier" class="img-fluid">
 							<div class="edito-accent-line"></div>
 						</div>
 					</div>
 				</div>
-				#}
-				<div class="col-12">
+				<div class="col-md-8">
 					<div class="edito-content">
 						<div class="edito-text-wrapper">
 							<p style="text-align: justify; font-size: 1rem;" class="fw-bold">
@@ -116,14 +112,14 @@
 				<div class="col-md-4 col-12">
 					<div class="soiree d-flex flex-column justify-content-center soiree-container">
 						<a href="https://www.hotelsbarriere.com/deauville/l-hotel-du-golf" target="_blank" rel="noopener">
-							<img src="/images/sites/seminaire_ia/hotel-du-golf.jpg" class="soiree-img soiree-img-hover img-fluid" alt="Hôtel du Golf — Deauville">
+							<img src="/images/sites/seminaire_ia/hotel-du-golf.jpg" class="soiree-img soiree-img-hover img-fluid" alt="Hôtel du Golf - Deauville">
 						</a>
 					</div>
 				</div>
 				<div class="col-md-4 col-12">
 					<div class="soiree d-flex flex-column justify-content-center soiree-container mt-3 mt-md-0">
 						<a href="https://www.restaurantledeauville.com/" target="_blank" rel="noopener">
-							<img src="/images/sites/seminaire_ia/restaurant-le-deauville.jpg" class="soiree-img soiree-img-hover img-fluid" alt="Restaurant Le Deauville">
+							<img src="/images/sites/seminaire_ia/restaurant-le-deauville.jpg" class="soiree-img soiree-img-contain soiree-img-hover img-fluid" alt="Restaurant Le Deauville">
 						</a>
 					</div>
 				</div>

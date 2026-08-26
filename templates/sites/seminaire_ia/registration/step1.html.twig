@@ -2,9 +2,7 @@
 {% form_theme form 'bootstrap_5_layout.html.twig' %}
 {# Voir questionnaire.html.twig : le thème de base est indispensable pour les
    choix rendus en cartes, sous peine de <label> imbriqués non cliquables. #}
-{% form_theme form.statut 'form_div_layout.html.twig' %}
 {% form_theme form.fare 'form_div_layout.html.twig' %}
-{% form_theme form.eveningOption 'form_div_layout.html.twig' %}
 
 {% block title %}Inscription{% endblock %}
 
@@ -39,22 +37,15 @@
 
 		{# ---------- 1. Statut ---------- #}
 		<div class="form-block">
-			<h3>Votre statut</h3>
-			<p class="form-hint">Il détermine le tarif qui vous est appliqué.</p>
+			<h3>Statut</h3>
+			<p class="form-hint">Merci de sélectionner votre statut</p>
 
-			<div class="option-row" role="radiogroup" id="ia-statut-group">
-				{% for choice in form.statut %}
-					<label class="option-label">
-						{# required retiré de l'attribut HTML : le bouton radio est masqué
-						   derrière la carte, et le navigateur refuse de signaler un champ
-						   invisible. La contrainte NotBlank côté serveur reste la
-						   référence, doublée du garde-fou JS à la soumission. #}
-						{{ form_widget(choice, {required: false, attr: {class: 'option-input'}}) }}
-						<span class="statut-pill">{{ choice.vars.label }}</span>
-					</label>
-				{% endfor %}
+			<div class="row g-3">
+				<div class="col-md-6">
+					{{ form_widget(form.statut) }}
+					{{ form_errors(form.statut) }}
+				</div>
 			</div>
-			{{ form_errors(form.statut) }}
 
 			<div class="row mt-3 d-none" id="ia-subscription-wrap">
 				<div class="col-md-6">
@@ -64,11 +55,14 @@
 		</div>
 
 		{# ---------- 2. Forfait ---------- #}
+		{# Les tarifs sont visibles d'emblée, toute la grille par statut étant
+		   affichée ; les cartes ne deviennent cliquables qu'une fois le statut
+		   choisi, moment où elles se réduisent au seul tarif applicable. #}
 		<div class="form-block">
-			<h3>Votre forfait</h3>
-			<p class="form-hint" id="ia-fare-hint">Sélectionnez d'abord votre statut pour afficher les tarifs.</p>
+			<h3>Forfait</h3>
+			<p class="form-hint" id="ia-fare-hint">Merci de sélectionner votre forfait</p>
 
-			<div class="row g-3" role="radiogroup" id="ia-fare-group">
+			<div class="row g-3 fare-group-locked" role="radiogroup" id="ia-fare-group">
 				{% for choice in form.fare %}
 					{% set fare = fares[choice.vars.value] %}
 					<div class="col-md-6 col-lg-3">
@@ -83,7 +77,15 @@
 									{{ fare.accommodation ? 'Avec hébergement' : 'Sans hébergement' }}
 								</span>
 								<span class="fare-card-title">{{ fare.shortLabel }}</span>
-								<span class="fare-card-price" data-prices='{{ fare.prices|json_encode }}'>—</span>
+								<span class="fare-card-price d-none" data-prices='{{ fare.prices|json_encode }}'>-</span>
+								<span class="fare-card-grid">
+									{% for statusCode, statusLabel in statuses %}
+										<span class="fare-card-grid-row" data-status="{{ statusCode }}">
+											<span>{{ statusLabel }}</span>
+											<span>{{ fare.prices[statusCode]|number_format(0, ',', ' ') }} € HT</span>
+										</span>
+									{% endfor %}
+								</span>
 								<span class="fare-card-includes">
 									{% for item in fare.includes %}
 										<span class="d-block">{{ item }}</span>
@@ -102,13 +104,11 @@
 					{{ form_row(form.roomType) }}
 				</div>
 				<div class="col-md-6 d-none" id="ia-evening-wrap">
-					<label class="option-label">
-						{{ form_widget(form.eveningOption, {attr: {class: 'option-input'}}) }}
-						<span class="evening-card">
-							<span class="evening-card-label">Ajouter la soirée du jeudi 22 octobre</span>
-							<span class="evening-card-price" data-prices='{{ eveningPrices|json_encode }}'>—</span>
-						</span>
-					</label>
+					{{ form_label(form.eveningGuests) }}
+					<span class="evening-price d-block mb-2" data-prices='{{ eveningPrices|json_encode }}'>-</span>
+					{{ form_widget(form.eveningGuests) }}
+					{{ form_help(form.eveningGuests) }}
+					{{ form_errors(form.eveningGuests) }}
 				</div>
 			</div>
 		</div>
@@ -161,7 +161,8 @@
 			</p>
 		</div>
 
-		{# Barre de total, collée en bas de l'écran tant que le formulaire est ouvert. #}
+		{# Total de fin de formulaire : volontairement non figé, une barre collée
+		   en bas de l'écran masquant une partie des champs. #}
 		<div class="summary-bar">
 			<div class="summary-bar-inner">
 				<div class="summary-text">
@@ -169,7 +170,7 @@
 					<span class="summary-label" id="ia-price-label">Statut et forfait à sélectionner</span>
 				</div>
 				<div class="summary-price">
-					<span class="summary-ht" id="ia-price-ht">—</span>
+					<span class="summary-ht" id="ia-price-ht">-</span>
 					<span class="summary-ttc" id="ia-price-ttc"></span>
 				</div>
 				<button type="submit" class="btn btn-primary text-white">Étape suivante</button>
@@ -186,9 +187,9 @@
 			var form = document.querySelector('.registration-form');
 			if (!form) return;
 
-			var statutInputs = form.querySelectorAll('[name="{{ form.statut.vars.full_name }}"]');
+			var statut = document.getElementById('{{ form.statut.vars.id }}');
 			var fareInputs = form.querySelectorAll('[name="{{ form.fare.vars.full_name }}"]');
-			var evening = document.getElementById('{{ form.eveningOption.vars.id }}');
+			var eveningGuests = document.getElementById('{{ form.eveningGuests.vars.id }}');
 			var subscription = document.getElementById('{{ form.subscriptionNumber.vars.id }}');
 
 			var participants = {{ fares|map(f => f.participants)|json_encode|raw }};
@@ -199,6 +200,7 @@
 			var roomWrap = document.getElementById('ia-room-wrap');
 			var companionWrap = document.getElementById('ia-companion-wrap');
 			var companionTitle = document.getElementById('ia-companion-title');
+			var fareGroup = document.getElementById('ia-fare-group');
 			var fareHint = document.getElementById('ia-fare-hint');
 
 			var priceLabel = document.getElementById('ia-price-label');
@@ -212,33 +214,57 @@
 				return null;
 			}
 
+			// Séparateur de milliers posé à la main : toLocaleString dépend des
+			// données de localisation du navigateur et rend "1100" là où la maquette
+			// attend "1 100".
 			function formatEuros(amount) {
-				return amount.toLocaleString('fr-FR', {minimumFractionDigits: 0, maximumFractionDigits: 2}) + ' €';
+				var rounded = Math.round(amount * 100) / 100;
+				var parts = String(rounded).split('.');
+				var integer = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+
+				return integer + (parts[1] ? ',' + parts[1] : '') + ' €';
 			}
 
 			function sync() {
-				var statut = checkedValue(statutInputs);
+				var status = statut.value || null;
 				var fare = checkedValue(fareInputs);
 
 				// Numéro d'adhésion : obligatoire pour les coopérateurs uniquement.
-				var isCooperateur = statut === 'cooperateur';
+				var isCooperateur = status === 'cooperateur';
 				subscriptionWrap.classList.toggle('d-none', !isCooperateur);
 				subscription.required = isCooperateur;
 				if (!isCooperateur) subscription.value = '';
 
-				// Prix affiché sur chaque carte de forfait, selon le statut choisi.
-				form.querySelectorAll('[data-prices]').forEach(function (el) {
+				// Tant qu'aucun statut n'est choisi, les cartes restent bloquées et
+				// affichent la grille complète ; ensuite, seul le tarif applicable
+				// subsiste et la carte devient cliquable.
+				fareGroup.classList.toggle('fare-group-locked', !status);
+				fareInputs.forEach(function (input) { input.disabled = !status; });
+				form.querySelectorAll('.fare-card-price').forEach(function (el) {
 					var prices = JSON.parse(el.dataset.prices);
-					el.textContent = statut && prices[statut] ? formatEuros(parseFloat(prices[statut])) + ' HT' : '—';
+					el.classList.toggle('d-none', !status);
+					el.textContent = status && prices[status] ? formatEuros(parseFloat(prices[status])) + ' HT' : '-';
 				});
-				fareHint.textContent = statut
-					? 'Les tarifs affichés correspondent à votre statut.'
-					: "Sélectionnez d'abord votre statut pour afficher les tarifs.";
+				form.querySelectorAll('.fare-card-grid').forEach(function (el) {
+					el.classList.toggle('d-none', !!status);
+				});
+				fareHint.textContent = status
+					? 'Merci de sélectionner votre forfait'
+					: 'Merci de sélectionner votre statut pour choisir un forfait';
 
 				// Options dépendantes du forfait.
 				var allowsEvening = fare === 'sans_heb';
 				eveningWrap.classList.toggle('d-none', !allowsEvening);
-				if (!allowsEvening) evening.checked = false;
+				if (!allowsEvening) eveningGuests.value = '0';
+
+				var guests = parseInt(eveningGuests.value, 10) || 0;
+				var eveningPriceEl = document.querySelector('.evening-price');
+				var eveningUnitPrice = status
+					? parseFloat(JSON.parse(eveningPriceEl.dataset.prices)[status])
+					: null;
+				eveningPriceEl.textContent = eveningUnitPrice
+					? formatEuros(eveningUnitPrice) + ' HT par personne'
+					: '-';
 
 				var twoPerson = fare !== null && participants[fare] === 2;
 				roomWrap.classList.toggle('d-none', !twoPerson);
@@ -249,18 +275,17 @@
 
 				// Total.
 				var card = fare ? form.querySelector('[value="' + fare + '"]').closest('.option-label').querySelector('.fare-card-price') : null;
-				if (statut && fare && card) {
-					var total = parseFloat(JSON.parse(card.dataset.prices)[statut]);
-					if (allowsEvening && evening.checked) {
-						var eveningPrices = JSON.parse(document.querySelector('.evening-card-price').dataset.prices);
-						total += parseFloat(eveningPrices[statut]);
+				if (status && fare && card) {
+					var total = parseFloat(JSON.parse(card.dataset.prices)[status]);
+					if (allowsEvening && guests > 0) {
+						total += eveningUnitPrice * guests;
 					}
-					priceLabel.textContent = labels[fare] + (allowsEvening && evening.checked ? ' + soirée' : '');
+					priceLabel.textContent = labels[fare];
 					priceHt.textContent = formatEuros(total) + ' HT';
 					priceTtc.textContent = 'soit ' + formatEuros(total * 1.2) + ' TTC';
 				} else {
 					priceLabel.textContent = 'Statut et forfait à sélectionner';
-					priceHt.textContent = '—';
+					priceHt.textContent = '-';
 					priceTtc.textContent = '';
 				}
 			}
@@ -268,22 +293,16 @@
 			form.addEventListener('change', sync);
 			sync();
 
-			// Les boutons radio étant masqués derrière les cartes, la validation
-			// HTML native ne peut pas les signaler : on s'en charge ici.
+			// Le forfait est rendu en cartes, ses boutons radio sont donc masqués :
+			// la validation HTML native ne peut pas les signaler, on s'en charge ici.
 			form.addEventListener('submit', function (event) {
-				var missing = null;
-				if (!checkedValue(statutInputs)) {
-					missing = document.getElementById('ia-statut-group');
-				} else if (!checkedValue(fareInputs)) {
-					missing = document.getElementById('ia-fare-group');
-				}
-				if (!missing) return;
+				if (!statut.value || checkedValue(fareInputs)) return;
 
 				event.preventDefault();
-				missing.classList.add('option-group-invalid');
-				missing.scrollIntoView({behavior: 'smooth', block: 'center'});
-				missing.addEventListener('change', function () {
-					missing.classList.remove('option-group-invalid');
+				fareGroup.classList.add('option-group-invalid');
+				fareGroup.scrollIntoView({behavior: 'smooth', block: 'center'});
+				fareGroup.addEventListener('change', function () {
+					fareGroup.classList.remove('option-group-invalid');
 				}, {once: true});
 			});
 		})();

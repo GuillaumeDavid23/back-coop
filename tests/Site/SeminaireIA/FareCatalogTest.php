@@ -36,15 +36,31 @@ final class FareCatalogTest extends TestCase
         self::assertFalse(FareCatalog::allowsEveningOption('heb_1ec'));
 
         // L'option est ignorée pour un forfait qui inclut déjà la soirée.
-        self::assertSame('850.00', FareCatalog::totalExclTax('heb_1ec', 'cooperateur', true));
-        self::assertSame('600.00', FareCatalog::totalExclTax('sans_heb', 'cooperateur', true));
-        self::assertSame('330.00', FareCatalog::totalExclTax('sans_heb', 'cjec_anecs', true));
+        self::assertSame('850.00', FareCatalog::totalExclTax('heb_1ec', 'cooperateur', 1));
+        self::assertSame('600.00', FareCatalog::totalExclTax('sans_heb', 'cooperateur', 1));
+        self::assertSame('330.00', FareCatalog::totalExclTax('sans_heb', 'cjec_anecs', 1));
+    }
+
+    /** La soirée est facturée par convive : le participant peut venir accompagné. */
+    public function testEveningIsBilledPerGuest(): void
+    {
+        self::assertSame('500.00', FareCatalog::totalExclTax('sans_heb', 'cooperateur', 0));
+        self::assertSame('600.00', FareCatalog::totalExclTax('sans_heb', 'cooperateur', 1));
+        self::assertSame('700.00', FareCatalog::totalExclTax('sans_heb', 'cooperateur', 2));
+
+        // Au-delà du maximum, ou en deçà de zéro, la saisie est ramenée dans la grille.
+        self::assertSame('700.00', FareCatalog::totalExclTax('sans_heb', 'cooperateur', 9));
+        self::assertSame('500.00', FareCatalog::totalExclTax('sans_heb', 'cooperateur', -1));
+
+        // Un forfait hébergement inclut déjà la soirée : aucun supplément.
+        self::assertSame(0, FareCatalog::eveningGuests(2, 'heb_1ec'));
+        self::assertSame(2, FareCatalog::eveningGuests(2, 'sans_heb'));
     }
 
     public function testTotalRejectsUnknownFareOrStatus(): void
     {
-        self::assertNull(FareCatalog::totalExclTax('inconnu', 'cooperateur', false));
-        self::assertNull(FareCatalog::totalExclTax('heb_1ec', 'inconnu', false));
+        self::assertNull(FareCatalog::totalExclTax('inconnu', 'cooperateur', 0));
+        self::assertNull(FareCatalog::totalExclTax('heb_1ec', 'inconnu', 0));
     }
 
     public function testInclTaxAppliesTwentyPercent(): void
@@ -67,12 +83,12 @@ final class FareCatalogTest extends TestCase
     public function testFareLabelSnapshot(): void
     {
         self::assertSame(
-            'Forfait hébergement — 1 Expert-Comptable — Coopérateur',
-            FareCatalog::fareLabel('heb_1ec', 'cooperateur', false),
+            'Forfait hébergement - 1 Expert-Comptable - Coopérateur',
+            FareCatalog::fareLabel('heb_1ec', 'cooperateur'),
         );
         self::assertSame(
-            'Forfait sans hébergement — 1 Expert-Comptable — Adhérent CJEC/ANECS + soirée',
-            FareCatalog::fareLabel('sans_heb', 'cjec_anecs', true),
+            'Forfait sans hébergement - 1 Expert-Comptable - Adhérent CJEC/ANECS',
+            FareCatalog::fareLabel('sans_heb', 'cjec_anecs'),
         );
     }
 }

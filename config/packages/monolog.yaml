@@ -1,7 +1,7 @@
 monolog:
     channels:
         - deprecation # Deprecations are logged in the dedicated "deprecation" channel when it exists
-        - payment # Stripe/paiement/facturation — canal dédié, toujours en détail (voir plus bas)
+        - payment # Stripe/paiement/facturation - canal dédié, toujours en détail (voir plus bas)
 
 when@dev:
     monolog:

@@ -32,7 +32,7 @@ final class RegistrationCancellationService
     /**
      * Seule une inscription confirmée (donc payée) peut être désinscrite : une
      * inscription "en attente" n'a jamais été encaissée, il n'y a rien à annuler
-     * ni à créditer — elle expire d'elle-même.
+     * ni à créditer - elle expire d'elle-même.
      */
     public function canCancel(Registration $registration): bool
     {

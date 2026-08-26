@@ -48,7 +48,7 @@ final class StripeCheckoutService
                     'currency' => 'eur',
                     'unit_amount' => $amountInCents,
                     'product_data' => [
-                        'name' => sprintf('%s — %s', $site->getName(), $registration->getFareLabel()),
+                        'name' => sprintf('%s - %s', $site->getName(), $registration->getFareLabel()),
                     ],
                 ],
             ]],
@@ -85,7 +85,7 @@ final class StripeCheckoutService
     }
 
     /**
-     * Relit l'état d'une session Checkout auprès de Stripe — utilisé par le
+     * Relit l'état d'une session Checkout auprès de Stripe - utilisé par le
      * bouton "Rafraîchir le paiement" du BO quand un webhook s'est perdu
      * (voir PaymentSynchronizer).
      */

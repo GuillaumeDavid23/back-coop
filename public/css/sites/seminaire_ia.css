@@ -1,5 +1,5 @@
 /*
- * Séminaire IA — Deauville 2026 (CLCOM Academy).
+ * Séminaire IA - Deauville 2026 (CLCOM Academy).
  * Charte reprise du site "Entreprendre demain" (projet entreprendre-rdv) :
  * mêmes composants (hero, timer, timeline, sidebar, pricing cards), couleur de
  * marque #B9004B. Les blocs propres aux sections supprimées pour cet événement
@@ -432,6 +432,11 @@ a:hover {
 .soiree-img-hover {
     transition: transform 0.3s ease;
     cursor: pointer;
+}
+
+/* Photo montrée en entier (et donc réduite) plutôt que recadrée. */
+.soiree-img-contain {
+    object-fit: contain;
 }
 
 .soiree-img-hover:hover {
@@ -880,11 +885,11 @@ a:hover {
     opacity: 0;
 }
 
-/* Bouton d'inscription principal — même traitement que sur clcom-academy.fr :
+/* Bouton d'inscription principal - même traitement que sur clcom-academy.fr :
    pastille pleine cerclée d'un liseré. */
 /* Bouton "pilule" repris à l'identique de clcom-front (pages webinaire) :
    classes .btn-pill + .btn-demo. Le liseré latéral vient d'un cadre qui ne
-   déclare QUE ses bords gauche et droit — déclarer les quatre bords en rendant
+   déclare QUE ses bords gauche et droit - déclarer les quatre bords en rendant
    le haut et le bas transparents ne donne pas le même tracé aux extrémités. */
 .btn-pill {
     display: inline-block;
@@ -895,7 +900,7 @@ a:hover {
     transition: transform 0.2s, box-shadow 0.2s;
     text-decoration: none;
     border: none;
-    font-size: 0.9rem;
+    font-size: 1rem;
 }
 
 .btn-demo {
@@ -1046,8 +1051,8 @@ a:hover {
     margin: 0;
 }
 
-/* La case native reste dans le document — pour la validation et la navigation
-   au clavier — mais sort du flux : seule la carte est visible. Ces champs sont
+/* La case native reste dans le document - pour la validation et la navigation
+   au clavier - mais sort du flux : seule la carte est visible. Ces champs sont
    rendus avec le thème de formulaire de base (voir les gabarits), afin que la
    case soit bien l'unique élément associé au <label> qui l'enveloppe. */
 .option-input {
@@ -1156,6 +1161,49 @@ a:hover {
     line-height: 1;
 }
 
+/* Grille des tarifs par statut, affichée tant que le statut n'est pas choisi :
+   les prix sont ainsi visibles dès l'arrivée sur le formulaire. */
+.fare-card-grid {
+    display: block;
+    margin: 0.6rem 0;
+    font-size: 0.82rem;
+    color: #555;
+}
+
+.fare-card-grid-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.15rem 0;
+}
+
+.fare-card-grid-row > span:last-child {
+    font-weight: 700;
+    color: #b9004b;
+    white-space: nowrap;
+}
+
+/* Cartes bloquées : lisibles, mais visiblement pas encore cliquables. */
+.fare-group-locked .option-label {
+    cursor: not-allowed;
+}
+
+.fare-group-locked .fare-card {
+    opacity: 0.65;
+    background: #fafafa;
+}
+
+.fare-group-locked .option-label:hover .fare-card {
+    border-color: #e6e6e6;
+}
+
+/* Soirée du jeudi : prix unitaire rappelé au-dessus de la liste déroulante. */
+.evening-price {
+    font-weight: 700;
+    color: #b9004b;
+    font-size: 0.9rem;
+}
+
 .fare-card-includes {
     font-size: 0.78rem;
     color: #777;
@@ -1215,6 +1263,14 @@ a:hover {
     white-space: nowrap;
 }
 
+/* Astérisque des champs obligatoires : le thème Bootstrap pose la classe
+   .required sur le libellé, mais ne marque rien visuellement. */
+.registration-form label.required::after,
+.registration-form legend.required::after {
+    content: '\00a0*';
+    color: #b9004b;
+}
+
 .consent-block .form-check-label {
     font-weight: 600;
     color: #333;
@@ -1227,12 +1283,10 @@ a:hover {
     margin-top: 0.75rem;
 }
 
-/* Barre de total, collée en bas de l'écran tant que le formulaire est ouvert */
+/* Total de fin de formulaire. Volontairement non figé : collé en bas de
+   l'écran, il masquait une partie des champs. */
 .summary-bar {
-    position: sticky;
-    bottom: 0;
-    z-index: 20;
-    padding-bottom: 1rem;
+    margin-top: 1.5rem;
 }
 
 .summary-bar-inner {

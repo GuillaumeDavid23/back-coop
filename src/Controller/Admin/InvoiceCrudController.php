@@ -56,7 +56,7 @@ final class InvoiceCrudController extends AbstractSiteScopedCrudController
     public function configureActions(Actions $actions): Actions
     {
         // "Exporter tout" et la sélection par case à cocher téléchargent les PDF
-        // en masse (ZIP) — ce ne sont pas des exports Excel.
+        // en masse (ZIP) - ce ne sont pas des exports Excel.
         $downloadAll = Action::new('downloadAll', 'Télécharger tout (ZIP)', 'fa fa-file-zipper')
             ->linkToCrudAction('downloadAll')
             ->createAsGlobalAction();
@@ -117,7 +117,7 @@ final class InvoiceCrudController extends AbstractSiteScopedCrudController
 
         $this->addFlash('success', $creditNote !== null
             ? sprintf(
-                "Facture %s passée en avoir. Avoir %s généré (%s €) — pensez à effectuer le remboursement Stripe manuellement si besoin, il n'est jamais automatique.",
+                "Facture %s passée en avoir. Avoir %s généré (%s €) - pensez à effectuer le remboursement Stripe manuellement si besoin, il n'est jamais automatique.",
                 $invoice->getNumber(),
                 $creditNote->getNumber(),
                 $creditNote->getAmount(),

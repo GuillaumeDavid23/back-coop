@@ -102,7 +102,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * Accès à l'ensemble des sites sans rattachement explicite — sans pour
+     * Accès à l'ensemble des sites sans rattachement explicite - sans pour
      * autant ouvrir l'administration de la plateforme (sites, utilisateurs,
      * journaux), réservée aux super administrateurs.
      */

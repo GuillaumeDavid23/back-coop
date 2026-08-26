@@ -24,7 +24,7 @@ use Symfony\Component\Messenger\MessageBusInterface;
  * webhook s'est perdu). Les deux chemins passent ici pour ne jamais diverger.
  *
  * Idempotent : rejouer la même session ne crée jamais deux paiements ni deux
- * factures — seule la transition "pas encore payé -> payé" déclenche la
+ * factures - seule la transition "pas encore payé -> payé" déclenche la
  * confirmation de l'inscription et la génération de facture.
  */
 final class PaymentSynchronizer

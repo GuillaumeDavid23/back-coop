@@ -8,7 +8,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * Générateur Excel générique — utilisé pour tous les exports du BO
+ * Générateur Excel générique - utilisé pour tous les exports du BO
  * (factures, avoirs, participants...). Ne connaît rien du métier : on lui
  * passe des feuilles sous forme de tableaux simples (en-têtes + lignes).
  */

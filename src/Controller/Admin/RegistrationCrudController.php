@@ -167,7 +167,7 @@ final class RegistrationCrudController extends AbstractSiteScopedCrudController
 
         return $actions
             // Le tarif/forfait et le statut ne doivent changer que via le webhook Stripe
-            // ou la désinscription contrôlée (voir RegistrationCancellationService) —
+            // ou la désinscription contrôlée (voir RegistrationCancellationService) -
             // jamais par édition libre (voir configureFields : ces champs sont masqués
             // du formulaire, seuls les participants restent éditables).
             ->disable(Action::DELETE, Action::NEW)
@@ -291,7 +291,7 @@ final class RegistrationCrudController extends AbstractSiteScopedCrudController
 
         $this->addFlash('success', $creditNote !== null
             ? sprintf(
-                "Inscription désinscrite. Avoir %s généré (%s €) — pensez à effectuer le remboursement Stripe manuellement si besoin, il n'est jamais automatique.",
+                "Inscription désinscrite. Avoir %s généré (%s €) - pensez à effectuer le remboursement Stripe manuellement si besoin, il n'est jamais automatique.",
                 $creditNote->getNumber(),
                 $creditNote->getAmount(),
             )
@@ -309,7 +309,7 @@ final class RegistrationCrudController extends AbstractSiteScopedCrudController
 
         if (Crud::PAGE_EDIT === $pageName) {
             // Édition complète des informations des participants directement depuis
-            // l'inscription — mais jamais du tarif/forfait/statut (voir plus bas).
+            // l'inscription - mais jamais du tarif/forfait/statut (voir plus bas).
             yield CollectionField::new('participants', 'Participant(s)')
                 ->setEntryType(ParticipantType::class)
                 ->setFormTypeOptions(['by_reference' => false])
@@ -338,7 +338,7 @@ final class RegistrationCrudController extends AbstractSiteScopedCrudController
 
         yield TextField::new('fareLabel', 'Forfait')->hideOnForm();
         yield MoneyField::new('amountInclTax', 'Montant TTC')->setCurrency('EUR')->setStoredAsCents(false)->hideOnForm();
-        // Libellé accordé au genre du participant (voir Registration::getGenderedStatusLabel) —
+        // Libellé accordé au genre du participant (voir Registration::getGenderedStatusLabel) -
         // un ChoiceField ne peut pas produire un libellé dynamique par ligne, d'où ce badge HTML.
         yield TextField::new('genderedStatusLabel', 'Inscription')
             ->formatValue(static fn ($value, Registration $registration) => sprintf(

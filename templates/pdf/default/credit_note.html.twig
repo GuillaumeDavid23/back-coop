@@ -57,7 +57,7 @@
                 {{ creditNote.number }}
                 du
                 {{ creditNote.issuedAt|date('d/m/Y') }}
-                – {{ creditNote.site.name }}
+                - {{ creditNote.site.name }}
                 <br>
                 <strong>En annulation de la facture N°:</strong>
                 {{ invoice.number }}
@@ -75,7 +75,7 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>Avoir — {{ creditNote.reason|default('Désinscription') }} ({{ invoice.registration.fareLabel }})</td>
+                        <td>Avoir - {{ creditNote.reason|default('Désinscription') }} ({{ invoice.registration.fareLabel }})</td>
                         <td>-{{ creditNote.amount|number_format(2, ',', ' ') }} €</td>
                     </tr>
                 </tbody>

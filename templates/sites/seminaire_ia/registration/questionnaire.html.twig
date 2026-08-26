@@ -3,7 +3,7 @@
 {# Les choix rendus en pastilles utilisent le thème de base : celui de Bootstrap
    enveloppe chaque case dans son propre <label>, or un <label> imbriqué dans un
    autre est du HTML invalide et le navigateur cesse d'associer le clic à la
-   case — les pastilles devenaient impossibles à cocher. #}
+   case - les pastilles devenaient impossibles à cocher. #}
 {% form_theme form.paidSubscriptionTools 'form_div_layout.html.twig' %}
 {% form_theme form.priorityUseCases 'form_div_layout.html.twig' %}
 
@@ -40,11 +40,6 @@
 			<span class="step-bar"></span>
 			<span class="step"><span class="step-num">4</span>Paiement</span>
 		</div>
-
-		<p class="text-center text-muted mb-4" style="font-size: 0.95rem">
-			Vos réponses nous permettent d'adapter les ateliers pratiques à votre niveau et à vos outils.
-			Comptez deux minutes.
-		</p>
 
 		{% for message in app.flashes('ia_notice') %}
 			<div class="alert alert-warning">{{ message }}</div>
@@ -109,7 +104,7 @@
 		</div>
 
 		<div class="text-center mb-5">
-			<button type="submit" class="btn btn-pill btn-demo">Continuer vers l'inscription</button>
+			<button type="submit" class="btn btn-pill btn-demo">Étape suivante</button>
 		</div>
 
 		{{ form_end(form) }}

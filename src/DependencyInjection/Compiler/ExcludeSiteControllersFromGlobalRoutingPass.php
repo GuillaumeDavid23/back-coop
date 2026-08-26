@@ -14,7 +14,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
  *
  * Sans ce correctif, les routes d'un événement seraient donc accessibles
  * sur n'importe quel domaine en plus de leur domaine dédié, cassant
- * l'isolation par host définie dans config/routes/sites/*.yaml — deux
+ * l'isolation par host définie dans config/routes/sites/*.yaml - deux
  * contrôleurs pourraient même finir par se disputer le même chemin ("/").
  *
  * On retire donc ce tag précisément pour ces classes : leurs routes ne

@@ -1,6 +1,6 @@
 {% extends '@EasyAdmin/layout.html.twig' %}
 
-{% block title %}Logs — CLCOM Events{% endblock %}
+{% block title %}Logs - CLCOM Events{% endblock %}
 
 {% block content_title %}Explorateur de logs{% endblock %}
 
@@ -105,9 +105,9 @@
     </div>
 
     <div class="logx-meta">
-        {{ total }} entrée(s) correspondent — {{ entries|length }} affichée(s).
+        {{ total }} entrée(s) correspondent - {{ entries|length }} affichée(s).
         {% if f.exists %}Fichier : <code>{{ f.path }}</code> ({{ (f.size / 1024)|round }} Ko{% if f.mtime %}, modifié {{ f.mtime|date('d/m/Y H:i') }}{% endif %}){% else %}Fichier absent.{% endif %}
-        {% if truncated %}<br><strong>Note :</strong> fichier volumineux — seule la fin du fichier a été analysée.{% endif %}
+        {% if truncated %}<br><strong>Note :</strong> fichier volumineux - seule la fin du fichier a été analysée.{% endif %}
         &nbsp;·&nbsp;<a href="{{ path('admin', app.request.query.all|merge({'routeName': 'admin_logs', 'raw': 1})) }}" target="_blank" rel="noopener">Voir en texte brut</a>
     </div>
 
@@ -126,7 +126,7 @@
             <tbody>
                 {% for entry in entries %}
                     <tr>
-                        <td class="logx-date">{{ entry.date ? entry.date|date('d/m/Y H:i:s') : '—' }}</td>
+                        <td class="logx-date">{{ entry.date ? entry.date|date('d/m/Y H:i:s') : '-' }}</td>
                         <td><span class="badge badge-{{ entry.variant }}">{{ entry.level }}</span></td>
                         <td><code>{{ entry.channel }}</code></td>
                         <td>

@@ -111,7 +111,7 @@ final class GlobalSearchService
                 'label' => $invoice->getNumber(),
                 'sublabel' => sprintf(
                     '%s · %s € · %s',
-                    $invoice->getBillingDataSnapshot()['name'] ?? '—',
+                    $invoice->getBillingDataSnapshot()['name'] ?? '-',
                     $invoice->getAmountInclTax(),
                     $invoice->getIssuedAt()->format('d/m/Y'),
                 ),
@@ -174,7 +174,7 @@ final class GlobalSearchService
         return [[
             'type' => 'Inscription',
             'label' => sprintf('Inscription #%d', $registration->getId()),
-            'sublabel' => sprintf('%s · %s', $registration->getParticipantsFullNames() ?: '—', $registration->getFareLabel()),
+            'sublabel' => sprintf('%s · %s', $registration->getParticipantsFullNames() ?: '-', $registration->getFareLabel()),
             'badge' => AnswerHumanizer::registrationStatus($registration->getStatus()->value),
             'entityId' => (int) $registration->getId(),
         ]];

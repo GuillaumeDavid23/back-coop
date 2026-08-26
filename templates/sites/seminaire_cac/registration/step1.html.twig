@@ -1,6 +1,6 @@
 {% extends 'sites/seminaire_cac/base.html.twig' %}
 
-{% block title %}Inscription — Séminaire CAC{% endblock %}
+{% block title %}Inscription - Séminaire CAC{% endblock %}
 
 {% block body %}
 <section style="background:#FBF9F6;border-bottom:1px solid #EDE4D8">
@@ -18,7 +18,7 @@
             </div>
         </div>
         <span style="display:block;font-family:'Montserrat',sans-serif;font-size:11px;letter-spacing:0.24em;color:#8A7A66;font-weight:600">INSCRIPTION</span>
-        <h1 style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:34px;color:#1E6685;margin:12px 0 28px">Séminaire CAC — 24 &amp; 25 novembre 2026</h1>
+        <h1 style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:34px;color:#1E6685;margin:12px 0 28px">Séminaire CAC - 24 &amp; 25 novembre 2026</h1>
 
         <div style="background:#fff;border:1px solid #E4D8C6;border-radius:4px;padding:22px 26px;display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:28px;flex-wrap:wrap">
             <div style="display:flex;flex-direction:column;gap:4px">
@@ -76,9 +76,10 @@
 
             <div style="height:1px;background:#F1E9DC"></div>
 
-            <div style="background:#F6F0E8;border-radius:3px;padding:22px 24px;display:flex;align-items:center;gap:20px;">
-                {{ form_label(form.cocktailAttendance, null, {label_attr: {style: 'margin:0; flex:1; font-size:15px; color:#2E2E2E; font-weight:500;'}}) }}
-                {{ form_widget(form.cocktailAttendance, {attr: {style: 'width:200px; flex:none;'}}) }}
+            <div class="sc-cocktail-row" style="background:#F6F0E8;border-radius:3px;padding:22px 24px;display:flex;align-items:center;gap:20px;">
+                {# Voir .sc-cocktail-row : la phrase et son astérisque tiennent sur une seule ligne, comme sur la maquette. #}
+                {{ form_label(form.cocktailAttendance, null, {label_attr: {style: 'margin:0; flex:1; color:#2E2E2E; font-weight:500;'}}) }}
+                {{ form_widget(form.cocktailAttendance, {attr: {style: 'width:150px; flex:none;'}}) }}
                 {{ form_errors(form.cocktailAttendance) }}
             </div>
 

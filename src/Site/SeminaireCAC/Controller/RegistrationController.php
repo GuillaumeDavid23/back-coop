@@ -38,9 +38,14 @@ final class RegistrationController extends AbstractController
     #[Route('/inscription', name: 'registration_step1', methods: ['GET', 'POST'])]
     public function step1(Request $request): Response
     {
-        $data = [
-            'fare' => $request->query->get('fare', array_key_first(FareCatalog::all())),
-        ];
+        // Retour depuis le récapitulatif : on repart de la saisie déjà faite,
+        // pour n'avoir qu'à corriger l'information voulue. Un forfait passé en
+        // paramètre (lien « Choisir ce forfait ») prime sur celui retenu.
+        $data = $request->getSession()->get(self::SESSION_KEY) ?? [];
+        $fare = $request->query->get('fare') ?? $data['fare'] ?? null;
+        $data['fare'] = null !== FareCatalog::find((string) $fare)
+            ? $fare
+            : array_key_first(FareCatalog::all());
 
         $form = $this->createForm(RegistrationStep1Type::class, $data);
         $form->handleRequest($request);
@@ -53,7 +58,7 @@ final class RegistrationController extends AbstractController
 
         return $this->render('sites/seminaire_cac/registration/step1.html.twig', [
             'form' => $form,
-            'selectedFare' => FareCatalog::find($data['fare']) ?? FareCatalog::find(array_key_first(FareCatalog::all())),
+            'selectedFare' => FareCatalog::find($data['fare']),
         ]);
     }
 
@@ -82,6 +87,14 @@ final class RegistrationController extends AbstractController
             return $this->redirectToRoute('cac_registration_step2');
         }
 
+        // La case des CGV est "required" dans le gabarit ; on la revérifie ici,
+        // le navigateur n'étant pas une barrière fiable.
+        if (!$request->request->getBoolean('terms_accepted')) {
+            $this->addFlash('cac_notice', "Merci d'accepter les conditions générales de vente et les conditions d'annulation pour valider votre inscription.");
+
+            return $this->redirectToRoute('cac_registration_step2');
+        }
+
         $data = $request->getSession()->get(self::SESSION_KEY);
         if ($data === null) {
             return $this->redirectToRoute('cac_registration_step1');
@@ -105,8 +118,8 @@ final class RegistrationController extends AbstractController
             ->setFareCode($data['fare'])
             ->setFareLabel($fare['label'])
             ->setAmountExclTax($fare['amount'])
-            ->setTaxRate('0.00')
-            ->setAmountInclTax($fare['amount'])
+            ->setTaxRate(FareCatalog::TAX_RATE)
+            ->setAmountInclTax(FareCatalog::inclTax($fare['amount']))
             ->setStatus(RegistrationStatus::PENDING)
             ->setAnswers([
                 'motivation' => $data['motivation'],
@@ -198,17 +211,15 @@ final class RegistrationController extends AbstractController
             'DTSTAMP:'.gmdate('Ymd\THis\Z'),
             'DTSTART:20261124T073000Z',
             'DTEND:20261125T170000Z',
-            'SUMMARY:Séminaire CAC — La Coop\' des Experts',
+            'SUMMARY:Séminaire CAC - La Coop\' des Experts',
             'LOCATION:Crowne Plaza République\, 10 Place de la République\, 75011 Paris',
-            'DESCRIPTION:Deux journées de formation en présentiel.',
             'END:VEVENT',
             'BEGIN:VEVENT',
             'UID:seminaire-cac-2026-distanciel@clcomevents.fr',
             'DTSTAMP:'.gmdate('Ymd\THis\Z'),
-            'DTSTART;VALUE=DATE:20261215',
-            'DTEND;VALUE=DATE:20261216',
-            'SUMMARY:Séminaire CAC — 4h en distanciel',
-            'DESCRIPTION:Complément de formation à distance.',
+            'DTSTART:20261215T080000Z',
+            'DTEND:20261215T120000Z',
+            'SUMMARY:Séminaire CAC - 4h en distanciel',
             'END:VEVENT',
             'END:VCALENDAR',
         ];

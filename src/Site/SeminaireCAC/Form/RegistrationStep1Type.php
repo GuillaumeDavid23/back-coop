@@ -19,7 +19,7 @@ final class RegistrationStep1Type extends AbstractType
 {
     /**
      * Empêche les gestionnaires de mots de passe (Bitwarden, 1Password,
-     * LastPass...) d'injecter leur icône dans ces champs — ils n'ont rien
+     * LastPass...) d'injecter leur icône dans ces champs - ils n'ont rien
      * à y suggérer, et ça casse le rendu du formulaire par rapport à la
      * maquette.
      */
@@ -40,7 +40,7 @@ final class RegistrationStep1Type extends AbstractType
             ])
             ->add('civility', ChoiceType::class, [
                 'choices' => ['Madame' => 'mme', 'Monsieur' => 'm'],
-                'placeholder' => '—',
+                'placeholder' => '-',
                 'constraints' => [new Assert\NotBlank()],
                 'label' => 'Civilité',
             ])
@@ -86,7 +86,7 @@ final class RegistrationStep1Type extends AbstractType
             ])
             ->add('status', ChoiceType::class, [
                 'choices' => ['Salarié' => 'salarie', 'Travailleur non salarié' => 'tns'],
-                'placeholder' => '—',
+                'placeholder' => '-',
                 'constraints' => [new Assert\NotBlank()],
                 'label' => 'Statut',
             ])
@@ -101,7 +101,7 @@ final class RegistrationStep1Type extends AbstractType
             ])
             ->add('cocktailAttendance', ChoiceType::class, [
                 'choices' => ['Oui' => 'oui', 'Non' => 'non'],
-                'placeholder' => '—',
+                'placeholder' => '-',
                 'constraints' => [new Assert\NotBlank()],
                 'label' => 'Je confirme ma présence au cocktail apéritif du mardi à l\'issue de la formation',
             ])

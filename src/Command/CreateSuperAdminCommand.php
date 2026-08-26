@@ -15,7 +15,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 /**
  * Création du premier compte ROLE_SUPER_ADMIN. Volontairement en CLI plutôt
- * que via une UI de création de compte dev (moins de surface d'attaque) —
+ * que via une UI de création de compte dev (moins de surface d'attaque) -
  * voir plan de migration, point sur la sécurité du BO.
  */
 #[AsCommand(name: 'app:create-super-admin', description: 'Crée ou met à jour un compte super administrateur')]

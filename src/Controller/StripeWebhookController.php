@@ -51,7 +51,7 @@ final class StripeWebhookController
             $event = Webhook::constructEvent($payload, $signature, $this->webhookSecret);
         } catch (\UnexpectedValueException|\Stripe\Exception\SignatureVerificationException $e) {
             // Signature invalide : soit une mauvaise config STRIPE_WEBHOOK_SECRET,
-            // soit une tentative malveillante — dans les deux cas ça mérite un warning.
+            // soit une tentative malveillante - dans les deux cas ça mérite un warning.
             $this->logger->warning('stripe.webhook.signature_invalid', [
                 'exception' => $e->getMessage(),
                 'ip' => $request->getClientIp(),
@@ -85,7 +85,7 @@ final class StripeWebhookController
                 'trace' => $e->getTraceAsString(),
             ]);
 
-            // 500 : Stripe réessaiera cet événement plus tard — c'est voulu,
+            // 500 : Stripe réessaiera cet événement plus tard - c'est voulu,
             // on préfère un retry à une perte silencieuse de paiement.
             return new JsonResponse(['error' => 'handler_failed'], 500);
         }
@@ -167,7 +167,7 @@ final class StripeWebhookController
             $payment->setStatus(PaymentStatus::REFUNDED);
             $this->em->flush();
             // La création de l'avoir (CreditNote) associé est un acte de
-            // gestion volontaire fait depuis le BO, pas automatique ici —
+            // gestion volontaire fait depuis le BO, pas automatique ici -
             // on se contente de tracer que le remboursement Stripe est arrivé.
             $this->logger->info('stripe.webhook.charge_refunded.payment_marked_refunded', [
                 'payment_id' => $payment->getId(),

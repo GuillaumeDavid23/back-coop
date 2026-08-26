@@ -56,7 +56,7 @@
                 {{ invoice.number }}
                 du
                 {{ invoice.issuedAt|date('d/m/Y') }}
-                – {{ invoice.site.name }}
+                - {{ invoice.site.name }}
                 <br>
                 <strong>Inscription N°:</strong>
                 {{ invoice.registration.id }}
@@ -73,7 +73,7 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>Inscription — {{ invoice.site.name }} ({{ invoice.registration.fareLabel }})</td>
+                        <td>Inscription - {{ invoice.site.name }} ({{ invoice.registration.fareLabel }})</td>
                         <td>{{ invoice.amountExclTax|number_format(2, ',', ' ') }} €</td>
                         <td>1</td>
                         <td>{{ invoice.amountExclTax|number_format(2, ',', ' ') }} €</td>
@@ -83,7 +83,7 @@
 
             <p>
                 <strong>MODE DE RÈGLEMENT :</strong>
-                CB – {{ invoice.payment.stripeCheckoutSessionId|default('Manuel') }}
+                CB - {{ invoice.payment.stripeCheckoutSessionId|default('Manuel') }}
             </p>
             <p>
                 FR76 1870 6000 0097 5730 8179 358

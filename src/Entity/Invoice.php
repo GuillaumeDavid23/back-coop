@@ -53,7 +53,7 @@ class Invoice
 
     /**
      * Copie figée des données de facturation (nom, adresse, cabinet...) au
-     * moment de l'émission — ne JAMAIS relire les infos actuelles du
+     * moment de l'émission - ne JAMAIS relire les infos actuelles du
      * participant/site pour régénérer une facture déjà émise.
      */
     #[ORM\Column(type: Types::JSON)]

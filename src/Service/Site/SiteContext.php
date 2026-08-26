@@ -7,7 +7,7 @@ use App\Repository\SiteRepository;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
- * Le "site courant" sélectionné dans le BO est stocké en session — c'est ce
+ * Le "site courant" sélectionné dans le BO est stocké en session - c'est ce
  * qui permet aux CRUD controllers EasyAdmin de toujours filtrer leurs
  * données par site sans avoir à faire transiter l'id de site dans chaque
  * URL. Ne jamais faire confiance à cette valeur sans revérifier les droits

@@ -52,7 +52,7 @@ final class CreditNoteCrudController extends AbstractSiteScopedCrudController
     public function configureActions(Actions $actions): Actions
     {
         // "Exporter tout" et la sélection par case à cocher téléchargent les PDF
-        // en masse (ZIP) — ce ne sont pas des exports Excel.
+        // en masse (ZIP) - ce ne sont pas des exports Excel.
         $downloadAll = Action::new('downloadAll', 'Télécharger tout (ZIP)', 'fa fa-file-zipper')
             ->linkToCrudAction('downloadAll')
             ->createAsGlobalAction();
@@ -66,7 +66,7 @@ final class CreditNoteCrudController extends AbstractSiteScopedCrudController
             ->createAsBatchAction();
 
         // Les avoirs sont toujours générés automatiquement (numérotation séquentielle
-        // via NumberingService, voir RegistrationCancellationService) — jamais créés
+        // via NumberingService, voir RegistrationCancellationService) - jamais créés
         // ni modifiés à la main, pour ne pas casser la séquence.
         return $actions
             ->disable(Action::NEW, Action::EDIT, Action::DELETE)

@@ -38,37 +38,37 @@
 					]|filter(r => r is not null)},
 					{title: 'Votre forfait', rows: [
 						{label: 'Forfait', value: fare.label},
-						fare.accommodation and isTwoPerson ? {label: 'Type de chambre', value: rooms[data.roomType]|default('—')} : null,
-						data.eveningOption|default(false) ? {label: 'Soirée du jeudi 22 octobre', value: 'Oui'} : null,
+						fare.accommodation and isTwoPerson ? {label: 'Type de chambre', value: rooms[data.roomType]|default('-')} : null,
+						eveningGuests > 0 ? {label: 'Soirée du jeudi 22 octobre', value: eveningGuests ~ (eveningGuests > 1 ? ' personnes' : ' personne')} : null,
 					]|filter(r => r is not null)},
 					{title: 'Participant', rows: [
-						{label: 'Civilité', value: civilities[data.civility]|default('—')},
+						{label: 'Civilité', value: civilities[data.civility]|default('-')},
 						{label: 'Nom', value: data.lastName},
 						{label: 'Prénom', value: data.firstName},
 						{label: 'Mobile', value: data.mobile},
 						{label: 'Email', value: data.email},
 						{label: 'Cabinet', value: data.company},
-						{label: 'Catégorie', value: categories[data.category]|default('—')},
+						{label: 'Catégorie', value: categories[data.category]|default('-')},
 						{label: 'Adresse', value: data.address ~ ', ' ~ data.postalCode ~ ' ' ~ data.city},
 					]},
 				] %}
 				{% if isTwoPerson %}
 					{% set recap_groups = recap_groups|merge([
 						{title: data.fare == 'heb_1ec_acc' ? 'Accompagnant' : '2ème Participant', rows: [
-							{label: 'Civilité', value: civilities[data.civility2]|default('—')},
+							{label: 'Civilité', value: civilities[data.civility2]|default('-')},
 							{label: 'Nom', value: data.lastName2},
 							{label: 'Prénom', value: data.firstName2},
 							{label: 'Mobile', value: data.mobile2},
 							{label: 'Email', value: data.email2},
 							data.company2 ? {label: 'Cabinet', value: data.company2} : null,
-							data.category2 ? {label: 'Catégorie', value: categories[data.category2]|default('—')} : null,
+							data.category2 ? {label: 'Catégorie', value: categories[data.category2]|default('-')} : null,
 						]|filter(r => r is not null)},
 					]) %}
 				{% endif %}
 				{% set recap_groups = recap_groups|merge([
 					{title: 'Votre demande', rows: [
 						{label: 'Motif de votre inscription et vos attentes', value: data.motivation},
-						{label: 'Besoins spécifiques', value: data.specialNeeds|default('—')},
+						{label: 'Besoins spécifiques', value: data.specialNeeds|default('-')},
 					]},
 				]) %}
 
@@ -107,12 +107,9 @@
 
 				<form method="post" action="{{ path('ia_registration_pay') }}" class="mt-4">
 					<input type="hidden" name="_token" value="{{ csrf_token('ia_payment') }}" data-controller="csrf-protection">
-					<p style="font-size:13.5px">
-						En validant, vous serez redirigé vers notre plateforme de paiement sécurisée (carte bancaire — CLCOM Academy).
-					</p>
-					<div class="d-flex align-items-center gap-3 flex-wrap">
+					<div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+						<a href="{{ path('ia_registration_step1') }}" class="btn btn-outline-primary">Précédent</a>
 						<button type="submit" class="btn btn-primary text-white">Payer {{ amountInclTax|number_format(2, ',', ' ') }} € TTC</button>
-						<a href="{{ path('ia_registration_step1') }}" class="btn btn-outline-primary">Modifier</a>
 					</div>
 				</form>
 			</div>

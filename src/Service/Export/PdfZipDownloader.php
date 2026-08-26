@@ -7,7 +7,7 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 /**
  * Regroupe une sélection de PDF (factures ou avoirs) dans une archive ZIP
- * téléchargeable en un clic — utilisé par l'action de sélection (case à
+ * téléchargeable en un clic - utilisé par l'action de sélection (case à
  * cocher) des écrans Factures et Avoirs, qui fait du téléchargement de masse
  * plutôt qu'un export Excel (réservé au bouton "Exporter tout").
  */

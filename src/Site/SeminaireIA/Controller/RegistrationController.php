@@ -68,10 +68,12 @@ final class RegistrationController extends AbstractController
             return $this->redirectToRoute('ia_registration_questionnaire');
         }
 
-        $fare = $request->query->get('fare');
-        $data = [
-            'fare' => null !== FareCatalog::find((string) $fare) ? $fare : null,
-        ];
+        // Retour depuis le récapitulatif : on repart de la saisie déjà faite,
+        // pour n'avoir qu'à corriger l'information voulue. Un forfait passé en
+        // paramètre (lien depuis la page d'accueil) prime sur celui retenu.
+        $data = $request->getSession()->get(self::SESSION_KEY) ?? [];
+        $fare = $request->query->get('fare') ?? $data['fare'] ?? null;
+        $data['fare'] = null !== FareCatalog::find((string) $fare) ? $fare : null;
 
         $form = $this->createForm(RegistrationStep1Type::class, $data);
         $form->handleRequest($request);
@@ -85,6 +87,7 @@ final class RegistrationController extends AbstractController
         return $this->render('sites/seminaire_ia/registration/step1.html.twig', [
             'form' => $form,
             'fares' => FareCatalog::all(),
+            'statuses' => FareCatalog::statuses(),
             'eveningPrices' => FareCatalog::eveningPrices(),
         ]);
     }
@@ -110,6 +113,7 @@ final class RegistrationController extends AbstractController
             'fareLabel' => $amounts['label'],
             'amountExclTax' => $amounts['exclTax'],
             'amountInclTax' => $amounts['inclTax'],
+            'eveningGuests' => $amounts['eveningGuests'],
             'isTwoPerson' => FareCatalog::isTwoPerson($data['fare']),
         ]);
     }
@@ -146,7 +150,7 @@ final class RegistrationController extends AbstractController
 
         $isTwoPerson = FareCatalog::isTwoPerson($data['fare']);
         $isCooperateur = 'cooperateur' === $data['statut'];
-        $hasEvening = (bool) ($data['eveningOption'] ?? false) && FareCatalog::allowsEveningOption($data['fare']);
+        $eveningGuests = FareCatalog::eveningGuests($data['eveningGuests'] ?? 0, $data['fare']);
 
         $registration = new Registration();
         $registration->setSite($site)
@@ -160,7 +164,7 @@ final class RegistrationController extends AbstractController
                 'statut' => $data['statut'],
                 'subscriptionNumber' => $isCooperateur ? $data['subscriptionNumber'] : null,
                 'category' => $data['category'],
-                'eveningOption' => $hasEvening ?: null,
+                'eveningGuests' => $eveningGuests ?: null,
                 'roomType' => $isTwoPerson ? $data['roomType'] : null,
                 'motivation' => $data['motivation'],
                 'specialNeeds' => $data['specialNeeds'] ?? null,
@@ -271,9 +275,8 @@ final class RegistrationController extends AbstractController
             'DTSTAMP:'.gmdate('Ymd\THis\Z'),
             'DTSTART:20261022T090000Z',
             'DTEND:20261023T150000Z',
-            'SUMMARY:Séminaire IA — CLCOM Academy',
+            'SUMMARY:Séminaire IA - CLCOM Academy',
             'LOCATION:Hôtel du Golf\, Le Mont Canisy\, 14800 Saint-Arnoult',
-            'DESCRIPTION:Comment intégrer l\'IA dans vos pratiques — deux journées de formation à Deauville.',
             'END:VEVENT',
             'END:VCALENDAR',
         ];
@@ -291,27 +294,28 @@ final class RegistrationController extends AbstractController
     }
 
     /**
-     * Montants et libellé recalculés depuis la grille à chaque étape — jamais
+     * Montants et libellé recalculés depuis la grille à chaque étape - jamais
      * depuis la session seule, pour qu'un prix modifié entre deux étapes ne
      * puisse pas être encaissé sur une ancienne valeur.
      *
-     * @return array{label: string, exclTax: string, inclTax: string}|null
+     * @return array{label: string, exclTax: string, inclTax: string, eveningGuests: int}|null
      */
     private function computeAmounts(array $data): ?array
     {
         $fare = (string) ($data['fare'] ?? '');
         $statut = (string) ($data['statut'] ?? '');
-        $evening = (bool) ($data['eveningOption'] ?? false);
+        $eveningGuests = FareCatalog::eveningGuests($data['eveningGuests'] ?? 0, $fare);
 
-        $exclTax = FareCatalog::totalExclTax($fare, $statut, $evening);
+        $exclTax = FareCatalog::totalExclTax($fare, $statut, $eveningGuests);
         if (null === $exclTax) {
             return null;
         }
 
         return [
-            'label' => FareCatalog::fareLabel($fare, $statut, $evening),
+            'label' => FareCatalog::fareLabel($fare, $statut),
             'exclTax' => $exclTax,
             'inclTax' => FareCatalog::inclTax($exclTax),
+            'eveningGuests' => $eveningGuests,
         ];
     }
 }

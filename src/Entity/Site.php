@@ -31,7 +31,7 @@ class Site
 
     /**
      * Certains événements sont encaissés sans émettre de facture (ex: Séminaire
-     * IA — encaissement CLCOM Academy, facturation gérée hors plateforme) : à
+     * IA - encaissement CLCOM Academy, facturation gérée hors plateforme) : à
      * false, le paiement confirmé envoie directement l'email de confirmation
      * sans passer par la génération de facture.
      */

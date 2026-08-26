@@ -11,7 +11,7 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 /**
  * Envoi du mail de confirmation d'inscription sans facture, pour les sites
- * dont la facturation est désactivée (Site::invoicingEnabled) — dispatché par
+ * dont la facturation est désactivée (Site::invoicingEnabled) - dispatché par
  * PaymentSynchronizer au moment où le paiement est validé.
  */
 #[AsMessageHandler]

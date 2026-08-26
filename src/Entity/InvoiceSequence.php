@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
  * Compteur par site et par type (facture / avoir). L'attribution du
  * prochain numéro doit toujours passer par un verrou pessimiste
  * (voir Service\Billing\NumberingService) pour rester correcte sous accès
- * concurrent — ne jamais lire/incrémenter ce compteur sans transaction.
+ * concurrent - ne jamais lire/incrémenter ce compteur sans transaction.
  */
 #[ORM\Entity(repositoryClass: InvoiceSequenceRepository::class)]
 #[ORM\Table(name: 'invoice_sequence')]

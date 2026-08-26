@@ -20,7 +20,7 @@ use Symfony\Component\HttpFoundation\Response;
  * Base commune à tous les CRUD controllers dont les données appartiennent à
  * un Site (Registration, Participant, Payment, Invoice, CreditNote).
  * Garantit qu'une requête ne peut jamais afficher les données d'un autre
- * site que celui actuellement sélectionné dans le BO — c'est le rempart
+ * site que celui actuellement sélectionné dans le BO - c'est le rempart
  * structurel contre le mélange de données entre événements.
  *
  * SiteContext et AdminUrlGenerator sont injectés par le constructeur (et

@@ -11,7 +11,7 @@ use Doctrine\ORM\EntityManagerInterface;
  * la demande s'il manque (document émis avant la mise en place de la
  * génération PDF, ou fichier disparu du disque). Évite d'avoir des boutons
  * "Télécharger" qui disparaissent ou renvoient une 404 selon l'ancienneté du
- * document — voir RegistrationCrudController / InvoiceCrudController /
+ * document - voir RegistrationCrudController / InvoiceCrudController /
  * CreditNoteCrudController.
  */
 final class BillingDocumentProvider

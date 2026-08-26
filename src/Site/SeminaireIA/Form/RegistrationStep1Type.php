@@ -22,14 +22,14 @@ use Symfony\Component\Validator\Constraints as Assert;
  *    obligatoire quand Statut = Coopérateur ;
  *  - "two_person"  : le bloc participant 2 et le type de chambre deviennent
  *    obligatoires pour les forfaits à deux personnes.
- * L'affichage conditionnel côté navigateur est géré dans step1.html.twig — la
+ * L'affichage conditionnel côté navigateur est géré dans step1.html.twig - la
  * validation serveur reste la seule source de vérité.
  */
 final class RegistrationStep1Type extends AbstractType
 {
     /**
      * Empêche les gestionnaires de mots de passe (Bitwarden, 1Password,
-     * LastPass...) d'injecter leur icône dans ces champs — ils n'ont rien
+     * LastPass...) d'injecter leur icône dans ces champs - ils n'ont rien
      * à y suggérer, et ça casse le rendu du formulaire par rapport à la
      * maquette.
      */
@@ -49,12 +49,12 @@ final class RegistrationStep1Type extends AbstractType
         );
 
         $builder
-            // Statut et forfait sont rendus en "cartes" cliquables (voir
-            // step1.html.twig) : expanded pour disposer de vrais boutons radio,
-            // plus lisibles qu'une liste déroulante pour un choix structurant.
+            // Le statut est une liste déroulante (demande de la cliente) ; le
+            // forfait reste en "cartes" cliquables (voir step1.html.twig), donc
+            // expanded pour disposer de vrais boutons radio.
             ->add('statut', ChoiceType::class, [
                 'choices' => $statusChoices,
-                'expanded' => true,
+                'placeholder' => '-',
                 'constraints' => [new Assert\NotBlank()],
                 'label' => 'Statut',
             ])
@@ -84,20 +84,28 @@ final class RegistrationStep1Type extends AbstractType
                 'constraints' => [new Assert\NotBlank(), new Assert\Choice(choices: array_keys(FareCatalog::all()))],
                 'label' => 'Forfait',
             ])
-            ->add('eveningOption', CheckboxType::class, [
-                'required' => false,
-                'label' => 'Soirée du jeudi 22 octobre en option',
+            ->add('eveningGuests', ChoiceType::class, [
+                'choices' => array_combine(
+                    range(0, FareCatalog::MAX_EVENING_GUESTS),
+                    range(0, FareCatalog::MAX_EVENING_GUESTS),
+                ),
+                // Pas d'option "data" ici : elle écraserait la valeur restituée
+                // au retour du récapitulatif. Sans choix présélectionné, le
+                // navigateur retient la première entrée, soit 0.
+                'constraints' => [new Assert\NotNull()],
+                'label' => 'Soirée du jeudi 22 octobre',
+                'help' => 'Nombre de personnes, accompagnant compris.',
             ])
             ->add('roomType', ChoiceType::class, [
                 'choices' => ['1 grand lit' => 'grand_lit', '2 lits séparés' => 'lits_separes'],
-                'placeholder' => '—',
+                'placeholder' => '-',
                 'required' => false,
                 'constraints' => [new Assert\NotBlank(groups: ['two_person'])],
                 'label' => 'Type de chambre',
             ])
             ->add('civility', ChoiceType::class, [
                 'choices' => ['Madame' => 'mme', 'Monsieur' => 'm'],
-                'placeholder' => '—',
+                'placeholder' => '-',
                 'constraints' => [new Assert\NotBlank()],
                 'label' => 'Civilité',
             ])
@@ -143,15 +151,15 @@ final class RegistrationStep1Type extends AbstractType
             ])
             ->add('category', ChoiceType::class, [
                 'choices' => ['Salarié' => 'salarie', 'Travailleur non salarié' => 'tns'],
-                'placeholder' => '—',
+                'placeholder' => '-',
                 'constraints' => [new Assert\NotBlank()],
                 'label' => 'Catégorie',
             ])
-            // Participant 2 — mêmes données que le participant principal,
+            // Participant 2 - mêmes données que le participant principal,
             // requis uniquement pour les forfaits à deux personnes.
             ->add('civility2', ChoiceType::class, [
                 'choices' => ['Madame' => 'mme', 'Monsieur' => 'm'],
-                'placeholder' => '—',
+                'placeholder' => '-',
                 'required' => false,
                 'constraints' => [new Assert\NotBlank(groups: ['two_person'])],
                 'label' => 'Civilité',
@@ -188,7 +196,7 @@ final class RegistrationStep1Type extends AbstractType
             ])
             ->add('category2', ChoiceType::class, [
                 'choices' => ['Salarié' => 'salarie', 'Travailleur non salarié' => 'tns'],
-                'placeholder' => '—',
+                'placeholder' => '-',
                 'required' => false,
                 'label' => 'Catégorie',
             ])
@@ -198,7 +206,7 @@ final class RegistrationStep1Type extends AbstractType
             ])
             ->add('specialNeeds', TextareaType::class, [
                 'required' => false,
-                'label' => 'Besoins spécifiques (accessibilité, régime alimentaire, aménagement particulier…)',
+                'label' => 'Besoins spécifiques (accessibilité, régime alimentaire…)',
             ])
             ->add('consentAccepted', CheckboxType::class, [
                 'constraints' => [new Assert\IsTrue()],

@@ -14,7 +14,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 /**
- * Renvoie le mail de confirmation d'inscription — cas classique : le
+ * Renvoie le mail de confirmation d'inscription - cas classique : le
  * participant dit ne pas l'avoir reçu. Réutilise exactement le même mail que
  * l'envoi automatique.
  *

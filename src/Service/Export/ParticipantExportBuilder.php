@@ -11,7 +11,7 @@ use App\Entity\Site;
  * réponse libre est calculée dynamiquement à partir des clés présentes dans
  * Registration::answers / Participant::answers, sans rien connaître de
  * l'événement en cours (le "cocktail" du Séminaire CAC en fait partie mais
- * n'est jamais nommé ici — un autre événement avec d'autres questions
+ * n'est jamais nommé ici - un autre événement avec d'autres questions
  * produira le même genre de ventilation automatiquement).
  */
 final class ParticipantExportBuilder
@@ -79,7 +79,7 @@ final class ParticipantExportBuilder
     /**
      * Récapitulatif volontairement court : combien d'inscrits, de quel type, et
      * combien de personnes à prévoir sur place. Les réponses libres n'y sont pas
-     * ventilées — elles se lisent inscription par inscription dans l'onglet
+     * ventilées - elles se lisent inscription par inscription dans l'onglet
      * Participants, et leur décompte ne veut rien dire (« Sur quelles tâches
      * perdez-vous le plus de temps ? » ne se totalise pas).
      *
@@ -148,7 +148,7 @@ final class ParticipantExportBuilder
         $rows[] = ['Inscriptions avec accompagnant', $withCompanion];
         $rows[] = ['Total participants attendus', $participantCount];
 
-        return ['headers' => ['RÉCAPITULATIF — '.$site->getName()], 'rows' => $rows];
+        return ['headers' => ['RÉCAPITULATIF - '.$site->getName()], 'rows' => $rows];
     }
 
     /** @param Registration[] $registrations

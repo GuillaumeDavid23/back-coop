@@ -59,12 +59,17 @@ section[id] { scroll-margin-top: 84px; }
 .sc-form textarea { min-height: 90px; }
 .sc-form textarea::placeholder, .sc-form input::placeholder { color:#A79B87; }
 /* Astérisque des champs obligatoires (Symfony pose la classe .required sur le label). */
-.sc-form label.required::after { content:' *'; color:#1E6685; }
+.sc-form label.required::after { content:'\00a0*'; color:#1E6685; }
+
+/* Présence au cocktail : la phrase et son astérisque tiennent sur une seule
+   ligne (la liste reste à droite). Sous le breakpoint mobile, la ligne se
+   remet à passer normalement, faute de place. */
+.sc-cocktail-row label { white-space: nowrap; font-size: 13.5px; }
 .sc-form .form-widget-checkbox { display:flex; gap:14px; align-items:flex-start; }
 .sc-form input[type="checkbox"] { margin-top:3px; width:16px; height:16px; accent-color:#1E6685; flex:none; }
 .sc-form ul.form-errors { color:#B0453C; font-size:13px; padding-left:0; list-style:none; margin:4px 0 0; }
 
-/* Mobile hamburger — caché par défaut (uniquement affiché sous le breakpoint) */
+/* Mobile hamburger - caché par défaut (uniquement affiché sous le breakpoint) */
 .sc-nav-toggle {
     display: none;
     border: 0;
@@ -76,7 +81,7 @@ section[id] { scroll-margin-top: 84px; }
 .sc-nav-toggle svg { display: block; }
 
 /* ---------------------------------------------------------------------
-   Responsive mobile — le site source (maquette desktop) définit ses
+   Responsive mobile - le site source (maquette desktop) définit ses
    colonnes en style inline, donc on force leur écrasement ici avec
    !important : un style inline gagne toujours sur une règle de feuille
    de style classique, quelle que soit sa spécificité.
@@ -115,9 +120,8 @@ section[id] { scroll-margin-top: 84px; }
     .sc-countdown-values { gap: 14px !important; flex-wrap: wrap !important; }
     .sc-countdown-values > div { min-width: 60px !important; }
 
-    /* Édito : la photo des intervenants passe en ligne (plus en colonne fixe 300px) */
-    #edito .sc-grid > div:first-child { flex-direction: row !important; flex-wrap: wrap; }
-    #edito .sc-grid > div:first-child > div { flex: 1 1 140px; }
+    /* Édito : les intervenants restent l'un sous l'autre comme en version web,
+       la colonne fixe de 300px cédant simplement toute la largeur. */
     #edito h2 { font-size: 26px !important; }
 
     /* Cartes tarifs / avantages coopérateur : déjà gérées par .sc-grid,
@@ -126,6 +130,11 @@ section[id] { scroll-margin-top: 84px; }
 
     /* Formulaires d'inscription : les grilles à colonnes fixes (170px/200px) passent en 1 colonne */
     .sc-form .sc-grid { gap: 12px !important; }
+
+    /* Cocktail : la phrase reprend sa mise en page normale, au-dessus de la liste */
+    .sc-cocktail-row { flex-wrap: wrap !important; }
+    .sc-cocktail-row label { white-space: normal; font-size: 14.5px; }
+    .sc-cocktail-row select { width: 100% !important; }
 
     /* CTA / bandeau footer : centrer proprement en colonne */
     footer .sc-grid { text-align: left; }

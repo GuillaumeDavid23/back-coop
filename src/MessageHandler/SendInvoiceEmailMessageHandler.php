@@ -11,7 +11,7 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 /**
  * Envoi du mail de confirmation d'inscription (facture en pièce jointe), une
- * fois le paiement validé et la facture générée — voir
+ * fois le paiement validé et la facture générée - voir
  * RegistrationConfirmationMailer, qui reprend à l'identique le mail du projet
  * backoffice-clcom (destinataires en copie compris).
  */

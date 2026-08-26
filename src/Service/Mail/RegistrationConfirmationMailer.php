@@ -13,9 +13,10 @@ use Symfony\Component\Mime\Email;
 use Twig\Environment;
 
 /**
- * Mail de confirmation d'inscription, repris à l'identique du projet
- * backoffice-clcom (StripeSyncService::confirmRegistration) : mêmes
- * destinataires en copie, même objet, même contenu, facture en pièce jointe.
+ * Mail de confirmation d'inscription, repris du projet backoffice-clcom
+ * (StripeSyncService::confirmRegistration) : même objet, même contenu, facture
+ * en pièce jointe. L'interlocuteur affiché et sa signature dépendent du site
+ * (voir SITE_CONTACTS).
  *
  * Envoyé une seule fois, au moment où le paiement est validé (voir
  * GenerateInvoicePdfMessageHandler, qui déclenche l'envoi une fois la facture
@@ -25,16 +26,15 @@ final class RegistrationConfirmationMailer
 {
     private const string FROM = 'ne-pas-repondre@clcomevents.fr';
 
-    /** Copies visibles — identiques au back-office. */
+    /** Copies visibles. */
     private const array CC = [
         'mbroyer@clcom.fr',
-        'charles.basset@phoenixfinances.fr',
+        'l.boyer@clcom.fr',
     ];
 
-    /** Copies cachées — identiques au back-office (dont la capture comptable). */
+    /** Copies cachées - identiques au back-office (dont la capture comptable). */
     private const array BCC = [
         'maxime.lefevre@phoenixfinances.fr',
-        'l.boyer@clcom.fr',
         'pfe_ca_b16586ec@capture.chaintrust.io',
         'd.fourrier@clcom.fr',
     ];
@@ -44,14 +44,30 @@ final class RegistrationConfirmationMailer
         'name' => 'Marion BROYER',
         'phone' => '06 88 20 58 12',
         'email' => 'mbroyer@clcom.fr',
+        'signature' => 'signature.png',
+    ];
+
+    /**
+     * Interlocuteur propre à un site, quand il diffère de DEFAULT_CONTACT : le
+     * Séminaire CAC est suivi par Lola BOYER, dont le site public affiche déjà
+     * les coordonnées. Un site absent de cette table garde l'interlocuteur par
+     * défaut.
+     */
+    private const array SITE_CONTACTS = [
+        'seminaire_cac' => [
+            'name' => 'Lola BOYER',
+            'phone' => '04 78 08 42 74',
+            'email' => 'l.boyer@clcom.fr',
+            'signature' => 'signature-lola.png',
+        ],
     ];
 
     public function __construct(
         private readonly MailerInterface $mailer,
         private readonly Environment $twig,
         private readonly BillingDocumentProvider $documents,
-        #[Autowire('%kernel.project_dir%/assets/images/signature.png')]
-        private readonly string $signaturePath,
+        #[Autowire('%kernel.project_dir%/assets/images')]
+        private readonly string $imagesDir,
         #[Autowire(service: 'monolog.logger.payment')]
         private readonly LoggerInterface $logger,
     ) {
@@ -86,13 +102,15 @@ final class RegistrationConfirmationMailer
             return;
         }
 
+        $contact = self::SITE_CONTACTS[$site->getCode()] ?? self::DEFAULT_CONTACT;
+
         $context = [
             'participant' => $participant,
             'registration' => $registration,
             'site' => $site,
-            'contact' => self::DEFAULT_CONTACT,
+            'contact' => $contact,
             'pricing_label' => sprintf(
-                '%s – %s € HT',
+                '%s - %s € HT',
                 $registration->getFareLabel(),
                 number_format((float) $registration->getAmountExclTax(), 2, ',', ' '),
             ),
@@ -106,12 +124,13 @@ final class RegistrationConfirmationMailer
             ->to($participant->getEmail())
             ->cc(...self::CC)
             ->bcc(...self::BCC)
-            ->subject('Confirmation d\'inscription – '.$site->getName())
+            ->subject('Confirmation d\'inscription - '.$site->getName())
             ->text($this->twig->render($this->template($site->getCode(), 'txt'), $context))
             ->html($this->twig->render($this->template($site->getCode(), 'html'), $context));
 
-        if (is_file($this->signaturePath)) {
-            $email->embedFromPath($this->signaturePath, 'signature.png');
+        $signaturePath = $this->imagesDir.'/'.$contact['signature'];
+        if (is_file($signaturePath)) {
+            $email->embedFromPath($signaturePath, 'signature.png');
         }
 
         if (null !== $invoice) {

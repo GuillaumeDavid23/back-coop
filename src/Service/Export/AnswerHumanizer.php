@@ -4,7 +4,7 @@ namespace App\Service\Export;
 
 /**
  * Rend lisibles les clés/valeurs brutes stockées en JSON (Registration/
- * Participant::answers) et quelques codes internes — utilisé à la fois par
+ * Participant::answers) et quelques codes internes - utilisé à la fois par
  * les exports Excel et par l'affichage du BO, pour ne jamais montrer une
  * clé façon "cocktailAttendance" ou un code façon "tns" à un humain.
  */
@@ -30,7 +30,7 @@ final class AnswerHumanizer
         'statut' => 'Statut',
         'subscriptionNumber' => "Numéro de facture d'adhésion",
         'category' => 'Catégorie',
-        'eveningOption' => 'Soirée en option',
+        'eveningGuests' => 'Soirée du jeudi (nombre de personnes)',
         'roomType' => 'Type de chambre',
         // Questionnaire préalable du Séminaire IA
         'aiLevel' => "Niveau d'utilisation de l'IA",
@@ -88,7 +88,7 @@ final class AnswerHumanizer
         return match ($civility) {
             'mme' => 'Madame',
             'm' => 'Monsieur',
-            default => $civility ?? '—',
+            default => $civility ?? '-',
         };
     }
 
@@ -97,7 +97,7 @@ final class AnswerHumanizer
         return match ($status) {
             'salarie' => 'Salarié',
             'tns' => 'Travailleur non salarié',
-            default => $status ?? '—',
+            default => $status ?? '-',
         };
     }
 

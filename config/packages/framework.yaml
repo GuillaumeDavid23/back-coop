@@ -7,7 +7,7 @@ framework:
         # Nom distinct du "PHPSESSID" par défaut : la plateforme sert plusieurs
         # sites sous *.clcomevents.fr, aux côtés des autres projets CLCOM. Si
         # l'un d'eux dépose un PHPSESSID sur le domaine parent, le navigateur
-        # envoie deux cookies de même nom et PHP n'en retient qu'un — la session
+        # envoie deux cookies de même nom et PHP n'en retient qu'un - la session
         # est alors perdue à chaque requête, et le parcours d'inscription boucle
         # indéfiniment sur sa première étape.
         name: BACKCOOP_SESSION

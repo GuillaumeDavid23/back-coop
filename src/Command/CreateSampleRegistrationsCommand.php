@@ -70,7 +70,7 @@ final class CreateSampleRegistrationsCommand extends Command
                 'cocktail' => 'non', 'paid' => true,
             ],
             [
-                'fareCode' => 'anecs_cjec', 'fareLabel' => 'ANECS / CJEC — Jeune CAC', 'amount' => '400.00',
+                'fareCode' => 'anecs_cjec', 'fareLabel' => 'ANECS / CJEC - Jeune CAC', 'amount' => '400.00',
                 'civility' => 'mme', 'firstName' => 'Léa', 'lastName' => 'Bernard', 'email' => 'lea.bernard@bernard-experts.fr',
                 'phone' => '0634567890', 'company' => 'Bernard & Experts', 'status' => 'salarie',
                 'address' => '3 place Bellecour', 'postalCode' => '69002', 'city' => 'Lyon',
@@ -160,10 +160,10 @@ final class CreateSampleRegistrationsCommand extends Command
                 $invoice->setPdfPath($pdfPath);
                 $this->em->flush();
 
-                $io->writeln(sprintf('  ✓ %s — facture %s (%s)', $participant->getFullName(), $invoice->getNumber(), $pdfPath));
+                $io->writeln(sprintf('  ✓ %s - facture %s (%s)', $participant->getFullName(), $invoice->getNumber(), $pdfPath));
             } else {
                 $this->em->flush();
-                $io->writeln(sprintf('  · %s — inscription en attente (pas encore payée)', $participant->getFullName()));
+                $io->writeln(sprintf('  · %s - inscription en attente (pas encore payée)', $participant->getFullName()));
             }
         }
 

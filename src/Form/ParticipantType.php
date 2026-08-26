@@ -13,7 +13,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
  * Édition d'un participant embarquée dans le formulaire d'édition d'une
- * inscription (voir RegistrationCrudController) — volontairement limitée
+ * inscription (voir RegistrationCrudController) - volontairement limitée
  * aux informations personnelles : le tarif/forfait et le statut de
  * l'inscription ne sont jamais éditables ici (voir RegistrationCrudController).
  *
@@ -28,7 +28,7 @@ final class ParticipantType extends AbstractType
         $builder
             ->add('civility', ChoiceType::class, [
                 'choices' => ['Madame' => 'mme', 'Monsieur' => 'm'],
-                'placeholder' => '—',
+                'placeholder' => '-',
                 'required' => false,
                 'label' => 'Civilité',
             ])
@@ -39,7 +39,7 @@ final class ParticipantType extends AbstractType
             ->add('company', TextType::class, ['required' => false, 'label' => 'Société / Cabinet'])
             ->add('status', ChoiceType::class, [
                 'choices' => ['Salarié' => 'salarie', 'Travailleur non salarié' => 'tns'],
-                'placeholder' => '—',
+                'placeholder' => '-',
                 'required' => false,
                 'label' => 'Statut',
             ])

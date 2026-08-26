@@ -49,7 +49,7 @@ class Participant
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $city = null;
 
-    /** Motif de l'inscription / attentes — présent dans quasiment tous les formulaires d'inscription CLCOM. */
+    /** Motif de l'inscription / attentes - présent dans quasiment tous les formulaires d'inscription CLCOM. */
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $motivation = null;
 
@@ -57,7 +57,7 @@ class Participant
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $specialNeeds = null;
 
-    /** Acceptation CGV / consentement — case à cocher quasi systématique. */
+    /** Acceptation CGV / consentement - case à cocher quasi systématique. */
     #[ORM\Column]
     private bool $consentAccepted = false;
 

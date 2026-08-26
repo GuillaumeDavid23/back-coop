@@ -3,17 +3,20 @@
 namespace App\Site\SeminaireIA\Service;
 
 /**
- * Grille tarifaire du Séminaire IA — Deauville, 22-23 octobre 2026. Propre à
+ * Grille tarifaire du Séminaire IA - Deauville, 22-23 octobre 2026. Propre à
  * cet événement (voir Registration::fareCode/fareLabel qui stockent un
  * instantané de ce qui est choisi ici au moment de l'inscription).
  *
  * Contrairement au Séminaire CAC, le prix dépend de deux dimensions : le
  * forfait ET le statut du participant (grille type formulaire ECF). Montants
- * en euros HT — la TVA (20 %) est appliquée à l'encaissement.
+ * en euros HT - la TVA (20 %) est appliquée à l'encaissement.
  */
 final class FareCatalog
 {
     public const string TAX_RATE = '20.00';
+
+    /** Nombre de convives possibles pour la soirée : le participant et son accompagnant. */
+    public const int MAX_EVENING_GUESTS = 2;
 
     /** @return array<string, string> */
     public static function statuses(): array
@@ -45,7 +48,7 @@ final class FareCatalog
 
         return [
             'heb_1ec' => [
-                'label' => 'Forfait hébergement — 1 Expert-Comptable',
+                'label' => 'Forfait hébergement - 1 Expert-Comptable',
                 'shortLabel' => '1 Expert-Comptable',
                 'participants' => 1,
                 'accommodation' => true,
@@ -53,7 +56,7 @@ final class FareCatalog
                 'includes' => $accommodationIncludes,
             ],
             'heb_1ec_acc' => [
-                'label' => 'Forfait hébergement — 1 EC + 1 accompagnant',
+                'label' => 'Forfait hébergement - 1 EC + 1 accompagnant',
                 'shortLabel' => '1 EC + 1 accompagnant',
                 'participants' => 2,
                 'accommodation' => true,
@@ -61,7 +64,7 @@ final class FareCatalog
                 'includes' => $accommodationIncludes,
             ],
             'heb_2ec' => [
-                'label' => 'Forfait hébergement — 2 Experts-Comptables',
+                'label' => 'Forfait hébergement - 2 Experts-Comptables',
                 'shortLabel' => '2 Experts-Comptables',
                 'participants' => 2,
                 'accommodation' => true,
@@ -69,7 +72,7 @@ final class FareCatalog
                 'includes' => $accommodationIncludes,
             ],
             'sans_heb' => [
-                'label' => 'Forfait sans hébergement — 1 Expert-Comptable',
+                'label' => 'Forfait sans hébergement - 1 Expert-Comptable',
                 'shortLabel' => '1 Expert-Comptable',
                 'participants' => 1,
                 'accommodation' => false,
@@ -85,7 +88,7 @@ final class FareCatalog
     }
 
     /**
-     * Soirée du jeudi en option — uniquement pour le forfait sans hébergement,
+     * Soirée du jeudi en option - uniquement pour le forfait sans hébergement,
      * les forfaits hébergement l'incluent déjà.
      *
      * @return array<string, string>
@@ -100,21 +103,35 @@ final class FareCatalog
         return 'sans_heb' === $fareCode;
     }
 
+    /** Ramène une saisie quelconque à un nombre de convives facturable (0 à 2). */
+    public static function eveningGuests(mixed $value, string $fareCode): int
+    {
+        if (!self::allowsEveningOption($fareCode)) {
+            return 0;
+        }
+
+        return max(0, min(self::MAX_EVENING_GUESTS, (int) $value));
+    }
+
     public static function isTwoPerson(string $fareCode): bool
     {
         return 2 === (self::find($fareCode)['participants'] ?? 1);
     }
 
-    /** Montant HT du forfait pour un statut, option soirée comprise le cas échéant. */
-    public static function totalExclTax(string $fareCode, string $status, bool $eveningOption): ?string
+    /**
+     * Montant HT du forfait pour un statut, soirée comprise le cas échéant. La
+     * soirée est facturée par convive : le participant peut venir accompagné.
+     */
+    public static function totalExclTax(string $fareCode, string $status, int $eveningGuests): ?string
     {
         $price = self::find($fareCode)['prices'][$status] ?? null;
         if (null === $price) {
             return null;
         }
 
-        if ($eveningOption && self::allowsEveningOption($fareCode)) {
-            $price = bcadd($price, self::eveningPrices()[$status], 2);
+        $guests = self::eveningGuests($eveningGuests, $fareCode);
+        if ($guests > 0) {
+            $price = bcadd($price, bcmul(self::eveningPrices()[$status], (string) $guests, 2), 2);
         }
 
         return $price;
@@ -129,18 +146,12 @@ final class FareCatalog
     }
 
     /** Libellé instantané complet stocké dans Registration::fareLabel. */
-    public static function fareLabel(string $fareCode, string $status, bool $eveningOption): string
+    public static function fareLabel(string $fareCode, string $status): string
     {
-        $label = sprintf(
-            '%s — %s',
+        return sprintf(
+            '%s - %s',
             self::find($fareCode)['label'] ?? $fareCode,
             self::statuses()[$status] ?? $status,
         );
-
-        if ($eveningOption && self::allowsEveningOption($fareCode)) {
-            $label .= ' + soirée';
-        }
-
-        return $label;
     }
 }

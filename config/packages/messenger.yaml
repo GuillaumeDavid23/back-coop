@@ -27,7 +27,7 @@ framework:
             # Les emails partent en synchrone, dans la requête qui les déclenche
             # (aucune ligne de routage : un message non routé est traité
             # immédiatement). Sur mutualisé, cela évite de dépendre du worker
-            # pour la confirmation d'inscription — au prix de l'absence de
+            # pour la confirmation d'inscription - au prix de l'absence de
             # rejeu automatique si le serveur SMTP est momentanément injoignable.
             Symfony\Component\Notifier\Message\ChatMessage: async
             Symfony\Component\Notifier\Message\SmsMessage: async

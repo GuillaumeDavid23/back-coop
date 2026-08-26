@@ -21,7 +21,7 @@ class Registration
     #[ORM\JoinColumn(nullable: false)]
     private Site $site;
 
-    /** Code figé du tarif choisi (ex: "cooperateur") — snapshot, indépendant d'une future évolution des tarifs du site. */
+    /** Code figé du tarif choisi (ex: "cooperateur") - snapshot, indépendant d'une future évolution des tarifs du site. */
     #[ORM\Column(length: 100)]
     private string $fareCode;
 
@@ -191,13 +191,13 @@ class Registration
         return $this->participants;
     }
 
-    /** Pour la vue détail BO (voir RegistrationCrudController) — une inscription n'a qu'un seul participant en pratique. */
+    /** Pour la vue détail BO (voir RegistrationCrudController) - une inscription n'a qu'un seul participant en pratique. */
     public function getPrimaryParticipant(): ?Participant
     {
         return $this->participants->first() ?: null;
     }
 
-    /** Pour l'affichage BO (voir RegistrationCrudController) — colonnes "Participant(s)" et "Email". */
+    /** Pour l'affichage BO (voir RegistrationCrudController) - colonnes "Participant(s)" et "Email". */
     public function getParticipantsFullNames(): string
     {
         return implode(', ', array_map(
@@ -244,7 +244,7 @@ class Registration
 
     /**
      * Libellé du statut de l'inscription accordé au genre du participant
-     * (civilité "mme" => féminin) — pour l'affichage BO (voir
+     * (civilité "mme" => féminin) - pour l'affichage BO (voir
      * RegistrationCrudController).
      */
     public function getGenderedStatusLabel(): string
@@ -268,12 +268,12 @@ class Registration
         };
     }
 
-    /** Libellé humain du dernier paiement — pour l'affichage BO (voir RegistrationCrudController). */
+    /** Libellé humain du dernier paiement - pour l'affichage BO (voir RegistrationCrudController). */
     public function getLatestPaymentStatusLabel(): string
     {
         $payment = $this->getLatestPayment();
         if ($payment === null) {
-            return '—';
+            return '-';
         }
 
         return match ($payment->getStatus()->value) {
@@ -287,6 +287,6 @@ class Registration
 
     public function __toString(): string
     {
-        return sprintf('Inscription #%d — %s', $this->id ?? 0, $this->fareLabel);
+        return sprintf('Inscription #%d - %s', $this->id ?? 0, $this->fareLabel);
     }
 }

@@ -24,11 +24,11 @@
         <div style="font-size: 0.8rem; color: #6c757d; text-transform: uppercase; margin-bottom: 12px;">Documents de facturation</div>
         <div style="display: flex; justify-content: space-between; padding: 4px 0;">
             <span>Facture</span>
-            <strong>{{ invoice_number ?? '—' }}</strong>
+            <strong>{{ invoice_number ?? '-' }}</strong>
         </div>
         <div style="display: flex; justify-content: space-between; padding: 4px 0;">
             <span>Avoir</span>
-            <strong>{{ credit_note_number ?? '—' }}</strong>
+            <strong>{{ credit_note_number ?? '-' }}</strong>
         </div>
     </div>
 {% endblock %}
