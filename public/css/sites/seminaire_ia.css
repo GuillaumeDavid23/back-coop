@@ -609,6 +609,30 @@ a:hover {
     color: #fff;
 }
 
+/* Boutons de téléchargement en pied de volet (plaquette, pré-requis). */
+#sidebar .sidebar-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 20px 32px;
+}
+
+#sidebar .download-btn {
+    margin: 10px 32px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    font-size: 0.9rem;
+    justify-content: center;
+    text-align: center;
+}
+
+#sidebar .download-btn:hover {
+    background: #fff;
+    color: #b9004b;
+    padding-left: 15px;
+}
+
 #sidebar .closebtn {
     position: absolute;
     top: 20px;

@@ -35,6 +35,23 @@
             <a href="{{ path('ia_home') }}#programme"><i class="fas fa-calendar-alt"></i>Programme</a>
             <a href="{{ path('ia_home') }}#inscription"><i class="fas fa-user-plus"></i>Inscription</a>
             <a href="{{ path('ia_home') }}#contact"><i class="fas fa-envelope"></i>Contact</a>
+
+            {# Documents à télécharger, comme sur le site de référence. Chaque bouton
+               n'apparaît qu'une fois son PDF déposé dans public/documents/sites/seminaire_ia/ #}
+            {% set documents = [
+                {file: 'plaquette-seminaire-ia-2026.pdf', label: 'Programme PDF'},
+                {file: 'pre-requis-seminaire-ia-2026.pdf', label: 'Pré-requis'},
+            ] %}
+            {% set documents = documents|filter(d => static_asset_exists('/documents/sites/seminaire_ia/' ~ d.file)) %}
+            {% if documents is not empty %}
+                <div class="sidebar-divider"></div>
+                <div class="sidebar-header pt-0 pb-2">
+                    <div class="sidebar-title">Documents</div>
+                </div>
+                {% for document in documents %}
+                    <a href="{{ static_asset('/documents/sites/seminaire_ia/' ~ document.file) }}" target="_blank" rel="noopener" class="download-btn"><i class="fas fa-file-pdf"></i>{{ document.label }}</a>
+                {% endfor %}
+            {% endif %}
         </div>
     </div>
 

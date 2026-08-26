@@ -22,7 +22,10 @@ final class StaticAssetExtension extends AbstractExtension
 
     public function getFunctions(): array
     {
-        return [new TwigFunction('static_asset', $this->version(...))];
+        return [
+            new TwigFunction('static_asset', $this->version(...)),
+            new TwigFunction('static_asset_exists', $this->exists(...)),
+        ];
     }
 
     public function version(string $path): string
@@ -30,5 +33,15 @@ final class StaticAssetExtension extends AbstractExtension
         $mtime = @filemtime($this->publicDir.'/'.ltrim($path, '/'));
 
         return false === $mtime ? $path : $path.'?v='.$mtime;
+    }
+
+    /**
+     * Permet de n'afficher un lien de téléchargement qu'une fois le document
+     * déposé : les plaquettes et documents annexes arrivent au fil de l'eau,
+     * et un bouton qui renvoie sur une page 404 est pire que pas de bouton.
+     */
+    public function exists(string $path): bool
+    {
+        return is_file($this->publicDir.'/'.ltrim($path, '/'));
     }
 }
