@@ -26,15 +26,16 @@ final class RegistrationConfirmationMailer
 {
     private const string FROM = 'ne-pas-repondre@clcomevents.fr';
 
-    /** Copies visibles. */
+    /** Copies visibles par défaut - identiques au back-office. */
     private const array CC = [
         'mbroyer@clcom.fr',
-        'l.boyer@clcom.fr',
+        'charles.basset@phoenixfinances.fr',
     ];
 
-    /** Copies cachées - identiques au back-office (dont la capture comptable). */
+    /** Copies cachées par défaut - identiques au back-office (dont la capture comptable). */
     private const array BCC = [
         'maxime.lefevre@phoenixfinances.fr',
+        'l.boyer@clcom.fr',
         'pfe_ca_b16586ec@capture.chaintrust.io',
         'd.fourrier@clcom.fr',
     ];
@@ -48,17 +49,30 @@ final class RegistrationConfirmationMailer
     ];
 
     /**
-     * Interlocuteur propre à un site, quand il diffère de DEFAULT_CONTACT : le
-     * Séminaire CAC est suivi par Lola BOYER, dont le site public affiche déjà
-     * les coordonnées. Un site absent de cette table garde l'interlocuteur par
-     * défaut.
+     * Réglages propres à un site. Seul le Séminaire CAC en a : il est suivi par
+     * Lola BOYER, dont le site public affiche déjà les coordonnées, et ses
+     * confirmations ne sont plus adressées à Charles Basset. Les listes sont
+     * écrites en entier plutôt que dérivées des constantes ci-dessus : sur des
+     * destinataires, une liste explicite se relit sans dérouler de code.
+     * Tout site absent de cette table garde les valeurs par défaut.
      */
-    private const array SITE_CONTACTS = [
+    private const array SITE_OVERRIDES = [
         'seminaire_cac' => [
-            'name' => 'Lola BOYER',
-            'phone' => '04 78 08 42 74',
-            'email' => 'l.boyer@clcom.fr',
-            'signature' => 'signature-lola.png',
+            'contact' => [
+                'name' => 'Lola BOYER',
+                'phone' => '04 78 08 42 74',
+                'email' => 'l.boyer@clcom.fr',
+                'signature' => 'signature-lola.png',
+            ],
+            'cc' => [
+                'mbroyer@clcom.fr',
+                'l.boyer@clcom.fr',
+            ],
+            'bcc' => [
+                'maxime.lefevre@phoenixfinances.fr',
+                'pfe_ca_b16586ec@capture.chaintrust.io',
+                'd.fourrier@clcom.fr',
+            ],
         ],
     ];
 
@@ -102,7 +116,10 @@ final class RegistrationConfirmationMailer
             return;
         }
 
-        $contact = self::SITE_CONTACTS[$site->getCode()] ?? self::DEFAULT_CONTACT;
+        $overrides = self::SITE_OVERRIDES[$site->getCode()] ?? [];
+        $contact = $overrides['contact'] ?? self::DEFAULT_CONTACT;
+        $cc = $overrides['cc'] ?? self::CC;
+        $bcc = $overrides['bcc'] ?? self::BCC;
 
         $context = [
             'participant' => $participant,
@@ -122,8 +139,8 @@ final class RegistrationConfirmationMailer
         $email = (new Email())
             ->from(self::FROM)
             ->to($participant->getEmail())
-            ->cc(...self::CC)
-            ->bcc(...self::BCC)
+            ->cc(...$cc)
+            ->bcc(...$bcc)
             ->subject('Confirmation d\'inscription - '.$site->getName())
             ->text($this->twig->render($this->template($site->getCode(), 'txt'), $context))
             ->html($this->twig->render($this->template($site->getCode(), 'html'), $context));
@@ -153,7 +170,7 @@ final class RegistrationConfirmationMailer
             'invoice_number' => $invoice?->getNumber(),
             'registration_id' => $registration->getId(),
             'recipient' => $participant->getEmail(),
-            'cc' => self::CC,
+            'cc' => $cc,
         ]);
     }
 
