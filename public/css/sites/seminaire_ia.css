@@ -421,9 +421,12 @@ a:hover {
     margin-bottom: 20px;
 }
 
+/* Cadre calé sur le format des photos (16:9) plutôt qu'une hauteur fixe de
+   300px, qui en rognait plus d'un tiers sur les côtés. Les deux visuels
+   s'affichent ainsi en entier et restent alignés. */
 .soiree-img {
-    height: 300px;
     width: 100%;
+    aspect-ratio: 16 / 9;
     object-fit: cover;
     overflow-clip-margin: unset;
     border-radius: 10px;
@@ -434,10 +437,6 @@ a:hover {
     cursor: pointer;
 }
 
-/* Photo montrée en entier (et donc réduite) plutôt que recadrée. */
-.soiree-img-contain {
-    object-fit: contain;
-}
 
 .soiree-img-hover:hover {
     transform: scale(0.9);
