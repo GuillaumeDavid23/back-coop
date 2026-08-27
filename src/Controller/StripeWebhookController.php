@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\PaymentStatus;
 use App\Repository\PaymentRepository;
+use App\Repository\SiteRepository;
 use App\Service\Stripe\PaymentSynchronizer;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -27,6 +28,7 @@ final class StripeWebhookController
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly PaymentRepository $payments,
+        private readonly SiteRepository $sites,
         private readonly PaymentSynchronizer $synchronizer,
         #[Autowire(env: 'STRIPE_WEBHOOK_SECRET')]
         private readonly string $webhookSecret,
@@ -66,6 +68,10 @@ final class StripeWebhookController
             'livemode' => $event->livemode,
         ]);
 
+        if ($this->isForeignEvent($event)) {
+            return new JsonResponse(['received' => true, 'ignored' => true]);
+        }
+
         try {
             match ($event->type) {
                 'checkout.session.completed' => $this->handleCheckoutCompleted($event),
@@ -91,6 +97,43 @@ final class StripeWebhookController
         }
 
         return new JsonResponse(['received' => true]);
+    }
+
+    /**
+     * Le compte Stripe est partagé avec d'autres back-offices : chaque
+     * destination reçoit tous les événements du compte, et Stripe ne sait
+     * filtrer que par type, jamais par metadata. On écarte donc ici les
+     * sessions qui appartiennent à un autre site, avec un 200 : un 4xx/5xx
+     * ferait retenter Stripe pendant trois jours avant de désactiver la
+     * destination, ce qui finirait par faire perdre nos propres paiements.
+     *
+     * Seul checkout.session.completed porte l'identité du site (metadata posée
+     * par StripeCheckoutService). Les autres types sont rattachés par
+     * payment_intent_id : un intent d'un autre site ne correspond à aucun
+     * paiement en base, les handlers n'y touchent donc pas.
+     */
+    private function isForeignEvent(Event $event): bool
+    {
+        if ($event->type !== 'checkout.session.completed') {
+            return false;
+        }
+
+        /** @var \Stripe\Checkout\Session $session */
+        $session = $event->data->object;
+        $siteCode = $session->metadata['site_code'] ?? null;
+
+        if (is_string($siteCode) && $this->sites->findByCode($siteCode) !== null) {
+            return false;
+        }
+
+        $this->logger->info('stripe.webhook.foreign_site_ignored', [
+            'event_id' => $event->id,
+            'event_type' => $event->type,
+            'stripe_checkout_session_id' => $session->id,
+            'site_code' => $siteCode,
+        ]);
+
+        return true;
     }
 
     /**
