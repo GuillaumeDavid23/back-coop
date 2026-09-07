@@ -83,7 +83,7 @@ final class RegistrationCrudController extends AbstractSiteScopedCrudController
             ->add(ChoiceFilter::new('status', "Statut d'inscription")
                 ->setChoices([
                     'Inscrit (confirmé)' => RegistrationStatus::CONFIRMED->value,
-                    'En attente de paiement' => RegistrationStatus::PENDING->value,
+                    'Paiement non effectué' => RegistrationStatus::PENDING->value,
                     'Désinscrit' => RegistrationStatus::CANCELLED->value,
                 ])
                 ->canSelectMultiple())
@@ -161,6 +161,14 @@ final class RegistrationCrudController extends AbstractSiteScopedCrudController
             ->linkToCrudAction('refreshPayment')
             ->displayIf(static fn (Registration $registration) => $registration->getStatus() === RegistrationStatus::PENDING);
 
+        // Vérification directe dans le dashboard Stripe : c'est la seule source
+        // qui dit si la carte a été refusée, si la page a été quittée, ou si un
+        // remboursement a eu lieu. Ouvert dans un onglet pour ne pas perdre le BO.
+        $viewOnStripe = Action::new('viewOnStripe', 'Voir sur Stripe', 'fa fa-arrow-up-right-from-square')
+            ->linkToUrl(static fn (Registration $registration) => $registration->getLatestPayment()?->getStripeDashboardUrl() ?? '#')
+            ->displayIf(static fn (Registration $registration) => $registration->getLatestPayment()?->getStripeDashboardUrl() !== null)
+            ->setHtmlAttributes(['target' => '_blank', 'rel' => 'noopener']);
+
         $exportParticipants = Action::new('exportParticipants', 'Exporter les participants (Excel)', 'fa fa-file-excel')
             ->linkToUrl(fn () => $this->generateUrl('admin_export_participants'))
             ->createAsGlobalAction();
@@ -175,8 +183,10 @@ final class RegistrationCrudController extends AbstractSiteScopedCrudController
             ->add(Crud::PAGE_INDEX, $downloadInvoice)
             ->add(Crud::PAGE_INDEX, $downloadCreditNote)
             ->add(Crud::PAGE_INDEX, $refreshPayment)
+            ->add(Crud::PAGE_INDEX, $viewOnStripe)
             ->add(Crud::PAGE_INDEX, $unregister)
             ->add(Crud::PAGE_DETAIL, $refreshPayment)
+            ->add(Crud::PAGE_DETAIL, $viewOnStripe)
             ->add(Crud::PAGE_DETAIL, $downloadInvoice)
             ->add(Crud::PAGE_DETAIL, $downloadCreditNote)
             ->add(Crud::PAGE_DETAIL, $unregister)
@@ -341,11 +351,18 @@ final class RegistrationCrudController extends AbstractSiteScopedCrudController
         // Libellé accordé au genre du participant (voir Registration::getGenderedStatusLabel) -
         // un ChoiceField ne peut pas produire un libellé dynamique par ligne, d'où ce badge HTML.
         yield TextField::new('genderedStatusLabel', 'Inscription')
-            ->formatValue(static fn ($value, Registration $registration) => sprintf(
-                '<span class="badge badge-%s">%s</span>',
-                $registration->getStatusBadgeVariant(),
-                $registration->getGenderedStatusLabel(),
-            ))
+            ->formatValue(static function ($value, Registration $registration): string {
+                // L'explication est portée par un title : elle répond à la
+                // question "il a payé ou pas ?" sans alourdir le tableau.
+                $help = $registration->getStatusHelp();
+
+                return sprintf(
+                    '<span class="badge badge-%s"%s>%s</span>',
+                    $registration->getStatusBadgeVariant(),
+                    null !== $help ? ' title="'.htmlspecialchars($help, \ENT_QUOTES).'"' : '',
+                    $registration->getGenderedStatusLabel(),
+                );
+            })
             ->renderAsHtml()
             ->hideOnForm();
         yield TextField::new('latestPaymentStatusLabel', 'Paiement')->hideOnForm();

@@ -255,19 +255,55 @@ class Registration
         $feminine = $participant?->getCivility() === 'mme';
 
         return match ($this->status) {
-            RegistrationStatus::PENDING => 'En attente',
+            RegistrationStatus::PENDING => $this->isPaymentStillOpen() ? 'Paiement en cours' : 'Paiement non effectué',
             RegistrationStatus::CONFIRMED => $feminine ? 'Confirmée' : 'Confirmé',
             RegistrationStatus::CANCELLED => $feminine ? 'Désinscrite' : 'Désinscrit',
         };
     }
 
+    /**
+     * Explication affichée au survol du badge : "En attente" ne disait pas si la
+     * personne avait payé, ce qui obligeait l'organisatrice à demander.
+     */
+    public function getStatusHelp(): ?string
+    {
+        if ($this->status !== RegistrationStatus::PENDING) {
+            return null;
+        }
+
+        return $this->isPaymentStillOpen()
+            ? "La page de paiement Stripe a été ouverte il y a moins de 2 heures : le règlement est peut-être encore en cours. Le statut se met à jour tout seul dès que Stripe répond."
+            : "Aucun règlement n'a abouti : la personne a quitté la page de paiement Stripe sans payer. Rien n'a été encaissé, elle peut se réinscrire quand elle veut.";
+    }
+
     public function getStatusBadgeVariant(): string
     {
         return match ($this->status) {
-            RegistrationStatus::PENDING => 'warning',
+            RegistrationStatus::PENDING => $this->isPaymentStillOpen() ? 'warning' : 'secondary',
             RegistrationStatus::CONFIRMED => 'success',
             RegistrationStatus::CANCELLED => 'danger',
         };
+    }
+
+    /**
+     * Distingue les deux situations que "En attente" confondait : un paiement
+     * qui peut encore aboutir, et un panier abandonné.
+     *
+     * Stripe ne notifie l'abandon qu'à l'expiration de la session, jusqu'à 24 h
+     * plus tard (voir StripeWebhookController::handleCheckoutExpired). Passé
+     * 2 h sans retour, personne n'est plus devant son formulaire de carte : on
+     * l'affiche comme non payé sans attendre la confirmation de Stripe, qui
+     * viendra remettre le paiement en "échoué" le moment venu.
+     */
+    private function isPaymentStillOpen(): bool
+    {
+        $payment = $this->getLatestPayment();
+
+        if ($payment === null || $payment->getStatus() !== PaymentStatus::PENDING) {
+            return false;
+        }
+
+        return $payment->getCreatedAt() > new \DateTimeImmutable('-2 hours');
     }
 
     /** Libellé humain du dernier paiement - pour l'affichage BO (voir RegistrationCrudController). */
@@ -278,12 +314,13 @@ class Registration
             return '-';
         }
 
-        return match ($payment->getStatus()->value) {
-            'pending' => 'En attente',
-            'succeeded' => 'Réussi',
-            'failed' => 'Échoué',
-            'refunded' => 'Remboursé',
-            default => $payment->getStatus()->value,
+        // Vocabulaire du point de vue de l'organisatrice, pas de celui de Stripe :
+        // ce qu'elle veut savoir, c'est si l'argent est arrivé.
+        return match ($payment->getStatus()) {
+            PaymentStatus::PENDING => $this->isPaymentStillOpen() ? 'En cours' : 'Non payé',
+            PaymentStatus::SUCCEEDED => 'Réussi',
+            PaymentStatus::FAILED => 'Abandonné',
+            PaymentStatus::REFUNDED => 'Remboursé',
         };
     }
 

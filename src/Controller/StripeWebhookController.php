@@ -75,6 +75,7 @@ final class StripeWebhookController
         try {
             match ($event->type) {
                 'checkout.session.completed' => $this->handleCheckoutCompleted($event),
+                'checkout.session.expired' => $this->handleCheckoutExpired($event),
                 'payment_intent.succeeded' => $this->handlePaymentIntentSucceeded($event),
                 'payment_intent.payment_failed' => $this->handlePaymentIntentFailed($event),
                 'charge.refunded' => $this->handleChargeRefunded($event),
@@ -107,14 +108,14 @@ final class StripeWebhookController
      * ferait retenter Stripe pendant trois jours avant de désactiver la
      * destination, ce qui finirait par faire perdre nos propres paiements.
      *
-     * Seul checkout.session.completed porte l'identité du site (metadata posée
-     * par StripeCheckoutService). Les autres types sont rattachés par
-     * payment_intent_id : un intent d'un autre site ne correspond à aucun
-     * paiement en base, les handlers n'y touchent donc pas.
+     * Seuls les événements checkout.session.* portent l'identité du site
+     * (metadata posée par StripeCheckoutService). Les autres types sont
+     * rattachés par payment_intent_id : un intent d'un autre site ne correspond
+     * à aucun paiement en base, les handlers n'y touchent donc pas.
      */
     private function isForeignEvent(Event $event): bool
     {
-        if ($event->type !== 'checkout.session.completed') {
+        if (!\in_array($event->type, ['checkout.session.completed', 'checkout.session.expired'], true)) {
             return false;
         }
 
@@ -148,6 +149,27 @@ final class StripeWebhookController
         $session = $event->data->object;
 
         $this->logger->info('stripe.webhook.checkout_completed', [
+            'event_id' => $event->id,
+            'stripe_checkout_session_id' => $session->id,
+            'registration_id' => $session->metadata['registration_id'] ?? null,
+        ]);
+
+        $this->synchronizer->syncFromSession($session);
+    }
+
+    /**
+     * Session Checkout abandonnée : Stripe l'expire au bout de 24 h et prévient
+     * ici. Sans ce traitement, une inscription jamais payée restait "en attente"
+     * indéfiniment dans le BO, sans qu'on puisse dire si le règlement était en
+     * cours ou abandonné. Le synchroniseur passe le paiement en "échoué"
+     * (session.status = expired), l'inscription n'est jamais confirmée.
+     */
+    private function handleCheckoutExpired(Event $event): void
+    {
+        /** @var \Stripe\Checkout\Session $session */
+        $session = $event->data->object;
+
+        $this->logger->info('stripe.webhook.checkout_expired', [
             'event_id' => $event->id,
             'stripe_checkout_session_id' => $session->id,
             'registration_id' => $session->metadata['registration_id'] ?? null,

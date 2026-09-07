@@ -108,6 +108,31 @@ class Payment
         return $this;
     }
 
+    /**
+     * Lien direct vers la transaction dans le dashboard Stripe, pour vérifier
+     * d'un clic ce qui s'est réellement passé côté banque (voir le bouton
+     * "Voir sur Stripe" du BO).
+     *
+     * Le mode (live/test) est déduit du préfixe de l'identifiant de session :
+     * une transaction de test vit sur /test, et le lien doit suivre.
+     */
+    public function getStripeDashboardUrl(): ?string
+    {
+        $base = 'https://dashboard.stripe.com'.(str_starts_with((string) $this->stripeCheckoutSessionId, 'cs_test_') ? '/test' : '');
+
+        if (null !== $this->stripePaymentIntentId) {
+            return $base.'/payments/'.$this->stripePaymentIntentId;
+        }
+
+        // Une session dont le paiement n'a jamais été tenté n'a pas de page
+        // dédiée : la recherche par identifiant est le seul point d'entrée.
+        if (null !== $this->stripeCheckoutSessionId) {
+            return $base.'/search?query='.urlencode($this->stripeCheckoutSessionId);
+        }
+
+        return null;
+    }
+
     public function getAmount(): string
     {
         return $this->amount;

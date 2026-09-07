@@ -104,7 +104,7 @@ final class AnswerHumanizer
     public static function registrationStatus(string $status): string
     {
         return match ($status) {
-            'pending' => 'En attente',
+            'pending' => 'Paiement non effectué',
             'confirmed' => 'Confirmée',
             'cancelled' => 'Désinscrite',
             default => $status,
@@ -114,9 +114,9 @@ final class AnswerHumanizer
     public static function paymentStatus(string $status): string
     {
         return match ($status) {
-            'pending' => 'En attente',
+            'pending' => 'Non payé',
             'succeeded' => 'Réussi',
-            'failed' => 'Échoué',
+            'failed' => 'Abandonné',
             'refunded' => 'Remboursé',
             default => $status,
         };

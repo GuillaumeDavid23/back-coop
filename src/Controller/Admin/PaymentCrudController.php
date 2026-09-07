@@ -43,9 +43,9 @@ final class PaymentCrudController extends AbstractSiteScopedCrudController
         yield MoneyField::new('amount')->setCurrency('EUR')->setStoredAsCents(false);
         yield ChoiceField::new('status')
             ->setChoices([
-                'En attente' => PaymentStatus::PENDING,
+                'Non payé' => PaymentStatus::PENDING,
                 'Réussi' => PaymentStatus::SUCCEEDED,
-                'Échoué' => PaymentStatus::FAILED,
+                'Abandonné' => PaymentStatus::FAILED,
                 'Remboursé' => PaymentStatus::REFUNDED,
             ])
             ->renderAsBadges([
