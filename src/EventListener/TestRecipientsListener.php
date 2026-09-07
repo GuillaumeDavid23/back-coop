@@ -28,6 +28,8 @@ final class TestRecipientsListener
     public function __construct(
         #[Autowire(env: 'MAILER_TEST_RECIPIENTS')]
         string $recipients,
+        #[Autowire(env: 'ALERT_EMAIL')]
+        private readonly string $alertEmail,
         private readonly LoggerInterface $logger,
     ) {
         $this->recipients = array_values(array_filter(array_map(trim(...), explode(',', $recipients))));
@@ -41,6 +43,13 @@ final class TestRecipientsListener
 
         $envelope = $event->getEnvelope();
         $original = array_map(static fn (Address $address): string => $address->getAddress(), $envelope->getRecipients());
+
+        // Les alertes techniques échappent au détournement : pendant une phase
+        // de recette, c'est justement le moment où il faut être prévenu d'une
+        // erreur 500, et l'adresse de recette n'est pas celle qui la traitera.
+        if ([strtolower($this->alertEmail)] === array_map(strtolower(...), $original)) {
+            return;
+        }
 
         $envelope->setRecipients(array_map(static fn (string $address): Address => new Address($address), $this->recipients));
 

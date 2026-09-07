@@ -69,3 +69,41 @@ when@prod:
                 path: "%kernel.logs_dir%/payment.log"
                 level: debug
                 formatter: monolog.formatter.json
+            # Alerte par email sur incident critique : erreur 500, exception non
+            # rattrapée, ou log critical applicatif (ex: une facture émise dont
+            # le PDF est introuvable au moment de l'envoi). Sur le mutualisé,
+            # "nested" écrit sur php://stderr, qui ne va nulle part : sans cette
+            # alerte, un incident reste invisible jusqu'à ce qu'un client le
+            # signale, ce qui a coûté une semaine de confirmations perdues.
+            #
+            # Le canal "payment" est inclus volontairement, c'est là que se
+            # loguent les incidents de facturation.
+            critical_alert:
+                type: fingers_crossed
+                action_level: critical
+                handler: critical_alert_deduplicated
+                channels: ["!deprecation", "!event", "!doctrine"]
+                # Contexte joint à l'alerte : les 30 derniers logs de la requête,
+                # ce qui suffit à reconstituer ce qui a mené à l'erreur.
+                buffer_size: 30
+                excluded_http_codes: [404, 405]
+            # Une même erreur qui se répète (Stripe qui rejoue son webhook, base
+            # injoignable) ne génère qu'une alerte toutes les 10 minutes, plutôt
+            # que de noyer la boîte au moment précis où il faut réagir.
+            critical_alert_deduplicated:
+                type: deduplication
+                handler: critical_alert_mailer
+                time: 600
+                nested: true
+            critical_alert_mailer:
+                type: symfony_mailer
+                # Expéditeur déjà autorisé côté Brevo, comme les confirmations
+                # d'inscription : une alerte refusée par le relais SMTP ne
+                # préviendrait personne.
+                from_email: 'ne-pas-repondre@clcomevents.fr'
+                to_email: '%env(ALERT_EMAIL)%'
+                subject: '[back-coop] Erreur critique : %%message%%'
+                level: debug
+                formatter: monolog.formatter.html
+                content_type: text/html
+                nested: true
