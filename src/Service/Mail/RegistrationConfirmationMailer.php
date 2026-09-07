@@ -116,6 +116,28 @@ final class RegistrationConfirmationMailer
             return;
         }
 
+        // La pièce jointe est résolue avant tout le reste : si le PDF est
+        // indisponible (wkhtmltopdf cassé par une mise à jour du mutualisé,
+        // fichier disparu), la confirmation part quand même, sans facture et
+        // avec la formulation "adressée sous quelques jours". Une facture non
+        // envoyée se rattrape à la main ; un mail de confirmation jamais parti
+        // laisse le participant et l'organisatrice sans nouvelle.
+        $attachmentPath = null;
+        if (null !== $invoice) {
+            try {
+                $attachmentPath = $this->documents->invoicePath($invoice);
+            } catch (\Throwable $e) {
+                // critical et non error : la facture est émise et numérotée mais
+                // ne partira pas, il faut une reprise humaine (app:resend-confirmation).
+                $this->logger->critical('registration.confirmation.invoice_pdf_unavailable', [
+                    'invoice_id' => $invoice->getId(),
+                    'invoice_number' => $invoice->getNumber(),
+                    'registration_id' => $registration->getId(),
+                    'exception' => $e->getMessage(),
+                ]);
+            }
+        }
+
         $overrides = self::SITE_OVERRIDES[$site->getCode()] ?? [];
         $contact = $overrides['contact'] ?? self::DEFAULT_CONTACT;
         $cc = $overrides['cc'] ?? self::CC;
@@ -132,7 +154,7 @@ final class RegistrationConfirmationMailer
                 number_format((float) $registration->getAmountExclTax(), 2, ',', ' '),
             ),
             'total_amount' => number_format((float) $registration->getAmountInclTax(), 2, ',', ' '),
-            'invoice_enabled' => null !== $invoice,
+            'invoice_enabled' => null !== $attachmentPath,
             'answers' => $this->humanizedAnswers($registration->getAnswers(), $participant->getAnswers()),
         ];
 
@@ -150,8 +172,8 @@ final class RegistrationConfirmationMailer
             $email->embedFromPath($signaturePath, 'signature.png');
         }
 
-        if (null !== $invoice) {
-            $email->attachFromPath($this->documents->invoicePath($invoice), 'facture.pdf', 'application/pdf');
+        if (null !== $attachmentPath) {
+            $email->attachFromPath($attachmentPath, 'facture.pdf', 'application/pdf');
         }
 
         try {
@@ -171,6 +193,7 @@ final class RegistrationConfirmationMailer
             'registration_id' => $registration->getId(),
             'recipient' => $participant->getEmail(),
             'cc' => $cc,
+            'invoice_attached' => null !== $attachmentPath,
         ]);
     }
 

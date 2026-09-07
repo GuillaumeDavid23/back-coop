@@ -104,12 +104,15 @@ final class GenerateInvoicePdfMessageHandler
             // La facture existe déjà en base avec son numéro définitif : on ne
             // relance jamais la numérotation, seul le rendu PDF peut être
             // retenté plus tard (ex: depuis le BO) sans risque de doublon.
+            //
+            // On enchaîne quand même sur l'envoi : le mailer sait partir sans
+            // pièce jointe quand le PDF est indisponible. Sortir ici privait le
+            // participant ET l'organisatrice de toute confirmation, ce qui a
+            // rendu une panne de wkhtmltopdf invisible pendant une semaine.
             $this->logger->error('invoice.generate.pdf_failed', [
                 'invoice_id' => $invoice->getId(),
                 'exception' => $e->getMessage(),
             ]);
-
-            return;
         }
 
         $this->bus->dispatch(new SendInvoiceEmailMessage($invoice->getId()));
