@@ -268,10 +268,13 @@ final class RegistrationCrudController extends AbstractSiteScopedCrudController
         } elseif ($payment->getStatus() !== $statusBefore) {
             $this->addFlash('warning', sprintf('Statut du paiement mis à jour : %s.', $registration->getLatestPaymentStatusLabel()));
         } else {
-            $this->addFlash('info', sprintf(
-                'Aucun changement : le paiement est toujours en attente côté Stripe (session "%s").',
-                $session->status ?? 'inconnue',
-            ));
+            // Formulation en clair : c'est ce message qui répond à la question
+            // "il a payé ou pas ?" quand le statut affiché ne suffit pas.
+            $this->addFlash('info', match ($session->status) {
+                'open' => "Stripe confirme que la page de paiement est toujours ouverte : aucun règlement n'a été reçu, rien n'a été encaissé.",
+                'expired' => "La session de paiement a expiré chez Stripe : le règlement n'a jamais été effectué.",
+                default => sprintf('Aucun changement : Stripe renvoie la session dans l\'état "%s".', $session->status ?? 'inconnu'),
+            });
         }
 
         return $back;
@@ -375,7 +378,13 @@ final class RegistrationCrudController extends AbstractSiteScopedCrudController
                 ->setCurrency('EUR')->setStoredAsCents(false);
             yield DateTimeField::new('latestPayment.paidAt', 'Payé le');
             yield TextField::new('latestPayment.stripeCheckoutSessionId', 'Session Stripe');
-            yield TextField::new('latestPayment.stripePaymentIntentId', 'Paiement Stripe');
+            // Un identifiant vide ici n'est pas une donnée manquante, c'est une
+            // information : Stripe ne crée la transaction bancaire qu'au moment
+            // où la carte est soumise. On l'écrit plutôt que d'afficher
+            // "Aucun(e)", qui laissait croire à un bug.
+            yield TextField::new('latestPayment.stripePaymentIntentId', 'Transaction Stripe')
+                ->formatValue(static fn (?string $value) => $value
+                    ?? "Aucune : le paiement n'a jamais été soumis à la banque depuis cette page.");
             // Les numéros de facture/avoir sont ajoutés par le template de détail
             // (voir configureResponseParameters) : un champ ne peut pas être défini
             // deux fois sur la même propriété "id" sans écraser l'IdField.

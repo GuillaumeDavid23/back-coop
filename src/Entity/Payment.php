@@ -120,17 +120,13 @@ class Payment
     {
         $base = 'https://dashboard.stripe.com'.(str_starts_with((string) $this->stripeCheckoutSessionId, 'cs_test_') ? '/test' : '');
 
-        if (null !== $this->stripePaymentIntentId) {
-            return $base.'/payments/'.$this->stripePaymentIntentId;
-        }
-
-        // Une session dont le paiement n'a jamais été tenté n'a pas de page
-        // dédiée : la recherche par identifiant est le seul point d'entrée.
-        if (null !== $this->stripeCheckoutSessionId) {
-            return $base.'/search?query='.urlencode($this->stripeCheckoutSessionId);
-        }
-
-        return null;
+        // Seul le PaymentIntent a une page dans le dashboard. Une session
+        // Checkout jamais aboutie n'y est consultable que via l'inspecteur du
+        // Workbench, où l'identifiant se colle à la main : mieux vaut pas de
+        // bouton du tout qu'un bouton qui ouvre une page vide.
+        return null !== $this->stripePaymentIntentId
+            ? $base.'/payments/'.$this->stripePaymentIntentId
+            : null;
     }
 
     public function getAmount(): string

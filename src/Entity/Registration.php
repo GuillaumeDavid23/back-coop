@@ -273,7 +273,7 @@ class Registration
 
         return $this->isPaymentStillOpen()
             ? "La page de paiement Stripe a été ouverte il y a moins de 2 heures : le règlement est peut-être encore en cours. Le statut se met à jour tout seul dès que Stripe répond."
-            : "Aucun règlement n'a abouti : la personne a quitté la page de paiement Stripe sans payer. Rien n'a été encaissé, elle peut se réinscrire quand elle veut.";
+            : "Le paiement n'a jamais abouti : page de paiement quittée, ou carte refusée. Rien n'a été encaissé, la personne peut se réinscrire quand elle veut. Le bouton \"Rafraîchir le paiement\" interroge Stripe pour savoir laquelle des deux.";
     }
 
     public function getStatusBadgeVariant(): string
