@@ -191,6 +191,17 @@ final class InvoiceCrudController extends AbstractSiteScopedCrudController
             ->hideOnForm();
         yield MoneyField::new('amountInclTax', 'Montant TTC')->setCurrency('EUR')->setStoredAsCents(false);
         yield DateTimeField::new('issuedAt', 'Émise le');
+        // Une facture peut désormais être émise avant encaissement (règlement
+        // par virement) : savoir laquelle reste à encaisser est le premier
+        // usage de cette liste, d'où une colonne plutôt qu'une date discrète.
+        yield TextField::new('settlementLabel', 'Règlement')
+            ->formatValue(static fn (string $value, Invoice $invoice) => sprintf(
+                '<span class="badge badge-%s">%s</span>',
+                $invoice->isSettled() ? 'success' : 'warning',
+                $value,
+            ))
+            ->renderAsHtml()
+            ->setSortable(false);
         yield TextField::new('pdfPath', 'PDF')->hideOnIndex();
     }
 }

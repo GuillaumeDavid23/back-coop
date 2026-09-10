@@ -1,0 +1,87 @@
+{% extends '@EasyAdmin/layout.html.twig' %}
+
+{% block title %}Paiement manuel - CLCOM Events{% endblock %}
+
+{% block content_title %}Paiement manuel - inscription #{{ registration.id }}{% endblock %}
+
+{# Sans cette classe, les règles d'EasyAdmin réservées aux pages de formulaire
+   ne s'appliquent pas : cette page se présente comme une page d'édition. #}
+{% block body_class 'ea-edit' %}
+
+{% block main %}
+    {# Sans le thème d'EasyAdmin, les champs sortent sans mise en forme :
+       libellés collés aux widgets, boutons radio sur une seule ligne. #}
+    {% form_theme form '@EasyAdmin/crud/form_theme.html.twig' %}
+
+    {# Pas de .content-panel-body ici : EasyAdmin lui impose un fond blanc, qui
+       ne suit pas le mode sombre du BO. La page reste sur le fond du thème. #}
+    <div style="max-width: 680px;" id="manual-payment">
+        {# Rappel de ce qui sera facturé : le montant n'est pas saisissable,
+           c'est celui de l'inscription. Autant le montrer avant de valider. #}
+        <div style="border: 1px solid var(--border-color); border-radius: 6px; padding: 16px 20px; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; padding: 4px 0;">
+                <span>Participant(s)</span>
+                <strong>{{ registration.participantsFullNames }}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 4px 0;">
+                <span>Forfait</span>
+                <strong>{{ registration.fareLabel }}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 4px 0;">
+                <span>Montant</span>
+                <strong>{{ registration.amountInclTax|number_format(2, ',', ' ') }} € TTC</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 4px 0;">
+                <span>Paiement</span>
+                <strong>{{ registration.latestPaymentStatusLabel }}</strong>
+            </div>
+            {% if registration.manuallyHandled %}
+                <div style="display: flex; justify-content: space-between; padding: 4px 0;">
+                    <span>En gestion manuelle depuis</span>
+                    <strong>{{ registration.manualHandlingSince|date('d/m/Y') }} ({{ registration.manualHandlingBy }})</strong>
+                </div>
+            {% endif %}
+        </div>
+
+        <p class="text-muted">
+            À utiliser quand le règlement se fait <strong>hors Stripe</strong> (virement, chèque, espèces).
+            {% if not registration.site.invoicingEnabled %}
+                Aucune facture n'est émise pour ce site : seule la confirmation d'inscription part au participant.
+            {% endif %}
+            Rien n'est encaissé ici : la plateforme ne fait qu'enregistrer ce que vous constatez.
+        </p>
+
+        {{ form_start(form) }}
+            {{ form_row(form.outcome) }}
+            {{ form_row(form.method) }}
+
+            <div data-outcome="paid">{{ form_row(form.paidAt) }}</div>
+            {{ form_row(form.reference) }}
+            {{ form_row(form.notifyParticipant) }}
+
+            <div style="margin-top: 20px; display: flex; gap: 10px; align-items: center;">
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+                <a href="{{ back_url }}" class="btn btn-secondary">Annuler</a>
+            </div>
+        {{ form_end(form) }}
+    </div>
+
+    {# Confort de saisie seulement : la date de réception n'a de sens que si le
+       règlement est déjà là. Le serveur ne la lit de toute façon que dans ce
+       cas (voir RegistrationCrudController::record) : sans JS, tout reste
+       visible et le formulaire fonctionne à l'identique. #}
+    <script>
+        (() => {
+            const root = document.getElementById('manual-payment');
+            const apply = () => {
+                const chosen = root.querySelector('input[name$="[outcome]"]:checked')?.value;
+                root.querySelectorAll('[data-outcome]').forEach((block) => {
+                    block.hidden = block.dataset.outcome !== chosen;
+                });
+            };
+
+            root.querySelectorAll('input[name$="[outcome]"]').forEach((radio) => radio.addEventListener('change', apply));
+            apply();
+        })();
+    </script>
+{% endblock %}

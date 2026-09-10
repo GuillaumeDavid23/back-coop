@@ -3,6 +3,7 @@
 namespace App\MessageHandler;
 
 use App\Entity\Invoice;
+use App\Entity\PaymentStatus;
 use App\Message\GenerateInvoicePdfMessage;
 use App\Message\SendInvoiceEmailMessage;
 use App\Repository\InvoiceRepository;
@@ -85,6 +86,13 @@ final class GenerateInvoicePdfMessageHandler
             ->setTaxAmount($taxAmount)
             ->setAmountInclTax($registration->getAmountInclTax())
             ->setIssuedAt(new \DateTimeImmutable())
+            // Acquittée seulement si l'argent est déjà là. Émise avant
+            // encaissement (règlement par virement), la facture porte au
+            // contraire les coordonnées bancaires et reste à régler : c'est
+            // elle qui déclenche le paiement (voir le gabarit PDF).
+            ->setSettledAt(PaymentStatus::SUCCEEDED === $payment->getStatus()
+                ? ($payment->getPaidAt() ?? new \DateTimeImmutable())
+                : null)
             ->setBillingDataSnapshot($billingDataSnapshot);
 
         $this->em->persist($invoice);
@@ -115,6 +123,17 @@ final class GenerateInvoicePdfMessageHandler
             ]);
         }
 
-        $this->bus->dispatch(new SendInvoiceEmailMessage($invoice->getId()));
+        // Envoi décochable lors d'un constat manuel : la facture existe et reste
+        // téléchargeable depuis le BO, mais on ne réexpédie pas un email à
+        // quelqu'un déjà prévenu de vive voix. Le "?? true" couvre les messages
+        // sérialisés avant l'ajout de l'option, encore en file au déploiement.
+        if ($message->notifyParticipant ?? true) {
+            $this->bus->dispatch(new SendInvoiceEmailMessage($invoice->getId()));
+        } else {
+            $this->logger->info('invoice.generate.email_skipped', [
+                'invoice_id' => $invoice->getId(),
+                'invoice_number' => $invoice->getNumber(),
+            ]);
+        }
     }
 }

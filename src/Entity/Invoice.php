@@ -48,6 +48,15 @@ class Invoice
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $issuedAt;
 
+    /**
+     * Date d'acquittement : une facture réglée porte la mention "Facture
+     * acquittée", une facture émise avant encaissement porte au contraire les
+     * coordonnées bancaires et reste à régler (cas du virement, où la facture
+     * est justement ce qui déclenche le paiement).
+     */
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $settledAt = null;
+
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $pdfPath = null;
 
@@ -170,6 +179,32 @@ class Invoice
         $this->issuedAt = $issuedAt;
 
         return $this;
+    }
+
+    public function getSettledAt(): ?\DateTimeImmutable
+    {
+        return $this->settledAt;
+    }
+
+    public function setSettledAt(?\DateTimeImmutable $settledAt): static
+    {
+        $this->settledAt = $settledAt;
+
+        return $this;
+    }
+
+    /** Facture réglée : c'est elle qui porte la mention "acquittée" sur le PDF. */
+    public function isSettled(): bool
+    {
+        return null !== $this->settledAt;
+    }
+
+    /** État du règlement, pour la liste des factures du BO (voir InvoiceCrudController). */
+    public function getSettlementLabel(): string
+    {
+        return $this->isSettled()
+            ? 'Acquittée le '.$this->settledAt->format('d/m/Y')
+            : 'À encaisser';
     }
 
     public function getPdfPath(): ?string

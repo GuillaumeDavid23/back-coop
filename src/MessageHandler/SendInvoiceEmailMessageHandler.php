@@ -36,6 +36,13 @@ final class SendInvoiceEmailMessageHandler
             return;
         }
 
-        $this->confirmationMailer->sendForInvoice($invoice);
+        // Une facture pas encore acquittée n'accompagne pas une confirmation :
+        // elle est ce qui reste à payer. Le message le dit, sous peine
+        // d'annoncer une inscription confirmée avant d'avoir reçu l'argent.
+        if ($invoice->isSettled()) {
+            $this->confirmationMailer->sendForInvoice($invoice);
+        } else {
+            $this->confirmationMailer->sendInvoiceDue($invoice);
+        }
     }
 }

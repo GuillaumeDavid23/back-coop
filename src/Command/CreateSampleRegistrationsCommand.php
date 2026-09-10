@@ -23,6 +23,13 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  * Jeu de données de démonstration : quelques inscriptions réalistes pour un
  * site donné, dont certaines payées et facturées (PDF généré) pour pouvoir
  * visualiser le rendu réel dans le BO sans attendre un vrai paiement Stripe.
+ *
+ * Les inscriptions non payées couvrent les trois situations que le BO doit
+ * savoir distinguer, et sur lesquelles se teste la validation manuelle d'un
+ * règlement (voir ManualPaymentRecorder) :
+ *   - "pending" : page de paiement Stripe ouverte à l'instant, règlement peut-être en cours ;
+ *   - "failed"  : session expirée ou carte refusée, rien n'a été encaissé ;
+ *   - "none"    : aucune tentative de paiement (formulaire quitté avant Stripe).
  */
 #[AsCommand(name: 'app:create-sample-registrations', description: 'Crée des inscriptions de démonstration (avec factures) pour un site')]
 final class CreateSampleRegistrationsCommand extends Command
@@ -59,7 +66,7 @@ final class CreateSampleRegistrationsCommand extends Command
                 'phone' => '0612345678', 'company' => 'Cabinet Dupont', 'status' => 'salarie',
                 'address' => '12 rue de la Paix', 'postalCode' => '75002', 'city' => 'Paris',
                 'motivation' => "Se tenir à jour sur l'IA appliquée à l'audit et échanger avec des confrères.",
-                'cocktail' => 'oui', 'paid' => true,
+                'cocktail' => 'oui', 'payment' => 'succeeded',
             ],
             [
                 'fareCode' => 'non_cooperateur', 'fareLabel' => 'Non coopérateur', 'amount' => '750.00',
@@ -67,7 +74,7 @@ final class CreateSampleRegistrationsCommand extends Command
                 'phone' => '0623456789', 'company' => 'Martin Audit', 'status' => 'tns',
                 'address' => '5 avenue Victor Hugo', 'postalCode' => '69002', 'city' => 'Lyon',
                 'motivation' => "Approfondir le référentiel VSME pour accompagner nos clients PME.",
-                'cocktail' => 'non', 'paid' => true,
+                'cocktail' => 'non', 'payment' => 'succeeded',
             ],
             [
                 'fareCode' => 'anecs_cjec', 'fareLabel' => 'ANECS / CJEC - Jeune CAC', 'amount' => '400.00',
@@ -75,7 +82,7 @@ final class CreateSampleRegistrationsCommand extends Command
                 'phone' => '0634567890', 'company' => 'Bernard & Experts', 'status' => 'salarie',
                 'address' => '3 place Bellecour', 'postalCode' => '69002', 'city' => 'Lyon',
                 'motivation' => "Premier séminaire CAC, je souhaite monter en compétence rapidement.",
-                'cocktail' => 'oui', 'paid' => true,
+                'cocktail' => 'oui', 'payment' => 'succeeded',
             ],
             [
                 'fareCode' => 'cooperateur', 'fareLabel' => 'Coopérateur', 'amount' => '650.00',
@@ -83,7 +90,27 @@ final class CreateSampleRegistrationsCommand extends Command
                 'phone' => '0645678901', 'company' => 'Petit Conseil', 'status' => 'tns',
                 'address' => '8 rue Nationale', 'postalCode' => '59000', 'city' => 'Lille',
                 'motivation' => "Anticiper l'automatisation des contrôles dans notre cabinet.",
-                'cocktail' => 'non', 'paid' => false,
+                'cocktail' => 'non', 'payment' => 'none',
+            ],
+            [
+                'fareCode' => 'non_cooperateur', 'fareLabel' => 'Non coopérateur', 'amount' => '750.00',
+                'civility' => 'mme', 'firstName' => 'Sophie', 'lastName' => 'Leroy', 'email' => 'sophie.leroy@leroy-audit.fr',
+                'phone' => '0656789012', 'company' => 'Leroy Audit', 'status' => 'salarie',
+                'address' => '22 cours Mirabeau', 'postalCode' => '13100', 'city' => 'Aix-en-Provence',
+                // Le motif est la réponse du participant à la question du
+                // formulaire d'inscription, reprise telle quelle dans l'export
+                // Excel : il ne doit jamais servir à décrire l'état du paiement
+                // (colonne "Motif", voir ParticipantExportBuilder).
+                'motivation' => "Structurer notre démarche RSE avant la prochaine campagne de certification.",
+                'cocktail' => 'oui', 'payment' => 'pending',
+            ],
+            [
+                'fareCode' => 'cooperateur', 'fareLabel' => 'Coopérateur', 'amount' => '650.00',
+                'civility' => 'm', 'firstName' => 'Thomas', 'lastName' => 'Girard', 'email' => 'thomas.girard@girard-cac.fr',
+                'phone' => '0667890123', 'company' => 'Girard CAC', 'status' => 'tns',
+                'address' => '17 rue du Palais', 'postalCode' => '33000', 'city' => 'Bordeaux',
+                'motivation' => "Sécuriser nos contrôles sur les dossiers repris cette année.",
+                'cocktail' => 'non', 'payment' => 'failed',
             ],
         ];
 
@@ -95,7 +122,7 @@ final class CreateSampleRegistrationsCommand extends Command
                 ->setAmountExclTax($data['amount'])
                 ->setTaxRate('0.00')
                 ->setAmountInclTax($data['amount'])
-                ->setStatus($data['paid'] ? RegistrationStatus::CONFIRMED : RegistrationStatus::PENDING)
+                ->setStatus('succeeded' === $data['payment'] ? RegistrationStatus::CONFIRMED : RegistrationStatus::PENDING)
                 ->setAnswers([
                     'motivation' => $data['motivation'],
                     'specialNeeds' => null,
@@ -121,19 +148,28 @@ final class CreateSampleRegistrationsCommand extends Command
             $this->em->persist($registration);
             $this->em->persist($participant);
 
-            if ($data['paid']) {
+            if ('none' !== $data['payment']) {
                 $payment = new Payment();
                 $payment->setSite($site)
                     ->setRegistration($registration)
                     ->setStripeCheckoutSessionId('cs_test_demo_'.bin2hex(random_bytes(8)))
-                    ->setStripePaymentIntentId('pi_demo_'.bin2hex(random_bytes(8)))
+                    // Stripe ne crée la transaction bancaire qu'au moment où la
+                    // carte est soumise : une session simplement ouverte puis
+                    // quittée n'a pas de PaymentIntent (voir Registration::getStatusHelp).
+                    ->setStripePaymentIntentId('pending' === $data['payment'] ? null : 'pi_demo_'.bin2hex(random_bytes(8)))
                     ->setAmount($data['amount'])
                     ->setCurrency('eur')
-                    ->setStatus(PaymentStatus::SUCCEEDED)
-                    ->setPaidAt(new \DateTimeImmutable());
+                    ->setStatus(match ($data['payment']) {
+                        'succeeded' => PaymentStatus::SUCCEEDED,
+                        'failed' => PaymentStatus::FAILED,
+                        default => PaymentStatus::PENDING,
+                    })
+                    ->setPaidAt('succeeded' === $data['payment'] ? new \DateTimeImmutable() : null);
                 $this->em->persist($payment);
                 $this->em->flush();
+            }
 
+            if ('succeeded' === $data['payment']) {
                 $numbering = $this->numbering->nextInvoiceNumber($site);
                 $invoice = new Invoice();
                 $invoice->setSite($site)
@@ -163,7 +199,11 @@ final class CreateSampleRegistrationsCommand extends Command
                 $io->writeln(sprintf('  ✓ %s - facture %s (%s)', $participant->getFullName(), $invoice->getNumber(), $pdfPath));
             } else {
                 $this->em->flush();
-                $io->writeln(sprintf('  · %s - inscription en attente (pas encore payée)', $participant->getFullName()));
+                $io->writeln(sprintf('  · %s - %s', $participant->getFullName(), match ($data['payment']) {
+                    'pending' => 'paiement en attente (page Stripe ouverte, rien d\'encaissé)',
+                    'failed' => 'paiement abandonné (session expirée / carte refusée)',
+                    default => 'aucune tentative de paiement',
+                }));
             }
         }
 

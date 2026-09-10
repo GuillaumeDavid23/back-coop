@@ -44,6 +44,18 @@ class Registration
     #[ORM\Column(type: Types::JSON)]
     private array $answers = [];
 
+    /**
+     * Date de bascule en gestion manuelle du paiement : à partir de là, c'est
+     * l'utilisateur du BO qui tranche si le règlement est arrivé ou non (voir
+     * ManualPaymentRecorder), Stripe n'ayant jamais confirmé l'encaissement.
+     */
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $manualHandlingSince = null;
+
+    /** Email de l'utilisateur du BO qui a basculé l'inscription en gestion manuelle. */
+    #[ORM\Column(length: 190, nullable: true)]
+    private ?string $manualHandlingBy = null;
+
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $createdAt;
 
@@ -156,6 +168,40 @@ class Registration
         return $this;
     }
 
+    /**
+     * Le paiement de cette inscription est suivi à la main : Stripe ne le
+     * confirmera pas, c'est l'utilisateur du BO qui note s'il a été reçu.
+     */
+    public function isManuallyHandled(): bool
+    {
+        return null !== $this->manualHandlingSince;
+    }
+
+    public function getManualHandlingSince(): ?\DateTimeImmutable
+    {
+        return $this->manualHandlingSince;
+    }
+
+    public function getManualHandlingBy(): ?string
+    {
+        return $this->manualHandlingBy;
+    }
+
+    /**
+     * Bascule en gestion manuelle. Sans effet si l'inscription y est déjà :
+     * la date et l'auteur du premier passage sont ceux qui font foi.
+     */
+    public function switchToManualHandling(string $by): static
+    {
+        if (!$this->isManuallyHandled()) {
+            $this->manualHandlingSince = new \DateTimeImmutable();
+            $this->manualHandlingBy = $by;
+            $this->touch();
+        }
+
+        return $this;
+    }
+
     public function getAnswers(): array
     {
         return $this->answers;
@@ -255,7 +301,13 @@ class Registration
         $feminine = $participant?->getCivility() === 'mme';
 
         return match ($this->status) {
-            RegistrationStatus::PENDING => $this->isPaymentStillOpen() ? 'Paiement en cours' : 'Paiement non effectué',
+            RegistrationStatus::PENDING => match (true) {
+                $this->isPaymentStillOpen() => 'Paiement en cours',
+                // La bascule en manuel est l'information la plus utile sur une
+                // inscription non payée : elle dit que quelqu'un s'en occupe.
+                $this->isManuallyHandled() => 'Paiement manuel',
+                default => 'Paiement non effectué',
+            },
             RegistrationStatus::CONFIRMED => $feminine ? 'Confirmée' : 'Confirmé',
             RegistrationStatus::CANCELLED => $feminine ? 'Désinscrite' : 'Désinscrit',
         };
@@ -271,6 +323,14 @@ class Registration
             return null;
         }
 
+        if ($this->isManuallyHandled()) {
+            return sprintf(
+                'Paiement suivi à la main depuis le %s (%s) : Stripe ne le confirmera pas. Le bouton "Constater le paiement" permet de le noter payé - ce qui confirme l\'inscription et émet la facture - ou définitivement non payé.',
+                $this->manualHandlingSince?->format('d/m/Y'),
+                $this->manualHandlingBy ?? 'auteur inconnu',
+            );
+        }
+
         return $this->isPaymentStillOpen()
             ? "La page de paiement Stripe a été ouverte il y a moins de 2 heures : le règlement est peut-être encore en cours. Le statut se met à jour tout seul dès que Stripe répond."
             : "Le paiement n'a jamais abouti : page de paiement quittée, ou carte refusée. Rien n'a été encaissé, la personne peut se réinscrire quand elle veut. Le bouton \"Rafraîchir le paiement\" interroge Stripe pour savoir laquelle des deux.";
@@ -279,7 +339,7 @@ class Registration
     public function getStatusBadgeVariant(): string
     {
         return match ($this->status) {
-            RegistrationStatus::PENDING => $this->isPaymentStillOpen() ? 'warning' : 'secondary',
+            RegistrationStatus::PENDING => $this->isPaymentStillOpen() || $this->isManuallyHandled() ? 'warning' : 'secondary',
             RegistrationStatus::CONFIRMED => 'success',
             RegistrationStatus::CANCELLED => 'danger',
         };
@@ -303,6 +363,13 @@ class Registration
             return false;
         }
 
+        // Passée en gestion manuelle, l'inscription n'attend plus rien de
+        // Stripe : afficher "paiement en cours" ferait croire à un règlement
+        // sur le point d'aboutir, alors que personne n'est devant sa carte.
+        if ($this->isManuallyHandled()) {
+            return false;
+        }
+
         return $payment->getCreatedAt() > new \DateTimeImmutable('-2 hours');
     }
 
@@ -311,13 +378,24 @@ class Registration
     {
         $payment = $this->getLatestPayment();
         if ($payment === null) {
-            return '-';
+            return $this->isManuallyHandled() ? 'Manuel - en attente' : '-';
+        }
+
+        // Un règlement encaissé hors Stripe se nomme par son moyen (virement,
+        // chèque...) : c'est ce que l'organisatrice devra retrouver sur son
+        // relevé bancaire, "Réussi" ne lui dirait pas où chercher.
+        if ($payment->isManual() && PaymentStatus::SUCCEEDED === $payment->getStatus()) {
+            return $payment->getMethod()->label();
         }
 
         // Vocabulaire du point de vue de l'organisatrice, pas de celui de Stripe :
         // ce qu'elle veut savoir, c'est si l'argent est arrivé.
         return match ($payment->getStatus()) {
-            PaymentStatus::PENDING => $this->isPaymentStillOpen() ? 'En cours' : 'Non payé',
+            PaymentStatus::PENDING => match (true) {
+                $this->isPaymentStillOpen() => 'En cours',
+                $this->isManuallyHandled() => 'Manuel - en attente',
+                default => 'Non payé',
+            },
             PaymentStatus::SUCCEEDED => 'Réussi',
             PaymentStatus::FAILED => 'Abandonné',
             PaymentStatus::REFUNDED => 'Remboursé',

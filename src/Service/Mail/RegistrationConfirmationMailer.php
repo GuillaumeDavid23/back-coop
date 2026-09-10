@@ -21,6 +21,11 @@ use Twig\Environment;
  * Envoyé une seule fois, au moment où le paiement est validé (voir
  * GenerateInvoicePdfMessageHandler, qui déclenche l'envoi une fois la facture
  * réellement disponible).
+ *
+ * Même machinerie - mêmes copies, même signature, même pièce jointe - pour la
+ * facture émise AVANT encaissement (règlement par virement) : là, le message
+ * n'annonce pas une inscription confirmée mais une facture à régler (voir
+ * sendInvoiceDue).
  */
 final class RegistrationConfirmationMailer
 {
@@ -93,6 +98,17 @@ final class RegistrationConfirmationMailer
     }
 
     /**
+     * Facture émise avant encaissement : c'est elle qui déclenche le règlement
+     * par virement (coordonnées bancaires imprimées dessus, voir le gabarit
+     * PDF). L'inscription n'est pas encore confirmée, le message ne doit donc
+     * pas l'annoncer comme telle.
+     */
+    public function sendInvoiceDue(Invoice $invoice): void
+    {
+        $this->doSend($invoice->getRegistration(), $invoice, due: true);
+    }
+
+    /**
      * Confirmation sans facture, pour les sites dont la facturation est
      * désactivée (Site::invoicingEnabled) : même email, sans pièce jointe et
      * sans promettre de facture dans le corps du message.
@@ -102,7 +118,7 @@ final class RegistrationConfirmationMailer
         $this->doSend($registration, null);
     }
 
-    private function doSend(Registration $registration, ?Invoice $invoice): void
+    private function doSend(Registration $registration, ?Invoice $invoice, bool $due = false): void
     {
         $participant = $registration->getPrimaryParticipant();
         $site = $registration->getSite();
@@ -154,6 +170,7 @@ final class RegistrationConfirmationMailer
                 number_format((float) $registration->getAmountExclTax(), 2, ',', ' '),
             ),
             'total_amount' => number_format((float) $registration->getAmountInclTax(), 2, ',', ' '),
+            'invoice' => $invoice,
             'invoice_enabled' => null !== $attachmentPath,
             'answers' => $this->humanizedAnswers($registration->getAnswers(), $participant->getAnswers()),
         ];
@@ -163,9 +180,11 @@ final class RegistrationConfirmationMailer
             ->to($participant->getEmail())
             ->cc(...$cc)
             ->bcc(...$bcc)
-            ->subject('Confirmation d\'inscription - '.$site->getName())
-            ->text($this->twig->render($this->template($site->getCode(), 'txt'), $context))
-            ->html($this->twig->render($this->template($site->getCode(), 'html'), $context));
+            ->subject($due
+                ? sprintf('Facture %s à régler - %s', $invoice?->getNumber(), $site->getName())
+                : 'Confirmation d\'inscription - '.$site->getName())
+            ->text($this->twig->render($this->template($site->getCode(), 'txt', $due), $context))
+            ->html($this->twig->render($this->template($site->getCode(), 'html', $due), $context));
 
         $signaturePath = $this->imagesDir.'/'.$contact['signature'];
         if (is_file($signaturePath)) {
@@ -187,7 +206,7 @@ final class RegistrationConfirmationMailer
             throw $e;
         }
 
-        $this->logger->info('registration.confirmation.sent', [
+        $this->logger->info($due ? 'invoice.due.sent' : 'registration.confirmation.sent', [
             'invoice_id' => $invoice?->getId(),
             'invoice_number' => $invoice?->getNumber(),
             'registration_id' => $registration->getId(),
@@ -198,13 +217,14 @@ final class RegistrationConfirmationMailer
     }
 
     /** Fallback par site, même logique que les PDF (voir InvoicePdfGenerator). */
-    private function template(string $siteCode, string $format): string
+    private function template(string $siteCode, string $format, bool $due = false): string
     {
-        $siteTemplate = sprintf('emails/sites/%s/confirmation.%s.twig', $siteCode, $format);
+        $name = $due ? 'invoice_due' : 'confirmation';
+        $siteTemplate = sprintf('emails/sites/%s/%s.%s.twig', $siteCode, $name, $format);
 
         return $this->twig->getLoader()->exists($siteTemplate)
             ? $siteTemplate
-            : sprintf('emails/default/confirmation.%s.twig', $format);
+            : sprintf('emails/default/%s.%s.twig', $name, $format);
     }
 
     /**

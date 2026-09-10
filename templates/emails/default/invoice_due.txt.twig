@@ -1,0 +1,30 @@
+Madame, Monsieur,
+
+Nous avons enregistré votre inscription à {{ site.name }}, dont vous trouverez le détail ci-dessous.
+
+Rappel de vos coordonnées:
+{{ participant.firstName }} {{ participant.lastName }}
+Cabinet : {{ participant.company }}
+Adresse : {{ participant.address }} {{ participant.postalCode }} {{ participant.city }}
+Mobile : {{ participant.phone }}
+E-mail : {{ participant.email }}
+
+Rappel de votre inscription:
+{{ pricing_label }}
+{% for label, value in answers %}
+{{ label }} : {{ value }}
+{% endfor %}
+
+MONTANT À RÉGLER : {{ total_amount }} € TTC
+{% if invoice_enabled %}Vous trouverez en pièce jointe la facture {{ invoice.number }}, à régler par virement : nos coordonnées bancaires y figurent. Merci d'indiquer le numéro de facture dans le libellé du virement.{% else %}La facture correspondante, avec nos coordonnées bancaires, vous sera adressée sous quelques jours.{% endif %}
+
+Votre inscription sera définitivement confirmée à réception du règlement.
+
+Pour toute question : {{ contact.name }} au {{ contact.phone }} ou par mail {{ contact.email }}
+
+Dans l'attente et le plaisir de vous retrouver, nous vous prions d'agréer l'expression de nos sentiments les meilleurs.
+
+{{ contact.name }}
+{{ contact.phone }}
+{{ contact.email }}
+152 grande rue de Saint Clair, 69300 Caluire

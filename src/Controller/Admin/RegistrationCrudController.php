@@ -2,13 +2,16 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\PaymentMethod;
 use App\Entity\Registration;
 use App\Entity\RegistrationStatus;
+use App\Form\ManualPaymentType;
 use App\Form\ParticipantType;
 use App\Repository\CreditNoteRepository;
 use App\Repository\InvoiceRepository;
 use App\Repository\RegistrationRepository;
 use App\Service\Billing\BillingDocumentProvider;
+use App\Service\Billing\ManualPaymentRecorder;
 use App\Service\Billing\RegistrationCancellationService;
 use App\Service\Export\AnswerHumanizer;
 use App\Service\Stripe\PaymentSynchronizer;
@@ -37,6 +40,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Config\KeyValueStore;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGeneratorInterface;
 use App\Service\Site\SiteContext;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
@@ -53,6 +57,7 @@ final class RegistrationCrudController extends AbstractSiteScopedCrudController
         private readonly BillingDocumentProvider $documents,
         private readonly StripeCheckoutService $stripeCheckout,
         private readonly PaymentSynchronizer $paymentSynchronizer,
+        private readonly ManualPaymentRecorder $manualPayments,
     ) {
         parent::__construct($siteContext, $adminUrlGenerator);
     }
@@ -169,6 +174,22 @@ final class RegistrationCrudController extends AbstractSiteScopedCrudController
             ->displayIf(static fn (Registration $registration) => $registration->getLatestPayment()?->getStripeDashboardUrl() !== null)
             ->setHtmlAttributes(['target' => '_blank', 'rel' => 'noopener']);
 
+        // Toute inscription que Stripe n'a pas confirmée - session abandonnée,
+        // carte refusée, ou formulaire quitté avant même le paiement - peut
+        // passer en gestion manuelle : sans cela, elle resterait éternellement
+        // "paiement non effectué", sans facture et sans moyen de la classer.
+        $switchToManual = Action::new('switchToManualPayment', 'Passer en paiement manuel', 'fa fa-hand-holding-dollar')
+            ->linkToCrudAction('manualPayment')
+            ->displayIf(fn (Registration $registration) => $this->manualPayments->canRecord($registration)
+                && !$registration->isManuallyHandled());
+
+        // Déjà en gestion manuelle : le même écran sert à noter le règlement
+        // reçu (confirmation + facture) ou définitivement non reçu.
+        $recordManualPayment = Action::new('recordManualPayment', 'Constater le paiement', 'fa fa-clipboard-check')
+            ->linkToCrudAction('manualPayment')
+            ->displayIf(fn (Registration $registration) => $this->manualPayments->canRecord($registration)
+                && $registration->isManuallyHandled());
+
         $exportParticipants = Action::new('exportParticipants', 'Exporter les participants (Excel)', 'fa fa-file-excel')
             ->linkToUrl(fn () => $this->generateUrl('admin_export_participants'))
             ->createAsGlobalAction();
@@ -183,9 +204,13 @@ final class RegistrationCrudController extends AbstractSiteScopedCrudController
             ->add(Crud::PAGE_INDEX, $downloadInvoice)
             ->add(Crud::PAGE_INDEX, $downloadCreditNote)
             ->add(Crud::PAGE_INDEX, $refreshPayment)
+            ->add(Crud::PAGE_INDEX, $switchToManual)
+            ->add(Crud::PAGE_INDEX, $recordManualPayment)
             ->add(Crud::PAGE_INDEX, $viewOnStripe)
             ->add(Crud::PAGE_INDEX, $unregister)
             ->add(Crud::PAGE_DETAIL, $refreshPayment)
+            ->add(Crud::PAGE_DETAIL, $switchToManual)
+            ->add(Crud::PAGE_DETAIL, $recordManualPayment)
             ->add(Crud::PAGE_DETAIL, $viewOnStripe)
             ->add(Crud::PAGE_DETAIL, $downloadInvoice)
             ->add(Crud::PAGE_DETAIL, $downloadCreditNote)
@@ -278,6 +303,133 @@ final class RegistrationCrudController extends AbstractSiteScopedCrudController
         }
 
         return $back;
+    }
+
+    /**
+     * Écran unique du paiement manuel : bascule l'inscription en gestion
+     * manuelle et note où en est le règlement - encore attendu, reçu, ou
+     * définitivement non reçu (voir ManualPaymentRecorder).
+     *
+     * Passe par un formulaire plutôt qu'un simple bouton : moyen de règlement,
+     * date de réception et référence sont imprimés sur la facture et ne
+     * peuvent pas être devinés.
+     */
+    #[AdminRoute]
+    public function manualPayment(AdminContext $context): Response
+    {
+        /** @var Registration $registration */
+        $registration = $context->getEntity()->getInstance();
+        $this->denyAccessUnlessGranted('SITE_ACCESS', $registration->getSite());
+
+        $back = $this->redirect($context->getRequest()->query->get('referrer') ?: $this->adminUrlGenerator
+            ->setController(self::class)
+            ->setAction(Action::DETAIL)
+            ->setEntityId($registration->getId())
+            ->generateUrl());
+
+        // Garde-fou serveur : l'action est déjà masquée dans ces cas, mais une
+        // URL forgée (ou un double envoi du formulaire) ne doit jamais émettre
+        // une seconde facture sur une inscription déjà payée.
+        if (!$this->manualPayments->canRecord($registration)) {
+            $this->addFlash('warning', $registration->getStatus() === RegistrationStatus::CANCELLED
+                ? "Cette inscription est désinscrite : il n'y a plus de règlement à constater."
+                : 'Le paiement de cette inscription est déjà constaté.');
+
+            return $back;
+        }
+
+        $form = $this->createForm(ManualPaymentType::class, options: [
+            'invoicing' => $registration->getSite()->isInvoicingEnabled(),
+        ]);
+        $form->handleRequest($context->getRequest());
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $this->addFlash(...$this->record($registration, $form));
+
+            return $back;
+        }
+
+        return $this->render('admin/manual_payment.html.twig', [
+            'registration' => $registration,
+            'form' => $form,
+            'back_url' => $back->getTargetUrl(),
+        ]);
+    }
+
+    /**
+     * Exécute l'issue choisie et rend le message à afficher. Le message dit ce
+     * qui vient d'être fait ET ce qui part par email : c'est la seule trace que
+     * l'utilisateur aura d'un envoi qu'il a pu décocher.
+     *
+     * @return array{string, string} type de flash, message
+     */
+    private function record(Registration $registration, FormInterface $form): array
+    {
+        $recordedBy = $this->getUser()?->getUserIdentifier() ?? 'inconnu';
+        $notify = (bool) $form->get('notifyParticipant')->getData();
+        $reference = $form->get('reference')->getData() ?: null;
+        $invoicing = $registration->getSite()->isInvoicingEnabled();
+        /** @var PaymentMethod $method */
+        $method = $form->get('method')->getData();
+
+        return ManualPaymentType::OUTCOME_PAID === $form->get('outcome')->getData()
+            ? $this->recordPaid($registration, $method, $form, $reference, $recordedBy, $notify, $invoicing)
+            : $this->awaitPayment($registration, $method, $recordedBy, $notify, $invoicing);
+    }
+
+    /** @return array{string, string} */
+    private function recordPaid(
+        Registration $registration,
+        PaymentMethod $method,
+        FormInterface $form,
+        ?string $reference,
+        string $recordedBy,
+        bool $notify,
+        bool $invoicing,
+    ): array {
+        /** @var \DateTimeImmutable $paidAt */
+        $paidAt = $form->get('paidAt')->getData();
+        $hadInvoice = null !== $this->invoices->findOneBy(['registration' => $registration]);
+
+        $payment = $this->manualPayments->recordPaid($registration, $method, $paidAt, $reference, $recordedBy, $notify);
+
+        return ['success', sprintf(
+            'Règlement de %s € constaté (%s) : inscription confirmée. %s',
+            $payment->getAmount(),
+            $method->label(),
+            match (true) {
+                !$invoicing => $notify
+                    ? "Aucune facture pour ce site : seule la confirmation part au participant."
+                    : "Aucune facture pour ce site, et aucun email envoyé.",
+                $hadInvoice => $notify
+                    ? "La facture émise passe en acquittée et repart au participant."
+                    : "La facture émise passe en acquittée ; aucun email envoyé, elle reste téléchargeable ici.",
+                default => $notify
+                    ? "La facture acquittée est en cours de génération et partira au participant."
+                    : "La facture acquittée est en cours de génération ; aucun email envoyé, elle sera téléchargeable ici.",
+            },
+        )];
+    }
+
+    /** @return array{string, string} */
+    private function awaitPayment(
+        Registration $registration,
+        PaymentMethod $method,
+        string $recordedBy,
+        bool $notify,
+        bool $invoicing,
+    ): array {
+        $this->manualPayments->switchToManual($registration, $method, $invoicing, $notify, $recordedBy);
+
+        return ['success', sprintf(
+            'Inscription passée en paiement manuel (%s), en attente du règlement. %s',
+            $method->label(),
+            match (true) {
+                !$invoicing => "Aucune facture n'est émise pour ce site. Revenez sur « Constater le paiement » à réception du règlement.",
+                $notify => "La facture non acquittée, avec les coordonnées bancaires, est en cours de génération et partira au participant. Elle deviendra acquittée dès que vous constaterez le règlement.",
+                default => "La facture non acquittée est en cours de génération ; aucun email envoyé, elle est téléchargeable ici. Elle deviendra acquittée dès que vous constaterez le règlement.",
+            },
+        )];
     }
 
     #[AdminRoute]

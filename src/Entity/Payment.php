@@ -40,6 +40,26 @@ class Payment
     #[ORM\Column(length: 20, enumType: PaymentStatus::class)]
     private PaymentStatus $status = PaymentStatus::PENDING;
 
+    /**
+     * Carte par défaut : c'est le seul encaissement que la plateforme réalise
+     * elle-même (Stripe Checkout). Une autre valeur signale un règlement reçu
+     * hors plateforme, validé à la main dans le BO.
+     */
+    #[ORM\Column(length: 20, enumType: PaymentMethod::class)]
+    private PaymentMethod $method = PaymentMethod::CARD;
+
+    /**
+     * Texte libre saisi lors d'un constat manuel : référence du règlement reçu
+     * hors Stripe (n° de chèque, libellé du virement), reprise sur la facture,
+     * ou motif du classement quand le règlement n'arrivera pas.
+     */
+    #[ORM\Column(length: 190, nullable: true)]
+    private ?string $manualReference = null;
+
+    /** Email de l'utilisateur du BO auteur du constat manuel : sans lui, plus moyen de savoir qui a acquitté ou classé le paiement. */
+    #[ORM\Column(length: 190, nullable: true)]
+    private ?string $manuallyValidatedBy = null;
+
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $paidAt = null;
 
@@ -164,6 +184,62 @@ class Payment
         $this->updatedAt = new \DateTimeImmutable();
 
         return $this;
+    }
+
+    public function getMethod(): PaymentMethod
+    {
+        return $this->method;
+    }
+
+    public function setMethod(PaymentMethod $method): static
+    {
+        $this->method = $method;
+
+        return $this;
+    }
+
+    public function getManualReference(): ?string
+    {
+        return $this->manualReference;
+    }
+
+    public function setManualReference(?string $manualReference): static
+    {
+        $this->manualReference = $manualReference;
+
+        return $this;
+    }
+
+    public function getManuallyValidatedBy(): ?string
+    {
+        return $this->manuallyValidatedBy;
+    }
+
+    public function setManuallyValidatedBy(?string $manuallyValidatedBy): static
+    {
+        $this->manuallyValidatedBy = $manuallyValidatedBy;
+
+        return $this;
+    }
+
+    /** Règlement encaissé hors Stripe, constaté à la main dans le BO. */
+    public function isManual(): bool
+    {
+        return PaymentMethod::CARD !== $this->method;
+    }
+
+    /**
+     * "Mode de règlement" imprimé sur la facture. Pour une carte, la référence
+     * utile est la session Checkout ; pour un règlement hors Stripe, c'est la
+     * référence saisie par l'utilisateur (n° de chèque, libellé du virement).
+     */
+    public function getSettlementLabel(): string
+    {
+        if (!$this->isManual()) {
+            return 'CB - '.($this->stripeCheckoutSessionId ?? 'Manuel');
+        }
+
+        return $this->method->label().(null !== $this->manualReference ? ' - '.$this->manualReference : '');
     }
 
     public function getPaidAt(): ?\DateTimeImmutable
