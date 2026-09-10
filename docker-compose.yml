@@ -26,6 +26,12 @@ services:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
+    # Même utilisateur qu'Apache : worker et requêtes web écrivent dans les
+    # mêmes dossiers (var/invoices, var/log). En root, le worker y laissait des
+    # fichiers que le BO ne pouvait plus réécrire - une facture régénérée
+    # échouait alors silencieusement. En production (mutualisé IONOS), tout
+    # tourne déjà sous un seul compte : c'est cette situation qu'on reproduit.
+    user: www-data
     command: ["php", "bin/console", "messenger:consume", "async", "-vv"]
     volumes:
       - .:/var/www/html

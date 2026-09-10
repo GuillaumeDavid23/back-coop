@@ -7,6 +7,15 @@
 # disponible sans root, juste des fichiers à déposer et rendre exécutables.
 FROM debian:bullseye-slim AS wkhtmltopdf
 
+# Bullseye est sorti du support : deb.debian.org ne sert plus ses paquets
+# (index périmé, .deb en 404) et il faut basculer sur archive.debian.org,
+# main seul — bullseye-security/-updates n'y sont pas publiés. Les index
+# archivés sont expirés par construction, d'où Check-Valid-Until désactivé.
+# Ce stage ne sert qu'à extraire libssl1.1 et le .deb officiel de
+# wkhtmltopdf ; l'image finale, elle, reste sur php:8.4-apache à jour.
+RUN printf 'Acquire::Check-Valid-Until "false";\n' > /etc/apt/apt.conf.d/99archived \
+    && printf 'deb http://archive.debian.org/debian bullseye main\n' > /etc/apt/sources.list
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
         curl ca-certificates libssl1.1 \
     && curl -fsSL -o /tmp/wkhtmltox.deb \
