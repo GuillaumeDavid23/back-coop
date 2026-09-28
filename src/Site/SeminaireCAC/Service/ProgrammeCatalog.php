@@ -10,9 +10,10 @@ final class ProgrammeCatalog
     {
         return self::withTags([
             ['08h30 - 09h00', 'Accueil café'],
-            ['09h00 - 13h00', 'VSME : pourquoi les CAC doivent accompagner les PME et comment peuvent-ils le faire ?'],
+            ['09h00 - 11h00', "L'audit des associations : les points de vigilance et les attentes de la H2A"],
+            ['11h00 - 13h00', "ISA 600 : comment bien l'appliquer ?"],
             ['13h00 - 14h00', 'Déjeuner'],
-            ['14h00 - 18h00', "L'audit avec l'IA - application concrète"],
+            ['14h00 - 18h00', "L'audit avec l'IA : application concrète"],
             ['18h00 - 19h00', 'Cocktail apéritif'],
         ]);
     }
@@ -22,10 +23,9 @@ final class ProgrammeCatalog
     {
         return self::withTags([
             ['08h30 - 09h00', 'Accueil café'],
-            ['09h00 - 13h00', 'Automatisation des contrôles et des sondages : quels outils, quels points de vigilance'],
+            ['09h00 - 13h00', 'VSME : pourquoi les CAC doivent accompagner les PME et comment peuvent-ils le faire ?'],
             ['13h00 - 14h00', 'Déjeuner'],
-            ['14h00 - 16h00', "L'audit des Associations : les points de vigilance et les attentes de la H2A"],
-            ['16h00 - 18h00', "ISA 600 comment bien l'appliquer"],
+            ['14h00 - 18h00', 'Automatisation des contrôles et des sondages : quels outils, quels points de vigilance ?'],
         ]);
     }
 
