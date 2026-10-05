@@ -2,8 +2,10 @@
 
 namespace App\Service\Export;
 
+use App\Entity\Participant;
 use App\Entity\Registration;
 use App\Entity\Site;
+use App\Site\SeminaireIA\Service\FareCatalog;
 
 /**
  * Construit l'export Excel "Participants" (détail + récapitulatif) à partir
@@ -18,6 +20,15 @@ final class ParticipantExportBuilder
 {
     /** Clés déjà représentées par des colonnes dédiées : à exclure de la ventilation générique. */
     private const array TYPED_ANSWER_KEYS = ['motivation', 'specialNeeds'];
+
+    /**
+     * Réponses d'inscription qui valent pour tous les inscrits d'une même
+     * inscription (tarif, chambre partagée, soirée). Les autres (questionnaire,
+     * catégorie, numéro d'adhésion…) sont saisies une seule fois, par le
+     * participant principal : les recopier sur le 2e expert-comptable lui
+     * prêterait des réponses qui ne sont pas les siennes.
+     */
+    private const array SHARED_ANSWER_KEYS = ['statut', 'roomType', 'eveningGuests'];
 
     /**
      * @param Registration[] $registrations
@@ -47,9 +58,12 @@ final class ParticipantExportBuilder
 
         $rows = [];
         foreach ($registrations as $registration) {
-            $mergedAnswers = $registration->getAnswers();
-            foreach ($registration->getParticipants() as $participant) {
-                $participantAnswers = array_merge($mergedAnswers, $participant->getAnswers());
+            $registrationAnswers = $registration->getAnswers();
+            $sharedAnswers = array_intersect_key($registrationAnswers, array_flip(self::SHARED_ANSWER_KEYS));
+            $primary = $registration->getPrimaryParticipant();
+            foreach ($this->attendees($registration) as $participant) {
+                $isPrimary = $participant === $primary;
+                $participantAnswers = array_merge($isPrimary ? $registrationAnswers : $sharedAnswers, $participant->getAnswers());
 
                 $row = [
                     $registration->getId(),
@@ -78,7 +92,7 @@ final class ParticipantExportBuilder
 
     /**
      * Récapitulatif volontairement court : combien d'inscrits, de quel type, et
-     * combien de personnes à prévoir sur place. Les réponses libres n'y sont pas
+     * combien d'experts-comptables en formation. Les réponses libres n'y sont pas
      * ventilées - elles se lisent inscription par inscription dans l'onglet
      * Participants, et leur décompte ne veut rien dire (« Sur quelles tâches
      * perdez-vous le plus de temps ? » ne se totalise pas).
@@ -88,17 +102,12 @@ final class ParticipantExportBuilder
     private function buildRecapSheet(Site $site, array $registrations): array
     {
         $participantCount = 0;
-        $withCompanion = 0;
         $byFare = [];
         $byType = [];
 
         foreach ($registrations as $registration) {
-            $participants = \count($registration->getParticipants());
+            $participants = \count($this->attendees($registration));
             $participantCount += $participants;
-
-            if ($participants > 1) {
-                ++$withCompanion;
-            }
 
             $fareLabel = $registration->getFareLabel();
             $byFare[$fareLabel] ??= ['count' => 0, 'participants' => 0, 'amount' => 0.0];
@@ -141,14 +150,25 @@ final class ParticipantExportBuilder
         foreach ($byFare as $label => $data) {
             $rows[] = [$label, $data['count'], $data['participants'], $data['amount']];
         }
-        $rows[] = [];
-
-        $rows[] = ['NOMBRE DE PARTICIPANTS'];
-        $rows[] = ['Inscriptions sans accompagnant', \count($registrations) - $withCompanion];
-        $rows[] = ['Inscriptions avec accompagnant', $withCompanion];
-        $rows[] = ['Total participants attendus', $participantCount];
 
         return ['headers' => ['RÉCAPITULATIF - '.$site->getName()], 'rows' => $rows];
+    }
+
+    /**
+     * Inscrits comptabilisés dans la formation : les experts-comptables
+     * seulement. L'accompagnant ne suit pas le séminaire, ni la liste ni les
+     * totaux n'ont à le compter.
+     *
+     * @return list<Participant>
+     */
+    private function attendees(Registration $registration): array
+    {
+        $participants = $registration->getParticipants()->toArray();
+        if (FareCatalog::isCompanionFare($registration->getFareCode())) {
+            return array_slice(array_values($participants), 0, 1);
+        }
+
+        return array_values($participants);
     }
 
     /** @param Registration[] $registrations
