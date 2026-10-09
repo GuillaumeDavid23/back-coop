@@ -255,6 +255,19 @@ class Participant
         return trim($this->firstName.' '.$this->lastName);
     }
 
+    /** Coordonnées de facturation figées dans Invoice::billingDataSnapshot à l'émission. */
+    public function getBillingData(): array
+    {
+        return [
+            'name' => $this->getFullName(),
+            'company' => $this->company,
+            'address' => $this->address,
+            'postalCode' => $this->postalCode,
+            'city' => $this->city,
+            'email' => $this->email,
+        ];
+    }
+
     public function __toString(): string
     {
         return $this->getFullName();

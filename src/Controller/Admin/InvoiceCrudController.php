@@ -3,7 +3,6 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Invoice;
-use App\Entity\RegistrationStatus;
 use App\Repository\InvoiceRepository;
 use App\Service\Billing\BillingDocumentProvider;
 use App\Service\Billing\RegistrationCancellationService;
@@ -70,7 +69,9 @@ final class InvoiceCrudController extends AbstractSiteScopedCrudController
 
         $convertToCreditNote = Action::new('convertToCreditNote', 'Passer en avoir', 'fa fa-file-invoice-dollar')
             ->linkToCrudAction('convertToCreditNote')
-            ->displayIf(static fn (Invoice $invoice) => $invoice->getRegistration()->getStatus() !== RegistrationStatus::CANCELLED)
+            // Seule une inscription confirmée se crédite (voir canCancel) : une
+            // facture de virement encore à régler se corrige depuis l'inscription.
+            ->displayIf(fn (Invoice $invoice) => $this->cancellationService->canCancel($invoice->getRegistration()))
             ->askConfirmation(
                 "Confirmer le passage en avoir de cette facture ?",
                 'Passer en avoir',
@@ -113,6 +114,19 @@ final class InvoiceCrudController extends AbstractSiteScopedCrudController
         $invoice = $context->getEntity()->getInstance();
         $this->denyAccessUnlessGranted('SITE_ACCESS', $invoice->getSite());
 
+        $back = $this->redirect($this->adminUrlGenerator
+            ->setController(self::class)
+            ->setAction(Action::INDEX)
+            ->generateUrl());
+
+        // Garde-fou serveur : l'action est masquée dans ce cas, mais une URL
+        // forgée ne doit pas finir en erreur 500 (voir canCancel).
+        if (!$this->cancellationService->canCancel($invoice->getRegistration())) {
+            $this->addFlash('warning', "L'inscription liée n'est pas confirmée : il n'y a rien à créditer. Une facture encore à régler se corrige depuis l'inscription.");
+
+            return $back;
+        }
+
         $creditNote = $this->cancellationService->cancel($invoice->getRegistration());
 
         $this->addFlash('success', $creditNote !== null
@@ -124,10 +138,7 @@ final class InvoiceCrudController extends AbstractSiteScopedCrudController
             )
             : "Inscription déjà annulée, aucun avoir supplémentaire n'a été généré.");
 
-        return $this->redirect($this->adminUrlGenerator
-            ->setController(self::class)
-            ->setAction(Action::INDEX)
-            ->generateUrl());
+        return $back;
     }
 
     #[AdminRoute]

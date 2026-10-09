@@ -12,10 +12,12 @@ use App\Repository\InvoiceRepository;
 use App\Repository\RegistrationRepository;
 use App\Service\Billing\BillingDocumentProvider;
 use App\Service\Billing\ManualPaymentRecorder;
+use App\Service\Billing\ManualRegistrationEditor;
 use App\Service\Billing\RegistrationCancellationService;
 use App\Service\Export\AnswerHumanizer;
 use App\Service\Stripe\PaymentSynchronizer;
 use App\Service\Stripe\StripeCheckoutService;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\QueryBuilder;
 use Stripe\Exception\ApiErrorException;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminRoute;
@@ -28,6 +30,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto;
 use EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto;
+use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
@@ -58,6 +61,7 @@ final class RegistrationCrudController extends AbstractSiteScopedCrudController
         private readonly StripeCheckoutService $stripeCheckout,
         private readonly PaymentSynchronizer $paymentSynchronizer,
         private readonly ManualPaymentRecorder $manualPayments,
+        private readonly ManualRegistrationEditor $manualEditor,
     ) {
         parent::__construct($siteContext, $adminUrlGenerator);
     }
@@ -195,10 +199,10 @@ final class RegistrationCrudController extends AbstractSiteScopedCrudController
             ->createAsGlobalAction();
 
         return $actions
-            // Le tarif/forfait et le statut ne doivent changer que via le webhook Stripe
-            // ou la désinscription contrôlée (voir RegistrationCancellationService) -
-            // jamais par édition libre (voir configureFields : ces champs sont masqués
-            // du formulaire, seuls les participants restent éditables).
+            // Le statut ne change que via le webhook Stripe, le constat manuel ou la
+            // désinscription contrôlée (voir RegistrationCancellationService) - jamais
+            // par édition libre. Le forfait n'est éditable qu'en paiement manuel non
+            // encore réglé (voir ManualRegistrationEditor).
             ->disable(Action::DELETE, Action::NEW)
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->add(Crud::PAGE_INDEX, $downloadInvoice)
@@ -468,6 +472,29 @@ final class RegistrationCrudController extends AbstractSiteScopedCrudController
             ->generateUrl());
     }
 
+    /**
+     * Inscription en paiement manuel non réglé : la formule et le participant
+     * viennent peut-être de changer, la facture à régler doit suivre.
+     */
+    public function updateEntity(EntityManagerInterface $entityManager, object $entityInstance): void
+    {
+        parent::updateEntity($entityManager, $entityInstance);
+
+        if (!$entityInstance instanceof Registration) {
+            return;
+        }
+
+        $invoice = $this->manualEditor->apply($entityInstance);
+        if (null !== $invoice) {
+            $this->addFlash('success', sprintf(
+                'Facture %s mise à jour (%s € TTC, %s) : téléchargez-la depuis l\'inscription pour la renvoyer au participant.',
+                $invoice->getNumber(),
+                $invoice->getAmountInclTax(),
+                $entityInstance->getFareLabel(),
+            ));
+        }
+    }
+
     public function configureFields(string $pageName): iterable
     {
         yield IdField::new('id')->hideOnForm();
@@ -480,6 +507,19 @@ final class RegistrationCrudController extends AbstractSiteScopedCrudController
                 ->setFormTypeOptions(['by_reference' => false])
                 ->allowAdd(false)
                 ->allowDelete(false);
+
+            // En paiement manuel non réglé, rien n'est encaissé : la formule peut
+            // encore être corrigée, la facture à régler suivra (voir updateEntity).
+            $registration = $this->getContext()?->getEntity()->getInstance();
+            $fares = $registration instanceof Registration ? $this->manualEditor->fareChoices($registration) : null;
+            if (null !== $fares) {
+                yield ChoiceField::new('fareCode', 'Formule')
+                    ->setChoices(array_combine(
+                        array_map(static fn (array $fare) => sprintf('%s - %s € TTC', $fare['label'], $fare['amountInclTax']), $fares),
+                        array_keys($fares),
+                    ))
+                    ->setHelp('Le montant, le paiement attendu et la facture non acquittée sont recalculés à l\'enregistrement.');
+            }
         } elseif (Crud::PAGE_DETAIL === $pageName) {
             // Vue détail : toutes les infos du participant (une inscription n'en a
             // qu'un seul en pratique, voir Registration::getPrimaryParticipant).

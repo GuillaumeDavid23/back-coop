@@ -14,8 +14,9 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 /**
  * Édition d'un participant embarquée dans le formulaire d'édition d'une
  * inscription (voir RegistrationCrudController) - volontairement limitée
- * aux informations personnelles : le tarif/forfait et le statut de
- * l'inscription ne sont jamais éditables ici (voir RegistrationCrudController).
+ * aux informations personnelles : la formule, éditable seulement en paiement
+ * manuel, et le statut de l'inscription ne relèvent pas de ce formulaire
+ * (voir RegistrationCrudController).
  *
  * Les choix de civility/status reprennent exactement ceux du formulaire
  * d'inscription public (voir App\Site\SeminaireCAC\Form\RegistrationStep1Type

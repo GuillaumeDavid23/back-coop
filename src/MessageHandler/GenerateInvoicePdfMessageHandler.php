@@ -65,14 +65,7 @@ final class GenerateInvoicePdfMessageHandler
         // transaction, un échec après coup laisserait un trou définitif dans la
         // numérotation (interdit en compta française).
         $taxAmount = bcsub($registration->getAmountInclTax(), $registration->getAmountExclTax(), 2);
-        $billingDataSnapshot = [
-            'name' => $participant?->getFullName(),
-            'company' => $participant?->getCompany(),
-            'address' => $participant?->getAddress(),
-            'postalCode' => $participant?->getPostalCode(),
-            'city' => $participant?->getCity(),
-            'email' => $participant?->getEmail(),
-        ];
+        $billingDataSnapshot = $participant?->getBillingData() ?? array_fill_keys(['name', 'company', 'address', 'postalCode', 'city', 'email'], null);
 
         $numbering = $this->numbering->nextInvoiceNumber($site);
 
