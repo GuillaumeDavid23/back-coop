@@ -19,10 +19,8 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
  * reste un acte manuel de l'utilisateur, volontairement, pour ne jamais
  * rembourser par erreur depuis le BO.
  *
- * L'avoir peut aussi être émis seul (« Générer un avoir »), sans désinscrire :
- * remboursement commercial, geste, erreur de facturation... comme dans le BO
- * CLCOM Academy. Une inscription n'a jamais plus d'un avoir : une
- * désinscription ultérieure réutilise celui déjà émis.
+ * Un avoir va toujours de pair avec la désinscription : il n'est jamais émis
+ * seul. Une inscription n'a jamais plus d'un avoir.
  */
 final class RegistrationCancellationService
 {
@@ -73,36 +71,6 @@ final class RegistrationCancellationService
         ]);
 
         return $creditNote;
-    }
-
-    /**
-     * Avoir seul : il faut une facture à créditer et pas déjà d'avoir. Une
-     * inscription désinscrite a déjà eu le sien si elle était facturée.
-     */
-    public function canIssueCreditNote(Registration $registration): bool
-    {
-        return $registration->getStatus() === RegistrationStatus::CONFIRMED
-            && $this->invoices->findOneBy(['registration' => $registration]) !== null
-            && $this->creditNotes->findOneByRegistration($registration) === null;
-    }
-
-    /**
-     * Émet l'avoir de la facture sans toucher au statut de l'inscription ni à
-     * Stripe : le participant reste inscrit, le remboursement éventuel reste
-     * manuel.
-     */
-    public function issueCreditNote(Registration $registration, ?string $reason = null): CreditNote
-    {
-        if (!$this->canIssueCreditNote($registration)) {
-            throw new \LogicException(sprintf(
-                "Impossible d'émettre un avoir pour l'inscription #%d (non confirmée, sans facture, ou avoir déjà émis).",
-                $registration->getId(),
-            ));
-        }
-
-        $invoice = $this->invoices->findOneBy(['registration' => $registration]);
-
-        return $this->createCreditNote($registration, $invoice, $reason ?? 'Avoir sans désinscription');
     }
 
     private function createCreditNote(Registration $registration, Invoice $invoice, string $reason): CreditNote
