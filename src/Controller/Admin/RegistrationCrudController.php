@@ -149,6 +149,19 @@ final class RegistrationCrudController extends AbstractSiteScopedCrudController
             ->linkToCrudAction('downloadCreditNote')
             ->displayIf(fn (Registration $registration) => $this->creditNotes->findOneByRegistration($registration) !== null);
 
+        // Avoir seul, sans désinscrire ni rembourser (comme « Générer avoir » du BO
+        // CLCOM Academy) : disparaît dès qu'un avoir existe, remplacé par « Avoir ».
+        $generateCreditNote = Action::new('generateCreditNote', 'Générer un avoir', 'fa fa-receipt')
+            ->linkToCrudAction('generateCreditNote')
+            ->displayIf(fn (Registration $registration) => $this->cancellationService->canIssueCreditNote($registration))
+            ->askConfirmation(
+                'Générer un avoir ?',
+                'Générer l\'avoir',
+            )
+            ->setHtmlAttributes([
+                'data-action-confirmation-content' => "Un avoir du montant total de la facture est émis. Le participant reste inscrit et aucun remboursement Stripe n'est effectué : s'il est dû, il doit être fait manuellement depuis le dashboard Stripe.",
+            ]);
+
         // Une inscription en attente de paiement n'a rien à annuler ni à créditer :
         // l'action n'apparaît que sur une inscription confirmée (voir
         // RegistrationCancellationService::canCancel).
@@ -160,7 +173,7 @@ final class RegistrationCrudController extends AbstractSiteScopedCrudController
                 'Désinscrire',
             )
             ->setHtmlAttributes([
-                'data-action-confirmation-content' => "Cette action annule l'inscription et génère automatiquement un avoir si une facture existait. Aucun remboursement Stripe n'est effectué automatiquement : si un remboursement est dû, il doit être fait manuellement depuis le dashboard Stripe.",
+                'data-action-confirmation-content' => "Cette action annule l'inscription et génère automatiquement un avoir si une facture existait (sauf s'il a déjà été généré). Aucun remboursement Stripe n'est effectué automatiquement : si un remboursement est dû, il doit être fait manuellement depuis le dashboard Stripe.",
             ])
             ->addCssClass('text-danger');
 
@@ -211,6 +224,7 @@ final class RegistrationCrudController extends AbstractSiteScopedCrudController
             ->add(Crud::PAGE_INDEX, $switchToManual)
             ->add(Crud::PAGE_INDEX, $recordManualPayment)
             ->add(Crud::PAGE_INDEX, $viewOnStripe)
+            ->add(Crud::PAGE_INDEX, $generateCreditNote)
             ->add(Crud::PAGE_INDEX, $unregister)
             ->add(Crud::PAGE_DETAIL, $refreshPayment)
             ->add(Crud::PAGE_DETAIL, $switchToManual)
@@ -218,6 +232,7 @@ final class RegistrationCrudController extends AbstractSiteScopedCrudController
             ->add(Crud::PAGE_DETAIL, $viewOnStripe)
             ->add(Crud::PAGE_DETAIL, $downloadInvoice)
             ->add(Crud::PAGE_DETAIL, $downloadCreditNote)
+            ->add(Crud::PAGE_DETAIL, $generateCreditNote)
             ->add(Crud::PAGE_DETAIL, $unregister)
             ->add(Crud::PAGE_INDEX, $exportParticipants)
             ->setPermission(Action::EDIT, 'ROLE_ADMIN');
@@ -434,6 +449,35 @@ final class RegistrationCrudController extends AbstractSiteScopedCrudController
                 default => "La facture non acquittée est en cours de génération ; aucun email envoyé, elle est téléchargeable ici. Elle deviendra acquittée dès que vous constaterez le règlement.",
             },
         )];
+    }
+
+    #[AdminRoute]
+    public function generateCreditNote(AdminContext $context): Response
+    {
+        /** @var Registration $registration */
+        $registration = $context->getEntity()->getInstance();
+        $this->denyAccessUnlessGranted('SITE_ACCESS', $registration->getSite());
+
+        // Garde-fou serveur : l'action est masquée dans ces cas, mais une URL
+        // forgée ou un double clic ne doit pas émettre un second avoir.
+        if (!$this->cancellationService->canIssueCreditNote($registration)) {
+            $this->addFlash('warning', $this->creditNotes->findOneByRegistration($registration) !== null
+                ? 'Un avoir a déjà été émis pour cette inscription.'
+                : "Cette inscription n'a pas de facture confirmée à créditer.");
+        } else {
+            $creditNote = $this->cancellationService->issueCreditNote($registration);
+            $this->addFlash('success', sprintf(
+                "Avoir %s généré (%s €). Le participant reste inscrit - pensez à effectuer le remboursement Stripe manuellement si besoin, il n'est jamais automatique.",
+                $creditNote->getNumber(),
+                $creditNote->getAmount(),
+            ));
+        }
+
+        return $this->redirect($this->adminUrlGenerator
+            ->setController(self::class)
+            ->setAction(Action::DETAIL)
+            ->setEntityId($registration->getId())
+            ->generateUrl());
     }
 
     #[AdminRoute]
