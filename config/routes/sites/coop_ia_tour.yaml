@@ -1,0 +1,5 @@
+coop_ia_tour:
+    resource: ../../../src/Site/CoopIATour/Controller/
+    type: attribute
+    host: '%app.coop_ia_tour_domain%'
+    name_prefix: 'iatour_'

@@ -1,0 +1,95 @@
+{% extends 'sites/coop_ia_tour/base.html.twig' %}
+
+{% block title %}Questionnaire - La Coop' IA Tour{% endblock %}
+
+{# Questionnaire préalable du Séminaire IA Deauville (mêmes questions, voir
+   QuestionnaireType), présenté au style du formulaire du Séminaire CAC. #}
+{% block body %}
+<section style="background:#FBF9F6;border-bottom:1px solid #EDE4D8">
+    <div style="max-width:900px;margin:0 auto;padding:56px 28px 76px">
+        <a href="{{ path('iatour_home') }}#inscription" style="display:block;background:none;border:0;padding:0;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:600;font-size:13px;color:#1E6685;margin-bottom:26px;text-decoration:none">← Retour aux tarifs</a>
+        {% include 'sites/coop_ia_tour/registration/_steps.html.twig' with {current: 1} %}
+        <span style="display:block;font-family:'Montserrat',sans-serif;font-size:11px;letter-spacing:0.24em;color:#8A7A66;font-weight:600">QUESTIONNAIRE</span>
+        <h1 style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:34px;color:#1E6685;margin:12px 0 12px">Préparons ensemble vos ateliers</h1>
+        <p style="margin:0 0 28px;font-size:15px;line-height:1.7;color:#3A3A3A">Vos réponses nous permettent d'adapter les ateliers pratiques à votre niveau et à vos outils, et de prévoir les licences Claude à prêter.</p>
+
+        {% for message in app.flashes('iatour_notice') %}
+            <div style="background:#FDECEB;border:1px solid #F0B8B3;color:#A3352C;padding:12px 16px;border-radius:4px;margin-bottom:20px;font-size:14px">{{ message }}</div>
+        {% endfor %}
+
+        {% if form_errors(form)|length or not form.vars.valid %}
+            <div style="background:#FDECEB;border:1px solid #F0B8B3;color:#A3352C;padding:12px 16px;border-radius:4px;margin-bottom:20px;font-size:14px">
+                {{ form_errors(form) }}
+                {% if not form.vars.valid %}Certaines réponses doivent être complétées, elles sont signalées ci-dessous.{% endif %}
+            </div>
+        {% endif %}
+
+        {{ form_start(form, {attr: {class: 'sc-form', style: 'background:#fff;border:1px solid #E4D8C6;border-radius:4px;padding:36px 34px;display:flex;flex-direction:column;gap:26px'}}) }}
+
+            <div style="display:flex;flex-direction:column;gap:18px">
+                <span style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:13px;letter-spacing:0.14em;color:#1E6685">NIVEAU</span>
+                <div class="sc-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+                    {{ form_row(form.aiLevel) }}
+                    {{ form_row(form.aiFrequency) }}
+                </div>
+            </div>
+
+            <div style="height:1px;background:#F1E9DC"></div>
+
+            <div style="display:flex;flex-direction:column;gap:18px">
+                <span style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:13px;letter-spacing:0.14em;color:#1E6685">ABONNEMENT OU LICENCE IA</span>
+                <div class="sc-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+                    {{ form_row(form.paidSubscription) }}
+                    {{ form_row(form.claudeUsage) }}
+                </div>
+                <div class="sc-choices" id="iatour-subscription-tools" style="display:none">
+                    {{ form_row(form.paidSubscriptionTools) }}
+                </div>
+                {{ form_row(form.claudeLicense) }}
+                <div style="background:#F6F0E8;border-radius:3px;padding:18px 22px;font-size:14px;line-height:1.65;color:#3A3A3A">
+                    Les ateliers pratiques nécessitent une licence Claude. Nous vous accompagnerons dans sa création
+                    et son activation avant l'événement, et pouvons vous en prêter une si vous n'avez pas la vôtre.
+                </div>
+            </div>
+
+            <div style="height:1px;background:#F1E9DC"></div>
+
+            <div style="display:flex;flex-direction:column;gap:18px">
+                <span style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:13px;letter-spacing:0.14em;color:#1E6685">OUTILS &amp; CAS D'USAGE</span>
+                <div class="sc-choices">{{ form_row(form.priorityUseCases) }}</div>
+                {{ form_row(form.dailyTools) }}
+                <div class="sc-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+                    {{ form_row(form.toolsToBuild) }}
+                    {{ form_row(form.timeConsumingTasks) }}
+                </div>
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap">
+                <button type="submit" class="sc-btn-primary" style="padding:16px 34px;font-size:15px;">Étape suivante →</button>
+            </div>
+        {{ form_end(form) }}
+    </div>
+</section>
+
+<script>
+    // « Si oui, le(s)quel(s) ? » n'a de sens qu'avec un abonnement payant.
+    (function () {
+        var subscription = document.getElementById('{{ form.paidSubscription.vars.id }}');
+        var tools = document.getElementById('iatour-subscription-tools');
+        if (!subscription || !tools) return;
+
+        function sync() {
+            var hasSubscription = subscription.value === 'Oui';
+            tools.style.display = hasSubscription ? '' : 'none';
+            if (!hasSubscription) {
+                tools.querySelectorAll('input:checked').forEach(function (input) {
+                    input.checked = false;
+                });
+            }
+        }
+
+        subscription.addEventListener('change', sync);
+        sync();
+    })();
+</script>
+{% endblock %}

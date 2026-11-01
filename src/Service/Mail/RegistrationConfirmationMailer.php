@@ -54,9 +54,12 @@ final class RegistrationConfirmationMailer
     ];
 
     /**
-     * Réglages propres à un site. Seul le Séminaire CAC en a : il est suivi par
-     * Lola BOYER, dont le site public affiche déjà les coordonnées, et ses
-     * confirmations ne sont plus adressées à Charles Basset. Les listes sont
+     * Réglages propres à un site. Le Séminaire CAC est suivi par Lola BOYER, dont
+     * le site public affiche déjà les coordonnées, et ses confirmations ne sont
+     * plus adressées à Charles Basset. La Coop' IA Tour est suivie par Hélèna
+     * GUINOISEAU (mail de Marion BROYER du 30/10/2026), avec les mêmes copies que
+     * le Séminaire CAC, Hélèna remplaçant Lola ; sa signature manuscrite n'existe
+     * pas encore, le mail affiche alors son nom. Les listes sont
      * écrites en entier plutôt que dérivées des constantes ci-dessus : sur des
      * destinataires, une liste explicite se relit sans dérouler de code.
      * Tout site absent de cette table garde les valeurs par défaut.
@@ -72,6 +75,23 @@ final class RegistrationConfirmationMailer
             'cc' => [
                 'mbroyer@clcom.fr',
                 'l.boyer@clcom.fr',
+            ],
+            'bcc' => [
+                'maxime.lefevre@phoenixfinances.fr',
+                'pfe_ca_b16586ec@capture.chaintrust.io',
+                'd.fourrier@clcom.fr',
+            ],
+        ],
+        'coop_ia_tour' => [
+            'contact' => [
+                'name' => 'Hélèna GUINOISEAU',
+                'phone' => '04 78 08 42 74',
+                'email' => 'h.guinoiseau@clcom.fr',
+                'signature' => 'signature-helena.png',
+            ],
+            'cc' => [
+                'mbroyer@clcom.fr',
+                'h.guinoiseau@clcom.fr',
             ],
             'bcc' => [
                 'maxime.lefevre@phoenixfinances.fr',
@@ -158,12 +178,15 @@ final class RegistrationConfirmationMailer
         $contact = $overrides['contact'] ?? self::DEFAULT_CONTACT;
         $cc = $overrides['cc'] ?? self::CC;
         $bcc = $overrides['bcc'] ?? self::BCC;
+        $signaturePath = $this->imagesDir.'/'.$contact['signature'];
 
         $context = [
             'participant' => $participant,
             'registration' => $registration,
             'site' => $site,
             'contact' => $contact,
+            // Sans image de signature, les gabarits affichent le nom de l'interlocuteur.
+            'has_signature' => is_file($signaturePath),
             'pricing_label' => sprintf(
                 '%s - %s € HT',
                 $registration->getFareLabel(),
@@ -186,7 +209,6 @@ final class RegistrationConfirmationMailer
             ->text($this->twig->render($this->template($site->getCode(), 'txt', $due), $context))
             ->html($this->twig->render($this->template($site->getCode(), 'html', $due), $context));
 
-        $signaturePath = $this->imagesDir.'/'.$contact['signature'];
         if (is_file($signaturePath)) {
             $email->embedFromPath($signaturePath, 'signature.png');
         }

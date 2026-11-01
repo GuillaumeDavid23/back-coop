@@ -1,0 +1,23 @@
+{# Étapes de l'inscription, au style du Séminaire CAC : le questionnaire du
+   Séminaire IA Deauville s'ajoute en tête. current = numéro de l'étape en cours. #}
+{% set steps = ['Questionnaire', 'Vos informations', 'Récapitulatif'] %}
+<div style="display:flex;align-items:center;gap:18px;margin-bottom:26px;flex-wrap:wrap">
+    {% for label in steps %}
+        {% set n = loop.index %}
+        {% if not loop.first %}
+            <span style="flex:1;max-width:90px;height:1px;background:{{ n <= current ? '#1E6685' : '#D2C1AD' }}"></span>
+        {% endif %}
+        <div style="display:flex;align-items:center;gap:11px">
+            {% if n < current %}
+                <span style="width:26px;height:26px;border-radius:50%;background:#DDE7EB;color:#1E6685;display:flex;align-items:center;justify-content:center;font-family:'Montserrat',sans-serif;font-weight:700;font-size:13px">✓</span>
+                <span style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:13px;color:#7FA2B2">{{ label }}</span>
+            {% elseif n == current %}
+                <span style="width:26px;height:26px;border-radius:50%;background:#1E6685;color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Montserrat',sans-serif;font-weight:700;font-size:12px">{{ n }}</span>
+                <span style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:13px;color:#1E6685">{{ label }}</span>
+            {% else %}
+                <span style="width:26px;height:26px;border-radius:50%;border:1px solid #D2C1AD;color:#A79B87;display:flex;align-items:center;justify-content:center;font-family:'Montserrat',sans-serif;font-weight:700;font-size:12px">{{ n }}</span>
+                <span style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:13px;color:#A79B87">{{ label }}</span>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
