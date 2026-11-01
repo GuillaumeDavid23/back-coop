@@ -142,7 +142,9 @@ section[id] { scroll-margin-top: 84px; }
 
 
 /* Questionnaire préalable (repris du Séminaire IA) : les choix multiples
-   s'affichent en ligne, case et libellé côte à côte, plutôt qu'en liste. */
-.sc-form .sc-choices > div { display:flex; flex-wrap:wrap; align-items:center; gap:10px 0; }
-.sc-form .sc-choices input[type="checkbox"] { margin:0 8px 0 0; }
-.sc-form .sc-choices > div > label { display:inline-block; margin:0 22px 0 0; font-size:14.5px; color:#2E2E2E; }
+   s'affichent en ligne, chaque case collée à son libellé. */
+.sc-form .sc-choice-list { display:flex; flex-wrap:wrap; gap:12px 24px; }
+.sc-form label.sc-choice { display:inline-flex; align-items:center; gap:8px; margin:0; font-size:14.5px; color:#2E2E2E; white-space:nowrap; cursor:pointer; }
+.sc-form label.sc-choice input[type="checkbox"] { margin:0; }
+/* Aide sous un champ (ex. « Logiciel de production, GED… »). */
+.sc-form .help-text { margin:6px 0 0; font-size:12.5px; color:#8A7A66; }

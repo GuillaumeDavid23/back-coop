@@ -4,6 +4,20 @@
 
 {# Questionnaire préalable du Séminaire IA Deauville (mêmes questions, voir
    QuestionnaireType), présenté au style du formulaire du Séminaire CAC. #}
+{# Choix multiples : chaque case reste collée à son libellé, même en fin de ligne. #}
+{% macro choices(field) %}
+    <div>
+        {{ form_label(field) }}
+        <div class="sc-choice-list">
+            {% for choice in field %}
+                <label class="sc-choice">{{ form_widget(choice) }}<span>{{ choice.vars.label }}</span></label>
+            {% endfor %}
+        </div>
+        {{ form_errors(field) }}
+    </div>
+    {% do field.setRendered %}
+{% endmacro %}
+
 {% block body %}
 <section style="background:#FBF9F6;border-bottom:1px solid #EDE4D8">
     <div style="max-width:900px;margin:0 auto;padding:56px 28px 76px">
@@ -42,8 +56,8 @@
                     {{ form_row(form.paidSubscription) }}
                     {{ form_row(form.claudeUsage) }}
                 </div>
-                <div class="sc-choices" id="iatour-subscription-tools" style="display:none">
-                    {{ form_row(form.paidSubscriptionTools) }}
+                <div id="iatour-subscription-tools" style="display:none">
+                    {{ _self.choices(form.paidSubscriptionTools) }}
                 </div>
                 {{ form_row(form.claudeLicense) }}
                 <div style="background:#F6F0E8;border-radius:3px;padding:18px 22px;font-size:14px;line-height:1.65;color:#3A3A3A">
@@ -56,7 +70,7 @@
 
             <div style="display:flex;flex-direction:column;gap:18px">
                 <span style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:13px;letter-spacing:0.14em;color:#1E6685">OUTILS &amp; CAS D'USAGE</span>
-                <div class="sc-choices">{{ form_row(form.priorityUseCases) }}</div>
+                {{ _self.choices(form.priorityUseCases) }}
                 {{ form_row(form.dailyTools) }}
                 <div class="sc-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
                     {{ form_row(form.toolsToBuild) }}
