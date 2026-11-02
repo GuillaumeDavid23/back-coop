@@ -1,0 +1,97 @@
+{% extends 'sites/coop_ia_tour/base.html.twig' %}
+
+{% block title %}Récapitulatif - La Coop' IA Tour{% endblock %}
+
+{% block body %}
+<section style="background:#FBF9F6;border-bottom:1px solid #EDE4D8">
+    <div style="max-width:900px;margin:0 auto;padding:56px 28px 76px">
+        <a href="{{ path('iatour_registration_step1') }}" style="display:block;background:none;border:0;padding:0;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:600;font-size:13px;color:#1E6685;margin-bottom:26px;text-decoration:none">← Modifier mes informations</a>
+        {% include 'sites/coop_ia_tour/registration/_steps.html.twig' with {current: 3} %}
+        <span style="display:block;font-family:'Montserrat',sans-serif;font-size:11px;letter-spacing:0.24em;color:#8A7A66;font-weight:600">RÉCAPITULATIF</span>
+        <h1 style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:34px;color:#1E6685;margin:12px 0 28px">Vérifiez votre inscription</h1>
+
+        <div style="background:#fff;border:1px solid #E4D8C6;border-radius:4px;padding:22px 26px;display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:22px;flex-wrap:wrap">
+            <div style="display:flex;flex-direction:column;gap:4px">
+                <span style="font-size:12px;letter-spacing:0.14em;color:#8A7A66;font-family:'Montserrat',sans-serif;font-weight:600">FORFAIT SÉLECTIONNÉ</span>
+                <span style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:17px;color:#2E2E2E">{{ fare.label }}</span>
+            </div>
+            <div style="display:flex;align-items:baseline;gap:8px">
+                <span style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:30px;color:#1E6685">{{ fare.amount|number_format(0, ',', ' ') }} €</span>
+                <span style="font-size:13px;color:#6B6B6B;font-weight:600">HT</span>
+            </div>
+        </div>
+
+        <div style="background:#fff;border:1px solid #E4D8C6;border-radius:4px;padding:34px;display:flex;flex-direction:column;gap:30px">
+            {% set recap_groups = [
+                {title: 'PARTICIPANT', rows: [
+                    {label: 'Civilité', value: data.civility == 'mme' ? 'Madame' : 'Monsieur'},
+                    {label: 'Nom', value: data.lastName},
+                    {label: 'Prénom', value: data.firstName},
+                    {label: 'Mobile', value: data.mobile},
+                    {label: 'Email', value: data.email},
+                ]},
+                {title: 'CABINET', rows: [
+                    {label: 'Cabinet', value: data.company},
+                    {label: 'Adresse', value: data.address},
+                    {label: 'Code postal', value: data.postalCode},
+                    {label: 'Ville', value: data.city},
+                    {label: 'Statut', value: data.status == 'salarie' ? 'Salarié' : 'Travailleur non salarié'},
+                ]},
+                {title: 'VOTRE DEMANDE', rows: [
+                    {label: 'Motif de votre inscription et vos attentes', value: data.motivation},
+                    {label: 'Besoins spécifiques', value: data.specialNeeds|default('-')|default('-')},
+                ]},
+                {title: 'COCKTAIL APÉRITIF', rows: [
+                    {label: "Présence au cocktail du jeudi", value: data.cocktailAttendance == 'oui' ? 'Oui' : 'Non'},
+                ]},
+                {title: 'QUESTIONNAIRE', rows: [
+                    {label: "Niveau d'utilisation de l'IA", value: questionnaire.aiLevel|default('-')},
+                    {label: 'Fréquence d’utilisation', value: questionnaire.aiFrequency|default('-')},
+                    {label: 'Abonnement payant', value: questionnaire.paidSubscription|default('-') ~ (questionnaire.paidSubscriptionTools|default([]) ? ' (' ~ questionnaire.paidSubscriptionTools|join(', ') ~ ')' : '')},
+                    {label: 'Claude au cabinet', value: questionnaire.claudeUsage|default('-')},
+                    {label: 'Licence Claude pour les ateliers', value: questionnaire.claudeLicense|default('-')},
+                    {label: 'Outils du quotidien', value: questionnaire.dailyTools|default('-')},
+                    {label: "Cas d'usage prioritaires", value: questionnaire.priorityUseCases|default([])|join(', ')},
+                    {label: 'Outils à développer', value: questionnaire.toolsToBuild|default('-')},
+                    {label: 'Tâches chronophages', value: questionnaire.timeConsumingTasks|default('-')},
+                ]},
+            ] %}
+            {% for group in recap_groups %}
+                <div style="display:flex;flex-direction:column;gap:16px">
+                    <span style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:13px;letter-spacing:0.14em;color:#1E6685">{{ group.title }}</span>
+                    <div style="display:flex;flex-direction:column">
+                        {% for row in group.rows %}
+                            <div class="sc-grid" style="display:grid;grid-template-columns:1fr 1.3fr;gap:24px;padding:12px 0;border-bottom:1px solid #F1E9DC;align-items:baseline">
+                                <span style="font-size:14px;line-height:1.6;color:#8A7A66">{{ row.label }}</span>
+                                <span style="font-size:15px;line-height:1.6;color:#2E2E2E">{{ row.value }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+
+            {% if not payments_open %}
+                <div style="background:#F6F0E8;border:1px solid #E4D8C6;padding:18px 22px;border-radius:4px;font-size:15px;line-height:1.6;color:#3A3A3A">
+                    Les inscriptions en ligne ouvrent très prochainement. Pour toute information, contactez Hélèna GUINOISEAU au <a href="tel:0478084274">04 78 08 42 74</a> ou <a href="mailto:h.guinoiseau@clcom.fr">h.guinoiseau@clcom.fr</a>.
+                </div>
+                <div><a href="{{ path('iatour_registration_step1') }}" class="sc-btn-outline">Précédent</a></div>
+            {% else %}
+            <form method="post" action="{{ path('iatour_registration_pay') }}" style="display:flex;flex-direction:column;gap:22px">
+                {% for message in app.flashes('iatour_notice') %}
+                    <div style="background:#FDECEB;border:1px solid #F0B8B3;color:#A3352C;padding:12px 16px;border-radius:4px;font-size:14px">{{ message }}</div>
+                {% endfor %}
+                <input type="hidden" name="_token" value="{{ csrf_token('iatour_payment') }}" data-controller="csrf-protection">
+                <label style="display:flex;gap:12px;align-items:flex-start;font-size:14px;line-height:1.6;color:#3A3A3A">
+                    <input type="checkbox" name="terms_accepted" value="1" required style="margin-top:4px;width:16px;height:16px;accent-color:#1E6685">
+                    <span>J'accepte les conditions générales de vente et les conditions d'annulation</span>
+                </label>
+                <div style="display:flex;align-items:center;justify-content:flex-start;gap:16px;flex-wrap:wrap">
+                    <a href="{{ path('iatour_registration_step1') }}" class="sc-btn-outline">Précédent</a>
+                    <button type="submit" class="sc-btn-primary" style="padding:16px 34px;font-size:15px;">Valider mon inscription</button>
+                </div>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

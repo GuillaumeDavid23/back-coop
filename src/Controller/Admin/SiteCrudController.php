@@ -40,6 +40,8 @@ final class SiteCrudController extends AbstractCrudController
         yield BooleanField::new('enabled', 'Actif');
         yield BooleanField::new('invoicingEnabled', 'Facturation')
             ->setHelp('Décocher pour les sites encaissés sans émission de facture (la confirmation part sans pièce jointe)');
+        yield BooleanField::new('paymentsOpen', 'Paiements ouverts')
+            ->setHelp("Décocher pour garder le site consultable sans permettre de payer. Pris en compte par La Coop' IA Tour uniquement ; les Séminaires CAC et IA l'ignorent.");
         yield TextField::new('invoicePrefix', 'Préfixe facture')->hideOnIndex();
         yield TextField::new('invoiceSuffix', 'Suffixe facture')->hideOnIndex();
         yield TextField::new('creditNotePrefix', 'Préfixe avoir')->hideOnIndex();

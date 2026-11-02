@@ -67,7 +67,10 @@
 				<a href="mailto:{{ contact.email }}">{{ contact.email }}</a><br>
 				152 grande rue de Saint Clair, 69300 Caluire
 			</p>
-			<img src="cid:signature.png" alt="">
+			{# Les coordonnées sont déjà écrites ci-dessus : sans image, rien à ajouter. #}
+			{% if has_signature ?? true %}
+				<img src="cid:signature.png" alt="">
+			{% endif %}
 		</div>
 	</body>
 </html>

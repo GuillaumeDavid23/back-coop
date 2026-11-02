@@ -144,7 +144,11 @@
 			<p>Dans l'attente et le plaisir de vous retrouver, nous vous prions d'agréer l'expression de nos sentiments les meilleurs.</p>
 
 			<div class="footer">
-				<img src="cid:signature.png" alt="Signature de {{ contact.name }}" width="400">
+				{% if has_signature ?? true %}
+					<img src="cid:signature.png" alt="Signature de {{ contact.name }}" width="400">
+				{% else %}
+					<p>{{ contact.name }}<br>{{ contact.phone }} - <a href="mailto:{{ contact.email }}">{{ contact.email }}</a></p>
+				{% endif %}
 			</div>
 		</div>
 	</body>
