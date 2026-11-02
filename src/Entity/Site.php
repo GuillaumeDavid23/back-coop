@@ -38,6 +38,14 @@ class Site
     #[ORM\Column(options: ['default' => true])]
     private bool $invoicingEnabled = true;
 
+    /**
+     * Interrupteur des paiements, réglé depuis l'admin (fiche Site) : à false,
+     * le site reste consultable mais n'envoie plus vers Stripe. Seule La Coop'
+     * IA Tour le lit pour l'instant.
+     */
+    #[ORM\Column(options: ['default' => true])]
+    private bool $paymentsOpen = true;
+
     #[ORM\Column(length: 20, nullable: true)]
     private ?string $invoicePrefix = null;
 
@@ -128,6 +136,18 @@ class Site
     public function setInvoicingEnabled(bool $invoicingEnabled): static
     {
         $this->invoicingEnabled = $invoicingEnabled;
+
+        return $this;
+    }
+
+    public function isPaymentsOpen(): bool
+    {
+        return $this->paymentsOpen;
+    }
+
+    public function setPaymentsOpen(bool $paymentsOpen): static
+    {
+        $this->paymentsOpen = $paymentsOpen;
 
         return $this;
     }

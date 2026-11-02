@@ -35,8 +35,6 @@ final class RegistrationController extends AbstractController
         private readonly PaymentSynchronizer $paymentSynchronizer,
         #[Autowire(service: 'monolog.logger.payment')]
         private readonly LoggerInterface $logger,
-        #[Autowire('%app.coop_ia_tour_payments_open%')]
-        private readonly bool $paymentsOpen,
     ) {
     }
 
@@ -115,7 +113,7 @@ final class RegistrationController extends AbstractController
             'questionnaire' => $request->getSession()->get(self::QUESTIONNAIRE_KEY, []),
             'data' => $data,
             'fare' => $fare,
-            'payments_open' => $this->paymentsOpen,
+            'payments_open' => $this->paymentsOpen(),
         ]);
     }
 
@@ -128,9 +126,9 @@ final class RegistrationController extends AbstractController
             return $this->redirectToRoute('iatour_registration_step2');
         }
 
-        // Paiements fermés (COOP_IA_TOUR_PAYMENTS_OPEN) : rien n'est créé, ni
+        // Paiements fermés depuis l'admin (fiche Site) : rien n'est créé, ni
         // inscription ni session Stripe, même si le formulaire a été posté.
-        if (!$this->paymentsOpen) {
+        if (!$this->paymentsOpen()) {
             $this->logger->info('iatour.registration.payments_closed');
 
             return $this->redirectToRoute('iatour_registration_step2');
@@ -280,5 +278,11 @@ final class RegistrationController extends AbstractController
     public function cancelled(): Response
     {
         return $this->render('sites/coop_ia_tour/registration/cancelled.html.twig');
+    }
+
+    /** Interrupteur de la fiche Site ; fermé si la fiche manque. */
+    private function paymentsOpen(): bool
+    {
+        return $this->sites->findByCode(self::SITE_CODE)?->isPaymentsOpen() ?? false;
     }
 }

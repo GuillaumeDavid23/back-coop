@@ -10,7 +10,6 @@ parameters:
     app.seminaire_cac_domain: '%env(SEMINAIRE_CAC_DOMAIN)%'
     app.seminaire_ia_domain: '%env(SEMINAIRE_IA_DOMAIN)%'
     app.coop_ia_tour_domain: '%env(COOP_IA_TOUR_DOMAIN)%'
-    app.coop_ia_tour_payments_open: '%env(bool:COOP_IA_TOUR_PAYMENTS_OPEN)%'
 
 services:
     # default configuration for services in *this* file
