@@ -7,11 +7,11 @@ use PHPUnit\Framework\TestCase;
 
 final class FareCatalogTest extends TestCase
 {
-    /** La grille du mail de Marion BROYER du 30/10/2026 (montants HT), sans le tarif ANECS / CJEC retiré le 02/11/2026. */
+    /** La grille du mail de Marion BROYER du 30/10/2026 (montants HT). */
     public function testGrid(): void
     {
         self::assertSame(
-            ['cooperateur' => '790.00', 'non_cooperateur' => '890.00'],
+            ['cooperateur' => '790.00', 'non_cooperateur' => '890.00', 'anecs_cjec' => '400.00'],
             array_map(static fn (array $fare): string => $fare['amount'], FareCatalog::all()),
         );
     }
@@ -22,6 +22,7 @@ final class FareCatalogTest extends TestCase
         self::assertSame('20.00', FareCatalog::TAX_RATE);
         self::assertSame('948.00', FareCatalog::inclTax('790.00'));
         self::assertSame('1068.00', FareCatalog::inclTax('890.00'));
+        self::assertSame('480.00', FareCatalog::inclTax('400.00'));
     }
 
     public function testFindRejectsUnknownCode(): void

@@ -21,6 +21,7 @@ final class FareCatalog
         return [
             'cooperateur' => ['label' => 'Coopérateur', 'amount' => '790.00'],
             'non_cooperateur' => ['label' => 'Non coopérateur', 'amount' => '890.00'],
+            'anecs_cjec' => ['label' => 'ANECS / CJEC', 'amount' => '400.00'],
         ];
     }
 

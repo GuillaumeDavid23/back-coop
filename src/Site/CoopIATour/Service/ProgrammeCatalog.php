@@ -31,13 +31,13 @@ final class ProgrammeCatalog
         return self::withTags([
             ['09h00 - 09h30', 'Accueil café'],
             ['09h30 - 10h30', 'Atelier avancé - Créez les outils de votre cabinet'],
-            ['10h30 - 11h30', 'Révision comptable assistée par IA - cas pratiques liasse fiscale'],
+            ['10h30 - 11h30', 'Révision comptable - cas pratiques liasse fiscale'],
             ['11h30 - 12h30', 'Rédaction automatisée - courriers clients, notes de mission, reporting'],
             ['12h30 - 14h00', 'Cocktail déjeunatoire'],
             ['14h00 - 15h45', 'Analyse financière automatisée - ratios, commentaires de gestion, benchmarks'],
             ['15h45 - 16h00', 'Pause'],
-            ['16h00 - 17h00', "Atelier libre - Création de cas d'usage avec accompagnement individuel"],
-            ['17h00 - 17h30', 'Restitution commune - synthèse, feuille de route, priorisation des déploiements'],
+            ['16h00 - 17h00', "Création de cas d'usage avec accompagnement individuel"],
+            ['17h00 - 17h30', 'Restitution commune'],
         ]);
     }
 

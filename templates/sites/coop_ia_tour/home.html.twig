@@ -75,7 +75,7 @@
 
     <section id="programme" style="max-width:1180px;margin:0 auto;padding:92px 28px 0">
         <span style="font-family:'Montserrat',sans-serif;font-size:11px;letter-spacing:0.24em;color:#8A7A66;font-weight:600">PROGRAMME</span>
-        <h2 style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:32px;color:#1E6685;margin:12px 0 30px">Deux jours en présentiel à Paris</h2>
+        <h2 style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:32px;color:#1E6685;margin:12px 0 30px">Deux jours en présentiel</h2>
         <div class="sc-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:stretch">
             <div style="border:1px solid #E4D8C6;border-radius:4px;background:#fff;overflow:hidden;display:flex;flex-direction:column">
                 <div style="background:#1E6685;color:#fff;padding:18px 26px;display:flex;align-items:center;justify-content:space-between;gap:16px">
@@ -141,7 +141,7 @@
     <section id="inscription" style="max-width:1180px;margin:0 auto;padding:92px 28px 0">
         <span style="font-family:'Montserrat',sans-serif;font-size:11px;letter-spacing:0.24em;color:#8A7A66;font-weight:600">TARIFS</span>
         <h2 style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:32px;color:#1E6685;margin:12px 0 8px">Choisissez votre forfait</h2>
-        <div class="sc-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:22px;align-items:stretch">
+        <div class="sc-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:22px;align-items:stretch">
             {% for code, fare in fares %}
                 <div class="sc-fare-card" style="border:1px solid #E4D8C6;border-radius:4px;background:#fff;display:flex;flex-direction:column;overflow:hidden">
                     <div style="background:#1E6685;color:#fff;padding:16px 24px;text-align:center;font-family:'Montserrat',sans-serif;font-weight:600;font-size:13px;letter-spacing:0.1em;min-height:66px;display:flex;align-items:center;justify-content:center">{{ fare.label|upper }}</div>
