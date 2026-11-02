@@ -40,7 +40,10 @@
             </div>
             <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
                 <a href="#programme" class="sc-btn-primary">Découvrir le programme</a>
-                <a href="#inscription" class="sc-btn-outline">Voir les tarifs</a>
+                {# Bouton affiché dès que la plaquette est déposée (voir ProgrammeController). #}
+                {% if static_asset_exists('/documents/sites/coop_ia_tour/plaquette-coop-ia-tour-paris-2026.pdf') %}
+                    <a href="{{ path('iatour_programme') }}" target="_blank" rel="noopener" class="sc-btn-outline"><span style="font-size:15px">↗</span>Consulter la plaquette</a>
+                {% endif %}
             </div>
         </div>
     </section>
@@ -50,9 +53,6 @@
             <div style="display:flex;flex-direction:column;gap:12px">
                 {# Visuel et édito repris du Séminaire IA Deauville, à la demande de Marion BROYER. #}
                 <img src="/images/sites/coop_ia_tour/edito.jpg" alt="Charles Basset et David Fourrier" style="width:100%;height:auto;border-radius:4px;display:block;background:#F6F0E8">
-                <div style="display:flex;flex-direction:column;gap:2px">
-                    <span style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:15px">Charles Basset et David Fourrier</span>
-                </div>
             </div>
             <div>
                 <span style="font-family:'Montserrat',sans-serif;font-size:11px;letter-spacing:0.24em;color:#8A7A66;font-weight:600">ÉDITO</span>
@@ -125,10 +125,10 @@
         <span style="font-family:'Montserrat',sans-serif;font-size:11px;letter-spacing:0.24em;color:#8A7A66;font-weight:600">LE LIEU</span>
         <h2 style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:32px;color:#1E6685;margin:12px 0 30px">Comet Bercy</h2>
         <div class="sc-grid" style="display:grid;grid-template-columns:1.35fr 1fr;gap:20px">
-            {# Photos 11 et 6 de la galerie du lieu, retenues par Marion BROYER. #}
+            {# Photo 11 de la galerie du lieu et photo de l'accueil envoyée par Marion BROYER. #}
             <img src="/images/sites/coop_ia_tour/venue-comet-bercy-11.jpg" alt="Salle de formation du Comet Bercy" style="width:100%;height:420px;object-fit:cover;border-radius:4px">
             <div style="display:flex;flex-direction:column;gap:20px">
-                <img src="/images/sites/coop_ia_tour/venue-comet-bercy-6.jpg" alt="Espace café du Comet Bercy" style="width:100%;height:200px;object-fit:cover;border-radius:4px">
+                <img src="/images/sites/coop_ia_tour/venue-comet-bercy-accueil.jpg" alt="Espace d'accueil du Comet Bercy" style="width:100%;height:200px;object-fit:cover;border-radius:4px">
                 <div style="flex:1;background:#F6F0E8;border-radius:4px;padding:26px 28px;display:flex;flex-direction:column;gap:14px">
                     <span style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:16px;color:#1E6685">Comet Bercy</span>
                     <span style="font-size:15px;line-height:1.6;color:#3A3A3A">40 avenue des Terroirs de France, 75012 Paris</span>
@@ -141,7 +141,7 @@
     <section id="inscription" style="max-width:1180px;margin:0 auto;padding:92px 28px 0">
         <span style="font-family:'Montserrat',sans-serif;font-size:11px;letter-spacing:0.24em;color:#8A7A66;font-weight:600">TARIFS</span>
         <h2 style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:32px;color:#1E6685;margin:12px 0 8px">Choisissez votre forfait</h2>
-        <div class="sc-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:22px;align-items:stretch">
+        <div class="sc-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:22px;align-items:stretch">
             {% for code, fare in fares %}
                 <div class="sc-fare-card" style="border:1px solid #E4D8C6;border-radius:4px;background:#fff;display:flex;flex-direction:column;overflow:hidden">
                     <div style="background:#1E6685;color:#fff;padding:16px 24px;text-align:center;font-family:'Montserrat',sans-serif;font-weight:600;font-size:13px;letter-spacing:0.1em;min-height:66px;display:flex;align-items:center;justify-content:center">{{ fare.label|upper }}</div>
@@ -154,7 +154,7 @@
                         {# 15px : "Café d'accueil, pauses et déjeuners" tient alors sur une seule ligne, comme sur la maquette. #}
                         <div style="display:flex;flex-direction:column;gap:14px;font-size:15px;line-height:1.5;color:#3A3A3A">
                             <div style="display:flex;gap:10px"><span style="color:#1E6685">✓</span>Formation en présentiel</div>
-                            <div style="display:flex;gap:10px"><span style="color:#1E6685">✓</span>Prêt d'une licence Claude</div>
+                            <div style="display:flex;gap:10px"><span style="color:#1E6685">✓</span>Licence Claude Teams obligatoire</div>
                             <div style="display:flex;gap:10px"><span style="color:#1E6685">✓</span>Café d'accueil, pauses et déjeuners</div>
                             <div style="display:flex;gap:10px"><span style="color:#1E6685">✓</span>Cocktail apéritif du jeudi</div>
                         </div>
