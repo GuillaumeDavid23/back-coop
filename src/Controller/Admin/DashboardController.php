@@ -94,6 +94,7 @@ final class DashboardController extends AbstractDashboardController
 
         return Dashboard::new()
             ->setTitle(sprintf('<img src="%s" alt="CLCOM Academy" style="max-height:36px;">', $logoUrl))
+            ->setFaviconPath('/favicon.svg')
             ->setLocales(['fr']);
     }
 
