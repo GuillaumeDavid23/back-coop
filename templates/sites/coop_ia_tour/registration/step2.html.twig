@@ -70,6 +70,12 @@
                 </div>
             {% endfor %}
 
+            {% if not payments_open %}
+                <div style="background:#F6F0E8;border:1px solid #E4D8C6;padding:18px 22px;border-radius:4px;font-size:15px;line-height:1.6;color:#3A3A3A">
+                    Les inscriptions en ligne ouvrent très prochainement. Pour toute information, contactez Hélèna GUINOISEAU au <a href="tel:0478084274">04 78 08 42 74</a> ou <a href="mailto:h.guinoiseau@clcom.fr">h.guinoiseau@clcom.fr</a>.
+                </div>
+                <div><a href="{{ path('iatour_registration_step1') }}" class="sc-btn-outline">Précédent</a></div>
+            {% else %}
             <form method="post" action="{{ path('iatour_registration_pay') }}" style="display:flex;flex-direction:column;gap:22px">
                 {% for message in app.flashes('iatour_notice') %}
                     <div style="background:#FDECEB;border:1px solid #F0B8B3;color:#A3352C;padding:12px 16px;border-radius:4px;font-size:14px">{{ message }}</div>
@@ -84,6 +90,7 @@
                     <button type="submit" class="sc-btn-primary" style="padding:16px 34px;font-size:15px;">Valider mon inscription</button>
                 </div>
             </form>
+            {% endif %}
         </div>
     </div>
 </section>

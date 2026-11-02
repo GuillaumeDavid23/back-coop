@@ -35,6 +35,8 @@ final class RegistrationController extends AbstractController
         private readonly PaymentSynchronizer $paymentSynchronizer,
         #[Autowire(service: 'monolog.logger.payment')]
         private readonly LoggerInterface $logger,
+        #[Autowire('%app.coop_ia_tour_payments_open%')]
+        private readonly bool $paymentsOpen,
     ) {
     }
 
@@ -113,6 +115,7 @@ final class RegistrationController extends AbstractController
             'questionnaire' => $request->getSession()->get(self::QUESTIONNAIRE_KEY, []),
             'data' => $data,
             'fare' => $fare,
+            'payments_open' => $this->paymentsOpen,
         ]);
     }
 
@@ -121,6 +124,14 @@ final class RegistrationController extends AbstractController
     {
         if (!$this->isCsrfTokenValid('iatour_payment', (string) $request->request->get('_token'))) {
             $this->logger->warning('iatour.registration.csrf_invalid');
+
+            return $this->redirectToRoute('iatour_registration_step2');
+        }
+
+        // Paiements fermés (COOP_IA_TOUR_PAYMENTS_OPEN) : rien n'est créé, ni
+        // inscription ni session Stripe, même si le formulaire a été posté.
+        if (!$this->paymentsOpen) {
+            $this->logger->info('iatour.registration.payments_closed');
 
             return $this->redirectToRoute('iatour_registration_step2');
         }
