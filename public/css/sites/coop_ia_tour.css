@@ -150,3 +150,11 @@ section[id] { scroll-margin-top: 84px; }
 .sc-form label.sc-choice span { white-space:normal; }
 /* Aide sous un champ (ex. « Logiciel de production, GED… »). */
 .sc-form .help-text { margin:6px 0 0; font-size:12.5px; color:#8A7A66; }
+
+/* Bandeau : l'image de l'agence sur mobile, le bandeau provisoire sur
+   ordinateur tant que sa version large n'est pas livrée. */
+.iatour-hero-mobile { display:none; }
+@media (max-width: 860px) {
+    .iatour-hero-mobile { display:block; }
+    .iatour-hero-desktop { display:none; }
+}

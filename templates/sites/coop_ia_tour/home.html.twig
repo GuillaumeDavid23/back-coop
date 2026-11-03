@@ -3,9 +3,14 @@
 {% block body %}
 <div>
 
-    {# Bandeau provisoire, en attendant celui de l'agence (mail de Marion BROYER
-       du 30/10/2026) : il prendra la place de ce bloc, comme sur le Séminaire CAC. #}
-    <section style="background:#1E6685;color:#fff">
+    {# Bandeau mobile de l'agence (mail de Marion BROYER du 03/11/2026), affiché
+       sous 860 px comme sur le Séminaire CAC. La version ordinateur n'est pas
+       encore arrivée : le bandeau provisoire ci-dessous reste affiché au-delà. #}
+    <section class="iatour-hero-mobile" style="background:#fff">
+        <img src="/images/sites/coop_ia_tour/banner_mobile.jpg" alt="La Coop' IA Tour by La Coop' des Experts - Paris 26-27 novembre 2026" style="display:block;width:100%;height:auto">
+    </section>
+
+    <section class="iatour-hero-desktop" style="background:#1E6685;color:#fff">
         <div style="max-width:1180px;margin:0 auto;padding:72px 28px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center">
             <img src="/images/sites/coop_ia_tour/logo-coop-color.png" alt="La Coop' des Experts" style="width:64px;height:auto">
             <span style="font-family:'Montserrat',sans-serif;font-size:12px;letter-spacing:0.3em;font-weight:600;opacity:0.8">LA COOP' DES EXPERTS PRÉSENTE</span>
