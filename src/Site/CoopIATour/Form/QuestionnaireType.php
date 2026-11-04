@@ -77,8 +77,8 @@ final class QuestionnaireType extends AbstractType
             ])
             ->add('claudeLicense', ChoiceType::class, [
                 'label' => "Pour les ateliers, disposez-vous de votre propre licence Claude ?",
-                // Réponses reprises mot pour mot du mail de Marion BROYER du 04/11/2026.
-                'choices' => self::choices(["J'ai ma licence", 'Je dois acheter un licence']),
+                // Réponses du mail de Marion BROYER du 04/11/2026.
+                'choices' => self::choices(["J'ai ma licence", 'Je dois acheter une licence']),
                 'placeholder' => '-',
                 'constraints' => [new Assert\NotBlank()],
             ])
