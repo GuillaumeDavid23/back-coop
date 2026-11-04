@@ -20,7 +20,7 @@
 
 {% block body %}
 <section style="background:#FBF9F6;border-bottom:1px solid #EDE4D8">
-    <div style="max-width:900px;margin:0 auto;padding:56px 28px 76px">
+    <div style="max-width:1180px;margin:0 auto;padding:56px 28px 76px">
         <a href="{{ path('iatour_home') }}#inscription" style="display:block;background:none;border:0;padding:0;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:600;font-size:13px;color:#1E6685;margin-bottom:26px;text-decoration:none">← Retour aux tarifs</a>
         {% include 'sites/coop_ia_tour/registration/_steps.html.twig' with {current: 1} %}
         <span style="display:block;font-family:'Montserrat',sans-serif;font-size:11px;letter-spacing:0.24em;color:#8A7A66;font-weight:600">QUESTIONNAIRE</span>
@@ -42,7 +42,7 @@
 
             <div style="display:flex;flex-direction:column;gap:18px">
                 <span style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:13px;letter-spacing:0.14em;color:#1E6685">NIVEAU</span>
-                <div class="sc-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+                <div class="sc-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:end">
                     {{ form_row(form.aiLevel) }}
                     {{ form_row(form.aiFrequency) }}
                 </div>
@@ -52,7 +52,7 @@
 
             <div style="display:flex;flex-direction:column;gap:18px">
                 <span style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:13px;letter-spacing:0.14em;color:#1E6685">ABONNEMENT OU LICENCE IA</span>
-                <div class="sc-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+                <div class="sc-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:end">
                     {{ form_row(form.paidSubscription) }}
                     {{ form_row(form.claudeUsage) }}
                 </div>
@@ -73,7 +73,7 @@
                 <span style="font-family:'Montserrat',sans-serif;font-weight:600;font-size:13px;letter-spacing:0.14em;color:#1E6685">OUTILS &amp; CAS D'USAGE</span>
                 {{ _self.choices(form.priorityUseCases) }}
                 {{ form_row(form.dailyTools) }}
-                <div class="sc-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+                <div class="sc-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:end">
                     {{ form_row(form.toolsToBuild) }}
                     {{ form_row(form.timeConsumingTasks) }}
                 </div>
