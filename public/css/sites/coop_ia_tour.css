@@ -143,8 +143,10 @@ section[id] { scroll-margin-top: 84px; }
 
 /* Questionnaire préalable (repris du Séminaire IA) : les choix multiples
    s'affichent en ligne, chaque case collée à son libellé. */
-.sc-form .sc-choice-list { display:flex; flex-wrap:wrap; gap:12px 24px; }
-.sc-form label.sc-choice { display:inline-flex; align-items:center; gap:8px; margin:0; font-size:14.5px; color:#2E2E2E; white-space:nowrap; cursor:pointer; max-width:100%; }
+/* Une ligne d'air entre la question et ses cases, puis sous les cases ; les
+   libellés des cases reprennent la police des questions. */
+.sc-form .sc-choice-list { display:flex; flex-wrap:wrap; gap:12px 24px; margin:14px 0 10px; }
+.sc-form label.sc-choice { display:inline-flex; align-items:center; gap:8px; margin:0; font-size:13px; font-weight:500; color:#3A3A3A; white-space:nowrap; cursor:pointer; max-width:100%; }
 .sc-form label.sc-choice input[type="checkbox"] { margin:0; flex:none; }
 /* Un libellé trop long pour l'écran (mobile) passe à la ligne, la case reste devant. */
 .sc-form label.sc-choice span { white-space:normal; }

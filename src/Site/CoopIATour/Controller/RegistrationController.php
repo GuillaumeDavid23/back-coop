@@ -40,7 +40,7 @@ final class RegistrationController extends AbstractController
 
     /**
      * Questionnaire préalable repris du Séminaire IA Deauville : il sert à
-     * calibrer les ateliers (niveau, licences Claude à prêter). Le forfait choisi
+     * calibrer les ateliers (niveau, outils, licence Claude). Le forfait choisi
      * sur la page d'accueil le traverse jusqu'au formulaire d'inscription.
      */
     #[Route('/inscription/questionnaire', name: 'registration_questionnaire', methods: ['GET', 'POST'])]

@@ -12,8 +12,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Questionnaire préalable à l'inscription : sert à calibrer les ateliers
- * pratiques (niveau des participants, outils déjà en place, licences Claude à
- * prévoir). Les réponses sont stockées telles quelles dans Registration::answers.
+ * pratiques (niveau des participants, outils déjà en place, licences Claude). Les réponses sont stockées telles quelles dans Registration::answers.
  *
  * Les valeurs enregistrées sont les libellés eux-mêmes, et non des codes : ces
  * réponses ne sont jamais interprétées par l'application, seulement relues dans
@@ -77,8 +76,9 @@ final class QuestionnaireType extends AbstractType
                 'constraints' => [new Assert\NotBlank()],
             ])
             ->add('claudeLicense', ChoiceType::class, [
-                'label' => "Pour les ateliers, disposez-vous de votre propre licence Claude ou souhaitez-vous qu'on vous en mette une à disposition ?",
-                'choices' => self::choices(["J'ai ma licence", "J'ai besoin qu'on m'en prête une"]),
+                'label' => "Pour les ateliers, disposez-vous de votre propre licence Claude ?",
+                // Réponses reprises mot pour mot du mail de Marion BROYER du 04/11/2026.
+                'choices' => self::choices(["J'ai ma licence", 'Je dois acheter un licence']),
                 'placeholder' => '-',
                 'constraints' => [new Assert\NotBlank()],
             ])
