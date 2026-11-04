@@ -40,6 +40,9 @@
                 {% if static_asset_exists('/documents/sites/coop_ia_tour/plaquette-coop-ia-tour-paris-2026.pdf') %}
                     <a href="{{ path('iatour_programme') }}" target="_blank" rel="noopener" class="sc-btn-outline"><span style="font-size:15px">↗</span>Consulter la plaquette</a>
                 {% endif %}
+                {% if static_asset_exists('/documents/sites/coop_ia_tour/pre-requis-coop-ia-tour-paris-2026.pdf') %}
+                    <a href="{{ static_asset('/documents/sites/coop_ia_tour/pre-requis-coop-ia-tour-paris-2026.pdf') }}" target="_blank" rel="noopener" class="sc-btn-outline"><span style="font-size:15px">↗</span>Pré-requis</a>
+                {% endif %}
             </div>
         </div>
     </section>
