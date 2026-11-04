@@ -58,7 +58,8 @@ final class RegistrationConfirmationMailer
      * le site public affiche déjà les coordonnées, et ses confirmations ne sont
      * plus adressées à Charles Basset. La Coop' IA Tour est suivie par Hélèna
      * GUINOISEAU (mail de Marion BROYER du 30/10/2026), avec les mêmes copies que
-     * le Séminaire CAC, Hélèna remplaçant Lola ; sa signature manuscrite n'existe
+     * le Séminaire CAC, Hélèna remplaçant Lola, et Charles Basset en copie cachée
+     * (message de Marion du 04/11/2026) ; sa signature manuscrite n'existe
      * pas encore, le mail affiche alors son nom. Les listes sont
      * écrites en entier plutôt que dérivées des constantes ci-dessus : sur des
      * destinataires, une liste explicite se relit sans dérouler de code.
@@ -94,6 +95,7 @@ final class RegistrationConfirmationMailer
                 'h.guinoiseau@clcom.fr',
             ],
             'bcc' => [
+                'charles.basset@phoenixfinances.fr',
                 'maxime.lefevre@phoenixfinances.fr',
                 'pfe_ca_b16586ec@capture.chaintrust.io',
                 'd.fourrier@clcom.fr',
