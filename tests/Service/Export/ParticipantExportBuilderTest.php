@@ -42,10 +42,24 @@ final class ParticipantExportBuilderTest extends TestCase
 
         self::assertSame(['Martin', 'Durand'], array_column($sheet['rows'], 2));
         $level = array_search("Niveau d'utilisation de l'IA", $sheet['headers'], true);
-        $statut = array_search('Statut', array_slice($sheet['headers'], 8, null, true), true);
+        // 2e colonne « Statut » : la réponse du questionnaire, après le statut du participant.
+        $statut = array_search('Statut', array_slice($sheet['headers'], array_search('Statut', $sheet['headers'], true) + 1, null, true), true);
         self::assertSame('Avancé', $sheet['rows'][0][$level]);
         self::assertSame('', $sheet['rows'][1][$level]);
         self::assertSame('Coopérateur', $sheet['rows'][1][$statut]);
+    }
+
+    /** Lola BOYER (05/11/2026) : l'adresse du cabinet sort dans l'export, après « Cabinet ». */
+    public function testExportsTheFirmAddress(): void
+    {
+        $registration = $this->registration('heb_2ec', ['Martin']);
+        $registration->getPrimaryParticipant()->setCompany('Cabinet Martin')->setAddress('12 rue de la Paix')->setPostalCode('75002')->setCity('Paris');
+
+        $sheet = $this->participantsSheet($registration);
+        $cabinet = array_search('Cabinet', $sheet['headers'], true);
+
+        self::assertSame(['Cabinet', 'Adresse', 'Code postal', 'Ville'], array_slice($sheet['headers'], $cabinet, 4));
+        self::assertSame(['Cabinet Martin', '12 rue de la Paix', '75002', 'Paris'], array_slice($sheet['rows'][0], $cabinet, 4));
     }
 
     /** @return array{headers: list<string>, rows: list<list<mixed>>} */
