@@ -49,7 +49,7 @@ final class ParticipantExportBuilder
 
         $headers = [
             'Inscription #', 'Civilité', 'Nom', 'Prénom', 'Email', 'Téléphone',
-            'Cabinet', 'Statut', 'Forfait', 'Montant TTC', 'Statut inscription',
+            'Cabinet', 'Adresse', 'Code postal', 'Ville', 'Statut', 'Forfait', 'Montant TTC', 'Statut inscription',
             'Motif', 'Besoins spécifiques',
         ];
         foreach ($dynamicKeys as $key) {
@@ -73,6 +73,9 @@ final class ParticipantExportBuilder
                     $participant->getEmail(),
                     $participant->getPhone(),
                     $participant->getCompany(),
+                    $participant->getAddress(),
+                    $participant->getPostalCode(),
+                    $participant->getCity(),
                     AnswerHumanizer::participantStatus($participant->getStatus()),
                     $registration->getFareLabel(),
                     (float) $registration->getAmountInclTax(),
