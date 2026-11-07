@@ -19,9 +19,9 @@ final class FareCatalog
     public static function all(): array
     {
         return [
-            'cooperateur' => ['label' => 'Coopérateur', 'amount' => '790.00'],
-            'non_cooperateur' => ['label' => 'Non coopérateur', 'amount' => '890.00'],
-            'anecs_cjec' => ['label' => 'ANECS / CJEC', 'amount' => '400.00'],
+            'cooperateur' => ['label' => 'Coopérateur', 'amount' => '490.00'],
+            'non_cooperateur' => ['label' => 'Non coopérateur', 'amount' => '690.00'],
+            'anecs_cjec' => ['label' => 'ANECS / CJEC', 'amount' => '250.00'],
         ];
     }
 
