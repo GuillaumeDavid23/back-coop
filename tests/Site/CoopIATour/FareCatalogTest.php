@@ -7,11 +7,11 @@ use PHPUnit\Framework\TestCase;
 
 final class FareCatalogTest extends TestCase
 {
-    /** La grille du mail de Marion BROYER du 30/10/2026 (montants HT). */
+    /** La grille du message de Marion BROYER du 07/11/2026 (montants HT). */
     public function testGrid(): void
     {
         self::assertSame(
-            ['cooperateur' => '790.00', 'non_cooperateur' => '890.00', 'anecs_cjec' => '400.00'],
+            ['cooperateur' => '490.00', 'non_cooperateur' => '690.00', 'anecs_cjec' => '250.00'],
             array_map(static fn (array $fare): string => $fare['amount'], FareCatalog::all()),
         );
     }
@@ -20,14 +20,14 @@ final class FareCatalogTest extends TestCase
     public function testInclTaxAppliesTwentyPercent(): void
     {
         self::assertSame('20.00', FareCatalog::TAX_RATE);
-        self::assertSame('948.00', FareCatalog::inclTax('790.00'));
-        self::assertSame('1068.00', FareCatalog::inclTax('890.00'));
-        self::assertSame('480.00', FareCatalog::inclTax('400.00'));
+        self::assertSame('588.00', FareCatalog::inclTax('490.00'));
+        self::assertSame('828.00', FareCatalog::inclTax('690.00'));
+        self::assertSame('300.00', FareCatalog::inclTax('250.00'));
     }
 
     public function testFindRejectsUnknownCode(): void
     {
         self::assertNull(FareCatalog::find('inconnu'));
-        self::assertSame('790.00', FareCatalog::find('cooperateur')['amount']);
+        self::assertSame('490.00', FareCatalog::find('cooperateur')['amount']);
     }
 }
