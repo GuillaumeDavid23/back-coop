@@ -1,0 +1,67 @@
+{# Suivi du parcours (voir RegistrationTrackingController) : uniquement des noms
+   de champs et un nombre de champs remplis, jamais le contenu saisi. #}
+<script>
+    (function () {
+        var form = document.querySelector('form.sc-form');
+        if (!form || !navigator.sendBeacon) return;
+
+        var url = '{{ path('iatour_registration_tracking')|e('js') }}';
+        var step = '{{ step|e('js') }}';
+        var visit = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+        var started = false, submitted = false, abandoned = false, blocked = [], timer = null;
+
+        function send(event, extra) {
+            var data = new URLSearchParams(extra || {});
+            data.set('event', event);
+            data.set('step', step);
+            data.set('visit', visit);
+            navigator.sendBeacon(url, data);
+        }
+
+        function fieldName(element) {
+            var match = /\[([^\]]+)\]/.exec(element.name || '');
+            return match ? match[1] : '';
+        }
+
+        function filledCount() {
+            var names = {};
+            Array.prototype.forEach.call(form.elements, function (element) {
+                var name = fieldName(element);
+                if (!name || ['hidden', 'submit', 'button'].indexOf(element.type) !== -1) return;
+                var isCheck = element.type === 'checkbox' || element.type === 'radio';
+                if (isCheck ? element.checked : element.value.trim() !== '') names[name] = true;
+            });
+            return Object.keys(names).length;
+        }
+
+        send('view');
+
+        form.addEventListener('input', function () {
+            if (started) return;
+            started = true;
+            send('started');
+        });
+
+        // "invalid" est émis pour chaque champ refusé par le navigateur, sans
+        // jamais atteindre le serveur : on regroupe ceux d'un même clic.
+        form.addEventListener('invalid', function (event) {
+            var name = fieldName(event.target);
+            if (name && blocked.indexOf(name) === -1) blocked.push(name);
+            clearTimeout(timer);
+            timer = setTimeout(function () {
+                send('blocked', {fields: blocked.join(','), filled: filledCount()});
+                blocked = [];
+            }, 100);
+        }, true);
+
+        form.addEventListener('submit', function () {
+            submitted = true;
+        });
+
+        window.addEventListener('pagehide', function () {
+            if (!started || submitted || abandoned) return;
+            abandoned = true;
+            send('abandoned', {filled: filledCount()});
+        });
+    })();
+</script>

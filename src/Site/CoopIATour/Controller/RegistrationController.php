@@ -16,6 +16,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -61,6 +62,8 @@ final class RegistrationController extends AbstractController
             return $this->redirectToRoute('iatour_registration_step1');
         }
 
+        $this->logInvalidSubmit($form, 'iatour.registration.questionnaire_invalid');
+
         return $this->render('sites/coop_ia_tour/registration/questionnaire.html.twig', ['form' => $form]);
     }
 
@@ -68,6 +71,8 @@ final class RegistrationController extends AbstractController
     public function step1(Request $request): Response
     {
         if (null === $request->getSession()->get(self::QUESTIONNAIRE_KEY)) {
+            $this->logger->info('iatour.registration.questionnaire_missing', ['method' => $request->getMethod()]);
+
             // Renvoi explicite : sans message, l'utilisateur qui revient ici
             // après expiration de sa session croit à un bouton défaillant.
             $this->addFlash('iatour_notice', 'Merci de répondre au questionnaire avant de poursuivre votre inscription.');
@@ -93,6 +98,8 @@ final class RegistrationController extends AbstractController
             return $this->redirectToRoute('iatour_registration_step2');
         }
 
+        $this->logInvalidSubmit($form, 'iatour.registration.step1_invalid');
+
         return $this->render('sites/coop_ia_tour/registration/step1.html.twig', [
             'form' => $form,
             'selectedFare' => FareCatalog::find($data['fare']),
@@ -104,16 +111,26 @@ final class RegistrationController extends AbstractController
     {
         $data = $request->getSession()->get(self::SESSION_KEY);
         if ($data === null) {
+            $this->logger->info('iatour.registration.recap_session_missing');
+
             return $this->redirectToRoute('iatour_registration_step1');
         }
 
         $fare = FareCatalog::find($data['fare']);
+        $paymentsOpen = $this->paymentsOpen();
+
+        // Fermés, le récapitulatif n'affiche pas le bouton : sans cette trace,
+        // rien ne distingue ce visiteur de celui qui renonce à payer.
+        $this->logger->info('iatour.registration.recap_viewed', [
+            'fare' => $data['fare'],
+            'payments_open' => $paymentsOpen,
+        ]);
 
         return $this->render('sites/coop_ia_tour/registration/step2.html.twig', [
             'questionnaire' => $request->getSession()->get(self::QUESTIONNAIRE_KEY, []),
             'data' => $data,
             'fare' => $fare,
-            'payments_open' => $this->paymentsOpen(),
+            'payments_open' => $paymentsOpen,
         ]);
     }
 
@@ -137,6 +154,7 @@ final class RegistrationController extends AbstractController
         // La case des CGV est "required" dans le gabarit ; on la revérifie ici,
         // le navigateur n'étant pas une barrière fiable.
         if (!$request->request->getBoolean('terms_accepted')) {
+            $this->logger->info('iatour.registration.terms_not_accepted');
             $this->addFlash('iatour_notice', "Merci d'accepter les conditions générales de vente et les conditions d'annulation pour valider votre inscription.");
 
             return $this->redirectToRoute('iatour_registration_step2');
@@ -144,6 +162,10 @@ final class RegistrationController extends AbstractController
 
         $data = $request->getSession()->get(self::SESSION_KEY);
         if ($data === null) {
+            // Session expirée, ou retour arrière depuis la page Stripe : les
+            // données sont effacées juste avant d'y rediriger.
+            $this->logger->info('iatour.registration.pay_session_missing');
+
             return $this->redirectToRoute('iatour_registration_step1');
         }
 
@@ -278,6 +300,23 @@ final class RegistrationController extends AbstractController
     public function cancelled(): Response
     {
         return $this->render('sites/coop_ia_tour/registration/cancelled.html.twig');
+    }
+
+    /** Journalise les seuls noms de champs refusés, jamais leur contenu. */
+    private function logInvalidSubmit(FormInterface $form, string $message): void
+    {
+        if (!$form->isSubmitted() || $form->isValid()) {
+            return;
+        }
+
+        $fields = \count($form->getErrors()) > 0 ? ['_form'] : [];
+        foreach ($form as $name => $child) {
+            if (!$child->isValid()) {
+                $fields[] = $name;
+            }
+        }
+
+        $this->logger->info($message, ['fields' => $fields]);
     }
 
     /** Interrupteur de la fiche Site ; fermé si la fiche manque. */
