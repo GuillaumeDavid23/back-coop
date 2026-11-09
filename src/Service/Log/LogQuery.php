@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Request;
 final class LogQuery
 {
     public const array LIMITS = [50, 100, 250, 500, 1000];
+    public const string DEFAULT_SINCE = '-24 hours';
 
     public function __construct(
         public readonly string $search = '',
@@ -21,7 +22,7 @@ final class LogQuery
     public static function fromRequest(Request $request): self
     {
         $since = null;
-        $sinceOption = (string) $request->query->get('since', '');
+        $sinceOption = (string) $request->query->get('since', self::DEFAULT_SINCE);
         if ('' !== $sinceOption && 'all' !== $sinceOption) {
             try {
                 $since = new \DateTimeImmutable($sinceOption);
@@ -40,6 +41,12 @@ final class LogQuery
             $since,
             \in_array($limit, self::LIMITS, true) ? $limit : 100,
         );
+    }
+
+    /** Mêmes critères, sans seuil de niveau (compteurs de l'explorateur). */
+    public function withAnyLevel(): self
+    {
+        return new self($this->search, '', $this->channel, $this->since, $this->limit);
     }
 
     public function matches(LogEntry $entry): bool

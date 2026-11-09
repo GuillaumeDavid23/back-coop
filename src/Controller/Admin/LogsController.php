@@ -74,9 +74,9 @@ final class LogsController extends AbstractController
     {
         $this->denyAccessUnlessGranted('ROLE_SUPER_ADMIN');
 
-        $period = (string) $request->query->get('since', '-7 days');
+        $period = (string) $request->query->get('since', LogQuery::DEFAULT_SINCE);
         if (!isset(self::FUNNEL_PERIODS[$period])) {
-            $period = '-7 days';
+            $period = LogQuery::DEFAULT_SINCE;
         }
 
         $files = $this->reader->availableFiles();

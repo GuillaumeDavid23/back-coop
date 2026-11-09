@@ -46,7 +46,7 @@
         <div class="fx">
             <label for="lf-since">Période</label>
             <select id="lf-since" name="since" onchange="this.form.submit()">
-                {% set sinceValue = app.request.query.get('since', 'all') %}
+                {% set sinceValue = app.request.query.get('since', '-24 hours') %}
                 {% for value, label in {'all': 'Tout', '-1 hour': 'Dernière heure', '-24 hours': '24 dernières heures', '-7 days': '7 derniers jours', '-30 days': '30 derniers jours'} %}
                     <option value="{{ value }}" {{ value == sinceValue ? 'selected' }}>{{ label }}</option>
                 {% endfor %}
@@ -81,7 +81,7 @@
             'Parcours Coop IA': {level: 'INFO', q: 'iatour.funnel'},
         } %}
             <a class="logx-chip {{ params.q == query.search and params.level == query.minLevel ? 'on' }}"
-               href="{{ path('admin', {routeName: 'admin_logs', file: currentFile, level: params.level, q: params.q}) }}">{{ label }}</a>
+               href="{{ path('admin', {routeName: 'admin_logs', file: currentFile, level: params.level, q: params.q, since: sinceValue}) }}">{{ label }}</a>
         {% endfor %}
     </div>
 

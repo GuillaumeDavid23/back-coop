@@ -67,14 +67,17 @@ final class LogReader
 
         ['entries' => $all, 'truncated' => $truncated] = $this->entries($path);
 
-        // Les stats et la liste des canaux portent sur tout ce qui a été lu,
-        // pas seulement sur la page filtrée : c'est ce qui permet de voir
-        // "il y a 12 ERROR" avant même de filtrer dessus.
+        // Les compteurs suivent tous les filtres sauf le niveau : c'est ce qui
+        // permet de voir "il y a 12 ERROR" avant même de filtrer dessus. La
+        // liste des canaux reste complète pour pouvoir en changer.
+        $anyLevel = $query->withAnyLevel();
         $stats = [];
         $channels = [];
         foreach ($all as $entry) {
-            $stats[$entry->level] = ($stats[$entry->level] ?? 0) + 1;
             $channels[$entry->channel] = true;
+            if ($anyLevel->matches($entry)) {
+                $stats[$entry->level] = ($stats[$entry->level] ?? 0) + 1;
+            }
         }
         ksort($channels);
 

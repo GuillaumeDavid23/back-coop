@@ -42,6 +42,17 @@ final class LogReaderTest extends TestCase
         self::assertSame(['INFO' => 1, 'ERROR' => 1], $result['stats']);
     }
 
+    public function testLevelCountersFollowThePeriodButNotTheLevel(): void
+    {
+        $line = static fn (string $level, string $date): string => json_encode(['message' => 'm', 'context' => [], 'level_name' => $level, 'channel' => 'payment', 'datetime' => $date])."\n";
+        file_put_contents($this->path, $line('ERROR', '2026-09-01T10:00:00+01:00').$line('ERROR', '2026-11-09T10:00:00+01:00').$line('INFO', '2026-11-09T10:01:00+01:00'));
+
+        $result = (new LogReader(sys_get_temp_dir(), 'test'))->read($this->path, new LogQuery(minLevel: 'ERROR', since: new \DateTimeImmutable('2026-11-01')));
+
+        self::assertSame(['ERROR' => 1, 'INFO' => 1], $result['stats']);
+        self::assertSame(1, $result['total']);
+    }
+
     public function testTextLinesAndTheirContinuationsStillParse(): void
     {
         $result = $this->read("[2026-11-09T09:20:40+01:00] app.ERROR: boom {\"a\":1} []\n#0 trace\n");
