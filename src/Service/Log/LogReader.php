@@ -65,8 +65,7 @@ final class LogReader
             return ['entries' => [], 'stats' => [], 'channels' => [], 'total' => 0, 'truncated' => false];
         }
 
-        [$content, $truncated] = $this->readTail($path);
-        $all = $this->parse($content);
+        ['entries' => $all, 'truncated' => $truncated] = $this->entries($path);
 
         // Les stats et la liste des canaux portent sur tout ce qui a été lu,
         // pas seulement sur la page filtrée : c'est ce qui permet de voir
@@ -93,6 +92,22 @@ final class LogReader
             'total' => $total,
             'truncated' => $truncated,
         ];
+    }
+
+    /**
+     * Toutes les lignes lues, de la plus ancienne à la plus récente.
+     *
+     * @return array{entries: LogEntry[], truncated: bool}
+     */
+    public function entries(string $path): array
+    {
+        if (!is_file($path)) {
+            return ['entries' => [], 'truncated' => false];
+        }
+
+        [$content, $truncated] = $this->readTail($path);
+
+        return ['entries' => $this->parse($content), 'truncated' => $truncated];
     }
 
     /** @return array{0: string, 1: bool} */
@@ -122,6 +137,13 @@ final class LogReader
 
         foreach (preg_split('/\r?\n/', $content) ?: [] as $line) {
             if ('' === trim($line)) {
+                continue;
+            }
+
+            // En production, Monolog écrit une ligne JSON par événement.
+            if (str_starts_with($line, '{') && null !== $entry = $this->parseJsonLine($line)) {
+                $entries[] = $entry;
+
                 continue;
             }
 
@@ -170,6 +192,30 @@ final class LogReader
         }
 
         return $entries;
+    }
+
+    private function parseJsonLine(string $line): ?LogEntry
+    {
+        $data = json_decode($line, true);
+        if (!\is_array($data) || !isset($data['message'], $data['level_name'])) {
+            return null;
+        }
+
+        try {
+            $date = isset($data['datetime']) ? new \DateTimeImmutable((string) $data['datetime']) : null;
+        } catch (\Exception) {
+            $date = null;
+        }
+
+        return new LogEntry(
+            $date,
+            (string) ($data['channel'] ?? 'unknown'),
+            (string) $data['level_name'],
+            (string) $data['message'],
+            \is_array($data['context'] ?? null) ? $data['context'] : null,
+            \is_array($data['extra'] ?? null) ? $data['extra'] : null,
+            $line,
+        );
     }
 
     /**

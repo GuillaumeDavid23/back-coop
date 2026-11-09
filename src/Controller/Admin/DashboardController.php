@@ -115,7 +115,7 @@ final class DashboardController extends AbstractDashboardController
             yield MenuItem::section('Administration');
             yield MenuItem::linkTo(SiteCrudController::class, 'Sites', 'fa fa-globe');
             yield MenuItem::linkTo(UserCrudController::class, 'Utilisateurs', 'fa fa-user-shield');
-            yield MenuItem::linkToRoute('Logs', 'fa fa-file-lines', 'admin_logs');
+            yield MenuItem::linkToRoute('Logs et parcours', 'fa fa-file-lines', 'admin_logs_funnel');
         }
     }
 }

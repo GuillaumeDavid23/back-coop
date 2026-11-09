@@ -2,23 +2,35 @@
 
 namespace App\Controller\Admin;
 
+use App\Service\Log\LogEntry;
 use App\Service\Log\LogQuery;
 use App\Service\Log\LogReader;
+use App\Service\Log\RegistrationFunnelReport;
+use App\Site\CoopIATour\Form\QuestionnaireType;
+use App\Site\CoopIATour\Form\RegistrationStep1Type;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 /**
- * Explorateur de logs du BO, réservé à ROLE_SUPER_ADMIN : filtrage par
- * fichier / niveau / canal / période / texte, contexte JSON déplié à la
- * demande et raccourcis vers les objets métier cités dans le contexte.
+ * Logs du BO, réservés à ROLE_SUPER_ADMIN : suivi du parcours d'inscription
+ * et explorateur filtrable par fichier / niveau / canal / période / texte.
  * Évite d'avoir à ouvrir un SSH pour diagnostiquer un souci de paiement.
  */
 final class LogsController extends AbstractController
 {
-    public function __construct(private readonly LogReader $reader)
-    {
+    private const array FUNNEL_PERIODS = [
+        '-24 hours' => '24 dernières heures',
+        '-7 days' => '7 derniers jours',
+        '-30 days' => '30 derniers jours',
+        'all' => 'Tout',
+    ];
+
+    public function __construct(
+        private readonly LogReader $reader,
+        private readonly RegistrationFunnelReport $funnelReport,
+    ) {
     }
 
     #[Route('/admin/logs', name: 'admin_logs')]
@@ -52,8 +64,49 @@ final class LogsController extends AbstractController
             'channels' => $result['channels'],
             'total' => $result['total'],
             'truncated' => $result['truncated'],
-            'levels' => array_keys(\App\Service\Log\LogEntry::LEVELS),
+            'levels' => array_keys(LogEntry::LEVELS),
             'limits' => LogQuery::LIMITS,
         ]);
+    }
+
+    #[Route('/admin/logs/parcours', name: 'admin_logs_funnel')]
+    public function funnel(Request $request): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_SUPER_ADMIN');
+
+        $period = (string) $request->query->get('since', '-7 days');
+        if (!isset(self::FUNNEL_PERIODS[$period])) {
+            $period = '-7 days';
+        }
+
+        $files = $this->reader->availableFiles();
+        $log = $this->reader->entries($files['payment']['path']);
+
+        return $this->render('admin/logs_funnel.html.twig', [
+            'report' => $this->funnelReport->build(
+                $log['entries'],
+                'all' === $period ? null : new \DateTimeImmutable($period),
+                $this->fieldLabels(),
+            ),
+            'truncated' => $log['truncated'],
+            'periods' => self::FUNNEL_PERIODS,
+            'period' => $period,
+        ]);
+    }
+
+    /** @return array<string, string> libellés affichés au visiteur, par nom de champ */
+    private function fieldLabels(): array
+    {
+        $labels = [];
+        foreach ([QuestionnaireType::class, RegistrationStep1Type::class] as $type) {
+            foreach ($this->createForm($type) as $name => $field) {
+                $label = $field->getConfig()->getOption('label');
+                if (\is_string($label)) {
+                    $labels[$name] = $label;
+                }
+            }
+        }
+
+        return $labels;
     }
 }

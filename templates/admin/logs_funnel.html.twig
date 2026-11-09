@@ -1,0 +1,115 @@
+{% extends '@EasyAdmin/layout.html.twig' %}
+
+{% block title %}Logs et parcours - CLCOM Events{% endblock %}
+
+{% block content_title %}Derniers accès : Coop' IA Tour{% endblock %}
+
+{% block main %}
+    {% include 'admin/_logs_style.html.twig' with {tab: 'funnel'} %}
+
+    <div class="logx-stats">
+        {% for value, label in periods %}
+            <a class="logx-chip {{ value == period ? 'on' }}" {{ value == period ? 'aria-current=true' }} href="{{ path('admin', {routeName: 'admin_logs_funnel', since: value}) }}">{{ label }}</a>
+        {% endfor %}
+    </div>
+
+    {% if truncated %}
+        <div class="logx-meta"><strong>Note :</strong> fichier volumineux, seule sa fin a été analysée.</div>
+    {% endif %}
+
+    <section class="logx-section">
+        <h2>Dernières visites</h2>
+        <p>Les 30 plus récentes, sur le questionnaire et le formulaire. Une visite correspond à une page ouverte, pas forcément à une personne différente.</p>
+        {% if report.visits is empty %}
+            <div class="logx-empty">Aucune visite sur cette période.</div>
+        {% else %}
+            <div class="logx-scroll">
+                <table class="logx-table">
+                    <thead>
+                        <tr>
+                            <th>Quand</th>
+                            <th>Page</th>
+                            <th>Appareil</th>
+                            <th>Ce qui s'est passé</th>
+                            <th class="num">Champs remplis</th>
+                            <th>Champs manquants</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for visit in report.visits %}
+                            <tr>
+                                <td class="logx-date">{{ visit.last|date('d/m H:i') }}</td>
+                                <td>{{ visit.step }}</td>
+                                <td>{{ visit.device }}{{ visit.browser != '-' ? ' · ' ~ visit.browser }}</td>
+                                <td class="logx-label">{{ visit.status }}</td>
+                                <td class="num">{{ visit.filled ?: '-' }}</td>
+                                <td>{% if visit.blocked is empty %}-{% else %}<div class="logx-reason" title="{{ visit.blocked|join(' | ') }}">{{ visit.blocked|join(' | ') }}</div>{% endif %}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </section>
+
+    <div class="logx-columns">
+        <section class="logx-section">
+            <h2>Où en sont les visiteurs</h2>
+            <p>Depuis le 9 novembre 2026, hors robots sans JavaScript.</p>
+            <div class="logx-scroll">
+                <table class="logx-table">
+                    <thead><tr><th>Étape</th><th class="num">Nombre</th><th class="num">Part</th></tr></thead>
+                    <tbody>
+                        {% for row in report.funnel %}
+                            <tr>
+                                <td>{{ row.label }}</td>
+                                <td class="num">{{ row.count }}</td>
+                                <td class="num">{{ row.rate is null ? '-' : row.rate ~ ' %' }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="logx-section">
+            <h2>Champs qui bloquent</h2>
+            <p>Manquants ou refusés au moment de valider.</p>
+            {% if report.fields is empty %}
+                <div class="logx-empty">Aucun blocage sur cette période.</div>
+            {% else %}
+                <div class="logx-scroll">
+                    <table class="logx-table">
+                        <thead><tr><th>Champ</th><th>Étape</th><th class="num">Blocages</th></tr></thead>
+                        <tbody>
+                            {% for row in report.fields %}
+                                <tr>
+                                    <td><div class="logx-reason" title="{{ row.label }}">{{ row.label }}</div></td>
+                                    <td>{{ row.step }}</td>
+                                    <td class="num">{{ row.count }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </section>
+    </div>
+
+    {% if report.incidents is not empty %}
+        <section class="logx-section">
+            <h2>Incidents</h2>
+            <p>Situations où le visiteur a pu rester bloqué sans vraie explication.</p>
+            <div class="logx-scroll">
+                <table class="logx-table">
+                    <thead><tr><th>Incident</th><th class="num">Nombre</th></tr></thead>
+                    <tbody>
+                        {% for row in report.incidents %}
+                            <tr><td>{{ row.label }}</td><td class="num">{{ row.count }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% endif %}
+{% endblock %}

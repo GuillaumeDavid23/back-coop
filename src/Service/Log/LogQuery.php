@@ -34,7 +34,8 @@ final class LogQuery
 
         return new self(
             trim((string) $request->query->get('q', '')),
-            strtoupper((string) $request->query->get('level', 'DEBUG')) ?: 'DEBUG',
+            // INFO par défaut : le détail DEBUG noie les événements utiles.
+            strtoupper((string) $request->query->get('level', 'INFO')) ?: 'INFO',
             ($channel = (string) $request->query->get('channel', '')) !== '' ? $channel : null,
             $since,
             \in_array($limit, self::LIMITS, true) ? $limit : 100,

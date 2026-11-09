@@ -1,0 +1,40 @@
+<style>
+    .logx-tabs { display: flex; gap: 4px; border-bottom: 1px solid #dee2e6; margin-bottom: 18px; }
+    .logx-tab { padding: 8px 14px; text-decoration: none; color: #495057; border-bottom: 2px solid transparent; margin-bottom: -1px; font-size: .9rem; }
+    .logx-tab:hover { color: #3b48a8; text-decoration: none; }
+    .logx-tab.on { color: #3b48a8; border-bottom-color: #5a6acf; font-weight: 600; }
+    .logx-filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin-bottom: 18px; }
+    .logx-filters .fx { display: flex; flex-direction: column; gap: 4px; }
+    .logx-filters label { font-size: .72rem; text-transform: uppercase; color: #6c757d; letter-spacing: .03em; }
+    .logx-filters select, .logx-filters input { padding: 6px 10px; border: 1px solid #dee2e6; border-radius: 6px; font-size: .88rem; background: #fff; }
+    .logx-stats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+    .logx-chip { border: 1px solid #dee2e6; border-radius: 999px; padding: 4px 12px; font-size: .8rem; text-decoration: none; color: inherit; }
+    .logx-chip.on { border-color: #5a6acf; background: #eef0fc; color: #3b48a8; font-weight: 600; }
+    .logx-scroll { overflow-x: auto; }
+    .logx-table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+    .logx-table th { text-align: left; font-size: .72rem; text-transform: uppercase; color: #6c757d; border-bottom: 1px solid #dee2e6; padding: 8px 10px; }
+    .logx-table td { border-bottom: 1px solid #f1f3f5; padding: 8px 10px; vertical-align: top; }
+    .logx-table tr:hover td { background: #fafbfc; }
+    .logx-table .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .logx-date { white-space: nowrap; color: #6c757d; font-variant-numeric: tabular-nums; }
+    .logx-label { font-weight: 500; }
+    .logx-msg { font-family: "Cascadia Code", Consolas, monospace; word-break: break-word; }
+    .logx-label + .logx-msg { font-size: .74rem; color: #6c757d; margin-top: 2px; }
+    .logx-refs { margin-top: 5px; display: flex; flex-wrap: wrap; gap: 6px; }
+    .logx-ref { background: #f1f3f5; border-radius: 4px; padding: 1px 7px; font-size: .74rem; color: #495057; }
+    .logx-ctx { margin: 8px 0 0; background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 6px;
+                font-family: "Cascadia Code", Consolas, monospace; font-size: .78rem; white-space: pre-wrap; word-break: break-word; max-height: 340px; overflow: auto; }
+    .logx-toggle { cursor: pointer; background: none; border: 1px solid #dee2e6; border-radius: 4px; font-size: .72rem; padding: 1px 7px; color: #495057; }
+    .logx-empty { padding: 28px; text-align: center; color: #6c757d; }
+    .logx-meta { color: #6c757d; font-size: .8rem; margin-bottom: 14px; }
+    .logx-section { margin-bottom: 30px; }
+    .logx-section h2 { font-size: 1rem; font-weight: 600; margin: 0 0 4px; }
+    .logx-section p { color: #6c757d; font-size: .82rem; margin: 0 0 10px; }
+    .logx-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; }
+    .logx-reason { max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+</style>
+
+<nav class="logx-tabs" aria-label="Sections des logs">
+    <a class="logx-tab {{ tab == 'funnel' ? 'on' }}" {{ tab == 'funnel' ? 'aria-current=page' }} href="{{ path('admin', {routeName: 'admin_logs_funnel'}) }}">Parcours d'inscription</a>
+    <a class="logx-tab {{ tab == 'explorer' ? 'on' }}" {{ tab == 'explorer' ? 'aria-current=page' }} href="{{ path('admin', {routeName: 'admin_logs'}) }}">Explorateur</a>
+</nav>
