@@ -4,7 +4,7 @@
 
 {% block body %}
 <section style="background:#FBF9F6;border-bottom:1px solid #EDE4D8">
-    <div style="max-width:900px;margin:0 auto;padding:56px 28px 76px">
+    <div class="sc-reg-page" style="max-width:900px;margin:0 auto;padding:56px 28px 76px">
         <a href="{{ path('iatour_registration_step1') }}" style="display:block;background:none;border:0;padding:0;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:600;font-size:13px;color:#1E6685;margin-bottom:26px;text-decoration:none">← Modifier mes informations</a>
         {% include 'sites/coop_ia_tour/registration/_steps.html.twig' with {current: 3} %}
         <span style="display:block;font-family:'Montserrat',sans-serif;font-size:11px;letter-spacing:0.24em;color:#8A7A66;font-weight:600">RÉCAPITULATIF</span>
@@ -21,7 +21,7 @@
             </div>
         </div>
 
-        <div style="background:#fff;border:1px solid #E4D8C6;border-radius:4px;padding:34px;display:flex;flex-direction:column;gap:30px">
+        <div class="sc-reg-card" style="background:#fff;border:1px solid #E4D8C6;border-radius:4px;padding:34px;display:flex;flex-direction:column;gap:30px">
             {% set recap_groups = [
                 {title: 'PARTICIPANT', rows: [
                     {label: 'Civilité', value: data.civility == 'mme' ? 'Madame' : 'Monsieur'},

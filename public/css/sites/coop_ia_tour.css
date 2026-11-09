@@ -138,6 +138,39 @@ section[id] { scroll-margin-top: 84px; }
 
     /* CTA / bandeau footer : centrer proprement en colonne */
     footer .sc-grid { text-align: left; }
+
+    /* En-tête : le logo et le bouton restent chacun sur une ligne */
+    header > div { padding: 10px 16px !important; gap: 12px !important; }
+    header a span { white-space: nowrap; }
+    header .sc-btn-primary { padding: 10px 16px; font-size: 13px; white-space: nowrap; }
+
+    /* Parcours d'inscription : la section porte déjà la marge latérale. Les
+       marges du conteneur et de la carte s'y ajoutaient, et il restait à peine
+       la moitié de l'écran pour les champs. */
+    .sc-reg-page { padding: 28px 0 44px !important; }
+    .sc-reg-page h1 { font-size: 27px !important; margin-bottom: 10px !important; }
+    .sc-reg-card { padding: 22px 16px !important; gap: 22px !important; }
+    .sc-form > div { margin-bottom: 0; }
+    .sc-form label { font-size: 14px; line-height: 1.35; }
+    /* En dessous de 16px, iOS zoome sur la page à chaque champ sélectionné. */
+    .sc-form input[type="text"], .sc-form input[type="email"], .sc-form input[type="tel"],
+    .sc-form select, .sc-form textarea { font-size: 16px; }
+    .sc-form .sc-choice-list { flex-direction: column; gap: 4px; }
+    .sc-form label.sc-choice { font-size: 14px; padding: 7px 0; align-items: flex-start; }
+    .sc-form label.sc-choice input[type="checkbox"] { margin-top: 2px; }
+    .sc-form button[type="submit"] { width: 100%; white-space: nowrap; }
+    .sc-note { padding: 14px !important; gap: 12px !important; align-items: flex-start !important; }
+
+    /* Étapes : une seule ligne, seul le libellé de l'étape en cours reste. */
+    .sc-steps { flex-wrap: nowrap !important; gap: 10px !important; }
+    .sc-step-label-secondary { display: none; }
+}
+
+@media (max-width: 380px) {
+    header a > span > span:last-child { font-size: 20px !important; }
+    header a > img { width: 30px !important; }
+    header .sc-btn-primary { padding: 9px 12px; }
+    header > div { gap: 6px !important; }
 }
 
 
