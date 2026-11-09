@@ -1,11 +1,12 @@
-{# Suivi du parcours (voir RegistrationTrackingController) : uniquement des noms
-   de champs et un nombre de champs remplis, jamais le contenu saisi. #}
+{# Suivi du parcours (voir AbstractRegistrationTrackingController) : uniquement
+   des noms de champs et un nombre de champs remplis, jamais le contenu saisi.
+   Paramètres : url (route de suivi du site), step (questionnaire ou formulaire). #}
 <script>
     (function () {
-        var form = document.querySelector('form.sc-form');
+        var form = document.querySelector('form[name="questionnaire"], form[name="registration_step1"]');
         if (!form || !navigator.sendBeacon) return;
 
-        var url = '{{ path('iatour_registration_tracking')|e('js') }}';
+        var url = '{{ url|e('js') }}';
         var step = '{{ step|e('js') }}';
         var visit = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
         var started = false, submitted = false, abandoned = false, blocked = [], timer = null;

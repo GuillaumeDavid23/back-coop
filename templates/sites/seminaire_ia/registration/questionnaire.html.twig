@@ -115,6 +115,8 @@
 
 		{{ form_end(form) }}
 	</div>
+
+	{% include 'sites/_registration_tracking.html.twig' with {url: path('ia_registration_tracking'), step: 'questionnaire'} %}
 {% endblock %}
 
 {% block javascripts %}

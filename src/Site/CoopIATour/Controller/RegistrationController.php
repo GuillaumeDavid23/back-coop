@@ -9,6 +9,7 @@ use App\Repository\PaymentRepository;
 use App\Repository\SiteRepository;
 use App\Service\Stripe\PaymentSynchronizer;
 use App\Service\Stripe\StripeCheckoutService;
+use App\Site\LogsInvalidSubmit;
 use App\Site\CoopIATour\Form\QuestionnaireType;
 use App\Site\CoopIATour\Form\RegistrationStep1Type;
 use App\Site\CoopIATour\Service\FareCatalog;
@@ -16,7 +17,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,6 +25,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class RegistrationController extends AbstractController
 {
+    use LogsInvalidSubmit;
+
     private const string SESSION_KEY = 'iatour_registration_data';
     private const string QUESTIONNAIRE_KEY = 'iatour_questionnaire_data';
     private const string SITE_CODE = 'coop_ia_tour';
@@ -300,23 +302,6 @@ final class RegistrationController extends AbstractController
     public function cancelled(): Response
     {
         return $this->render('sites/coop_ia_tour/registration/cancelled.html.twig');
-    }
-
-    /** Journalise les seuls noms de champs refusés, jamais leur contenu. */
-    private function logInvalidSubmit(FormInterface $form, string $message): void
-    {
-        if (!$form->isSubmitted() || $form->isValid()) {
-            return;
-        }
-
-        $fields = \count($form->getErrors()) > 0 ? ['_form'] : [];
-        foreach ($form as $name => $child) {
-            if (!$child->isValid()) {
-                $fields[] = $name;
-            }
-        }
-
-        $this->logger->info($message, ['fields' => $fields]);
     }
 
     /** Interrupteur de la fiche Site ; fermé si la fiche manque. */

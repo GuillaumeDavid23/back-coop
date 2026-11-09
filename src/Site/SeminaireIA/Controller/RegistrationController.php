@@ -9,6 +9,7 @@ use App\Repository\PaymentRepository;
 use App\Repository\SiteRepository;
 use App\Service\Stripe\PaymentSynchronizer;
 use App\Service\Stripe\StripeCheckoutService;
+use App\Site\LogsInvalidSubmit;
 use App\Site\SeminaireIA\Form\QuestionnaireType;
 use App\Site\SeminaireIA\Form\RegistrationStep1Type;
 use App\Site\SeminaireIA\Service\FareCatalog;
@@ -24,6 +25,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class RegistrationController extends AbstractController
 {
+    use LogsInvalidSubmit;
+
     private const string SESSION_KEY = 'ia_registration_data';
     private const string QUESTIONNAIRE_KEY = 'ia_questionnaire_data';
     private const string SITE_CODE = 'seminaire_ia';
@@ -54,6 +57,8 @@ final class RegistrationController extends AbstractController
             return $this->redirectToRoute('ia_registration_step1');
         }
 
+        $this->logInvalidSubmit($form, 'ia.registration.questionnaire_invalid');
+
         return $this->render('sites/seminaire_ia/registration/questionnaire.html.twig', ['form' => $form]);
     }
 
@@ -61,6 +66,8 @@ final class RegistrationController extends AbstractController
     public function step1(Request $request): Response
     {
         if (null === $request->getSession()->get(self::QUESTIONNAIRE_KEY)) {
+            $this->logger->info('ia.registration.questionnaire_missing', ['method' => $request->getMethod()]);
+
             // Renvoi explicite : sans message, l'utilisateur qui revient ici
             // après expiration de sa session croit à un bouton défaillant.
             $this->addFlash('ia_notice', 'Merci de répondre au questionnaire avant de poursuivre votre inscription.');
@@ -84,6 +91,8 @@ final class RegistrationController extends AbstractController
             return $this->redirectToRoute('ia_registration_step2');
         }
 
+        $this->logInvalidSubmit($form, 'ia.registration.step1_invalid');
+
         return $this->render('sites/seminaire_ia/registration/step1.html.twig', [
             'form' => $form,
             'fares' => FareCatalog::all(),
@@ -97,6 +106,8 @@ final class RegistrationController extends AbstractController
     {
         $data = $request->getSession()->get(self::SESSION_KEY);
         if ($data === null) {
+            $this->logger->info('ia.registration.recap_session_missing');
+
             return $this->redirectToRoute('ia_registration_step1');
         }
 
@@ -104,6 +115,8 @@ final class RegistrationController extends AbstractController
         if ($amounts === null) {
             return $this->redirectToRoute('ia_registration_step1');
         }
+
+        $this->logger->info('ia.registration.recap_viewed', ['fare' => $data['fare'], 'payments_open' => true]);
 
         return $this->render('sites/seminaire_ia/registration/step2.html.twig', [
             'questionnaire' => $request->getSession()->get(self::QUESTIONNAIRE_KEY, []),
@@ -130,6 +143,10 @@ final class RegistrationController extends AbstractController
 
         $data = $request->getSession()->get(self::SESSION_KEY);
         if ($data === null) {
+            // Session expirée, ou retour arrière depuis la page Stripe : les
+            // données sont effacées juste avant d'y rediriger.
+            $this->logger->info('ia.registration.pay_session_missing');
+
             return $this->redirectToRoute('ia_registration_step1');
         }
 

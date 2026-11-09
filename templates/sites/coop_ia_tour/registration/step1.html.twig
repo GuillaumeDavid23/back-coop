@@ -88,5 +88,5 @@
     </div>
 </section>
 
-{% include 'sites/coop_ia_tour/registration/_tracking.html.twig' with {step: 'formulaire'} %}
+{% include 'sites/_registration_tracking.html.twig' with {url: path('iatour_registration_tracking'), step: 'formulaire'} %}
 {% endblock %}

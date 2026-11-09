@@ -79,6 +79,23 @@ final class RegistrationFunnelReportTest extends TestCase
         self::assertSame([], $report['visits']);
     }
 
+    public function testEachSiteOnlySeesItsOwnEvents(): void
+    {
+        $report = (new RegistrationFunnelReport())->build([
+            $this->entry('iatour.funnel.view', ['step' => 'formulaire', 'visit' => 'aaaaaa']),
+            $this->entry('cac.funnel.view', ['step' => 'formulaire', 'visit' => 'bbbbbb']),
+            $this->entry('cac.funnel.view', ['step' => 'formulaire', 'visit' => 'cccccc']),
+            $this->entry('cac.registration.created', ['registration_id' => 8]),
+        ], null, [], 'seminaire_cac');
+
+        $funnel = $this->funnel($report);
+        self::assertArrayNotHasKey('Questionnaire ouvert', $funnel);
+        self::assertSame(2, $funnel['Formulaire ouvert']);
+        self::assertSame(1, $funnel['Paiement lancé']);
+        self::assertSame(100, $report['funnel'][0]['rate']);
+        self::assertCount(2, $report['visits']);
+    }
+
     public function testIncidentsOnlyCountThisSite(): void
     {
         $report = (new RegistrationFunnelReport())->build([

@@ -99,4 +99,6 @@
         {{ form_end(form) }}
     </div>
 </section>
+
+{% include 'sites/_registration_tracking.html.twig' with {url: path('cac_registration_tracking'), step: 'formulaire'} %}
 {% endblock %}

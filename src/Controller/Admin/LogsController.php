@@ -6,8 +6,10 @@ use App\Service\Log\LogEntry;
 use App\Service\Log\LogQuery;
 use App\Service\Log\LogReader;
 use App\Service\Log\RegistrationFunnelReport;
-use App\Site\CoopIATour\Form\QuestionnaireType;
-use App\Site\CoopIATour\Form\RegistrationStep1Type;
+use App\Service\Site\SiteContext;
+use App\Site\CoopIATour\Form as CoopIATour;
+use App\Site\SeminaireCAC\Form as SeminaireCAC;
+use App\Site\SeminaireIA\Form as SeminaireIA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,6 +22,13 @@ use Symfony\Component\Routing\Attribute\Route;
  */
 final class LogsController extends AbstractController
 {
+    /** Formulaires publics de chaque site : d'où viennent les libellés des champs. */
+    private const array SITE_FORMS = [
+        'coop_ia_tour' => [CoopIATour\QuestionnaireType::class, CoopIATour\RegistrationStep1Type::class],
+        'seminaire_cac' => [SeminaireCAC\RegistrationStep1Type::class],
+        'seminaire_ia' => [SeminaireIA\QuestionnaireType::class, SeminaireIA\RegistrationStep1Type::class],
+    ];
+
     private const array FUNNEL_PERIODS = [
         '-24 hours' => '24 dernières heures',
         '-7 days' => '7 derniers jours',
@@ -30,6 +39,7 @@ final class LogsController extends AbstractController
     public function __construct(
         private readonly LogReader $reader,
         private readonly RegistrationFunnelReport $funnelReport,
+        private readonly SiteContext $siteContext,
     ) {
     }
 
@@ -79,14 +89,21 @@ final class LogsController extends AbstractController
             $period = LogQuery::DEFAULT_SINCE;
         }
 
+        $site = $this->siteContext->getCurrentSite();
+        if (null !== $site && !isset(self::SITE_FORMS[$site->getCode()])) {
+            $site = null;
+        }
+
         $files = $this->reader->availableFiles();
-        $log = $this->reader->entries($files['payment']['path']);
+        $log = null !== $site ? $this->reader->entries($files['payment']['path']) : ['entries' => [], 'truncated' => false];
 
         return $this->render('admin/logs_funnel.html.twig', [
-            'report' => $this->funnelReport->build(
+            'site' => $site,
+            'report' => null === $site ? null : $this->funnelReport->build(
                 $log['entries'],
                 'all' === $period ? null : new \DateTimeImmutable($period),
-                $this->fieldLabels(),
+                $this->fieldLabels($site->getCode()),
+                $site->getCode(),
             ),
             'truncated' => $log['truncated'],
             'periods' => self::FUNNEL_PERIODS,
@@ -95,10 +112,10 @@ final class LogsController extends AbstractController
     }
 
     /** @return array<string, string> libellés affichés au visiteur, par nom de champ */
-    private function fieldLabels(): array
+    private function fieldLabels(string $siteCode): array
     {
         $labels = [];
-        foreach ([QuestionnaireType::class, RegistrationStep1Type::class] as $type) {
+        foreach (self::SITE_FORMS[$siteCode] as $type) {
             foreach ($this->createForm($type) as $name => $field) {
                 $label = $field->getConfig()->getOption('label');
                 if (\is_string($label)) {

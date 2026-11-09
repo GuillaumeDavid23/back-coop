@@ -9,6 +9,7 @@ use App\Repository\PaymentRepository;
 use App\Repository\SiteRepository;
 use App\Service\Stripe\PaymentSynchronizer;
 use App\Service\Stripe\StripeCheckoutService;
+use App\Site\LogsInvalidSubmit;
 use App\Site\SeminaireCAC\Form\RegistrationStep1Type;
 use App\Site\SeminaireCAC\Service\FareCatalog;
 use Doctrine\ORM\EntityManagerInterface;
@@ -23,6 +24,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class RegistrationController extends AbstractController
 {
+    use LogsInvalidSubmit;
+
     private const string SESSION_KEY = 'cac_registration_data';
 
     public function __construct(
@@ -56,6 +59,8 @@ final class RegistrationController extends AbstractController
             return $this->redirectToRoute('cac_registration_step2');
         }
 
+        $this->logInvalidSubmit($form, 'cac.registration.step1_invalid');
+
         return $this->render('sites/seminaire_cac/registration/step1.html.twig', [
             'form' => $form,
             'selectedFare' => FareCatalog::find($data['fare']),
@@ -67,10 +72,14 @@ final class RegistrationController extends AbstractController
     {
         $data = $request->getSession()->get(self::SESSION_KEY);
         if ($data === null) {
+            $this->logger->info('cac.registration.recap_session_missing');
+
             return $this->redirectToRoute('cac_registration_step1');
         }
 
         $fare = FareCatalog::find($data['fare']);
+
+        $this->logger->info('cac.registration.recap_viewed', ['fare' => $data['fare'], 'payments_open' => true]);
 
         return $this->render('sites/seminaire_cac/registration/step2.html.twig', [
             'data' => $data,
@@ -90,6 +99,7 @@ final class RegistrationController extends AbstractController
         // La case des CGV est "required" dans le gabarit ; on la revérifie ici,
         // le navigateur n'étant pas une barrière fiable.
         if (!$request->request->getBoolean('terms_accepted')) {
+            $this->logger->info('cac.registration.terms_not_accepted');
             $this->addFlash('cac_notice', "Merci d'accepter les conditions générales de vente et les conditions d'annulation pour valider votre inscription.");
 
             return $this->redirectToRoute('cac_registration_step2');
@@ -97,6 +107,10 @@ final class RegistrationController extends AbstractController
 
         $data = $request->getSession()->get(self::SESSION_KEY);
         if ($data === null) {
+            // Session expirée, ou retour arrière depuis la page Stripe : les
+            // données sont effacées juste avant d'y rediriger.
+            $this->logger->info('cac.registration.pay_session_missing');
+
             return $this->redirectToRoute('cac_registration_step1');
         }
 

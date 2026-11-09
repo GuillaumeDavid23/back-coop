@@ -2,10 +2,14 @@
 
 {% block title %}Logs et parcours - CLCOM Events{% endblock %}
 
-{% block content_title %}Derniers accès : Coop' IA Tour{% endblock %}
+{% block content_title %}Derniers accès{{ site ? ' : ' ~ site.name }}{% endblock %}
 
 {% block main %}
     {% include 'admin/_logs_style.html.twig' with {tab: 'funnel'} %}
+
+    {% if site is null %}
+        <div class="logx-empty">Choisis d'abord un site pour voir ses derniers accès : <a href="{{ path('admin') }}">choisir un site</a>.</div>
+    {% else %}
 
     <div class="logx-stats">
         {% for value, label in periods %}
@@ -111,5 +115,7 @@
                 </table>
             </div>
         </section>
+    {% endif %}
+
     {% endif %}
 {% endblock %}
