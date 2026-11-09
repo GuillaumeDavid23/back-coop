@@ -58,10 +58,19 @@
             submitted = true;
         });
 
-        window.addEventListener('pagehide', function () {
+        function leave() {
             if (!started || submitted || abandoned) return;
             abandoned = true;
             send('abandoned', {filled: filledCount()});
+        }
+
+        // À la fermeture d'un onglet, "pagehide" arrive trop tard pour que
+        // l'envoi parte. Le passage en arrière-plan est plus fiable, mais se
+        // déclenche aussi sur un simple changement d'onglet : "abandoned" se
+        // lit donc comme "a quitté la page au moins une fois".
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'hidden') leave();
         });
+        window.addEventListener('pagehide', leave);
     })();
 </script>
