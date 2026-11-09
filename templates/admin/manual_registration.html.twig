@@ -1,0 +1,75 @@
+{% extends '@EasyAdmin/layout.html.twig' %}
+
+{% block title %}{{ page_title }} - CLCOM Events{% endblock %}
+
+{% block content_title %}{{ page_title }}{% endblock %}
+
+{% block body_class 'ea-edit' %}
+
+{% block main %}
+    {% form_theme form '@EasyAdmin/crud/form_theme.html.twig' %}
+
+    <div style="max-width: 720px;" id="manual-registration"
+         data-rules="{{ display_rules|json_encode }}"
+         data-fare="{{ current_fare }}"
+         data-statut="{{ current_statut }}">
+        <p class="text-muted">{{ page_intro }}</p>
+
+        {# La validation serveur décide : les champs requis varient selon le
+           forfait, et un champ masqué ne doit pas bloquer l'envoi. #}
+        {{ form_start(form, {attr: {novalidate: 'novalidate'}}) }}
+            <h2 style="font-size: 1.1rem; margin: 24px 0 12px;">Participant et formule</h2>
+            {% for field in form.registration %}
+                <div data-manual-field="{{ field.vars.name }}">{{ form_row(field) }}</div>
+            {% endfor %}
+
+            {% if form.questionnaire is defined %}
+                <h2 style="font-size: 1.1rem; margin: 24px 0 12px;">Questionnaire</h2>
+                {{ form_widget(form.questionnaire) }}
+            {% endif %}
+
+            {{ form_rest(form) }}
+
+            <div style="margin-top: 20px; display: flex; gap: 10px; align-items: center;">
+                <button type="submit" class="btn btn-primary">{{ submit_label }}</button>
+                <a href="{{ back_url }}" class="btn btn-secondary">Annuler</a>
+            </div>
+        {{ form_end(form) }}
+    </div>
+
+    {# Confort de saisie : masque les champs sans objet pour le forfait choisi.
+       Sans JS, tout reste visible et la validation serveur s'applique. #}
+    <script>
+        (() => {
+            const root = document.getElementById('manual-registration');
+            const rules = JSON.parse(root.dataset.rules);
+            if (!rules) {
+                return;
+            }
+
+            const SECOND_PERSON = ['civility2', 'lastName2', 'firstName2'];
+            const SECOND_EXPERT = ['mobile2', 'email2', 'company2', 'category2'];
+
+            const show = (names, visible) => names.forEach((name) => {
+                const block = root.querySelector(`[data-manual-field="${name}"]`);
+                if (block) {
+                    block.hidden = !visible;
+                }
+            });
+
+            const apply = () => {
+                const fare = root.querySelector('input[name$="[fare]"]:checked')?.value ?? root.dataset.fare;
+                const statut = root.querySelector('select[name$="[statut]"]')?.value ?? root.dataset.statut;
+                const twoPerson = rules.twoPerson.includes(fare);
+
+                show(['subscriptionNumber'], statut === 'cooperateur');
+                show(['eveningGuests'], rules.evening.includes(fare));
+                show(['roomType', ...SECOND_PERSON], twoPerson);
+                show(SECOND_EXPERT, twoPerson && !rules.companion.includes(fare));
+            };
+
+            root.addEventListener('change', apply);
+            apply();
+        })();
+    </script>
+{% endblock %}
