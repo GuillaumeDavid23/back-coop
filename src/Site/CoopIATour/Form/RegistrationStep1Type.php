@@ -55,12 +55,12 @@ final class RegistrationStep1Type extends AbstractType
                 'attr' => self::NO_AUTOFILL_ATTR,
             ])
             ->add('mobile', TelType::class, [
-                'constraints' => [new Assert\NotBlank()],
+                'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 30)],
                 'label' => 'Mobile',
                 'attr' => self::NO_AUTOFILL_ATTR,
             ])
             ->add('email', EmailType::class, [
-                'constraints' => [new Assert\NotBlank(), new Assert\Email()],
+                'constraints' => [new Assert\NotBlank(), new Assert\Email(), new Assert\Length(max: 190)],
                 'label' => 'Email',
                 'attr' => self::NO_AUTOFILL_ATTR,
             ])
@@ -70,17 +70,17 @@ final class RegistrationStep1Type extends AbstractType
                 'attr' => self::NO_AUTOFILL_ATTR,
             ])
             ->add('address', TextType::class, [
-                'constraints' => [new Assert\NotBlank()],
+                'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 190)],
                 'label' => 'Adresse',
                 'attr' => self::NO_AUTOFILL_ATTR,
             ])
             ->add('postalCode', TextType::class, [
-                'constraints' => [new Assert\NotBlank()],
+                'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 20)],
                 'label' => 'Code postal',
                 'attr' => self::NO_AUTOFILL_ATTR,
             ])
             ->add('city', TextType::class, [
-                'constraints' => [new Assert\NotBlank()],
+                'constraints' => [new Assert\NotBlank(), new Assert\Length(max: 100)],
                 'label' => 'Ville',
                 'attr' => self::NO_AUTOFILL_ATTR,
             ])
