@@ -1,6 +1,10 @@
 {% extends '@EasyAdmin/crud/detail.html.twig' %}
 
 {% block main %}
+    {% if entity.instance.formIncomplete %}
+        <div class="alert alert-warning">Inscription rapide : le formulaire et les questions restent à compléter.</div>
+    {% endif %}
+
     {{ parent() }}
 
     {# Réponses libres de l'inscription : questionnaire préalable, options

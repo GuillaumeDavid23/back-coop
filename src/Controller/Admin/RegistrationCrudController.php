@@ -6,12 +6,14 @@ use App\Entity\PaymentMethod;
 use App\Entity\Registration;
 use App\Entity\RegistrationStatus;
 use App\Form\ManualPaymentType;
+use App\Form\ManualRegistrationType;
 use App\Form\ParticipantType;
 use App\Repository\CreditNoteRepository;
 use App\Repository\InvoiceRepository;
 use App\Repository\RegistrationRepository;
 use App\Service\Billing\BillingDocumentProvider;
 use App\Service\Billing\ManualPaymentRecorder;
+use App\Service\Billing\ManualRegistrationCreator;
 use App\Service\Billing\ManualRegistrationEditor;
 use App\Service\Billing\RegistrationCancellationService;
 use App\Service\Export\AnswerHumanizer;
@@ -62,6 +64,7 @@ final class RegistrationCrudController extends AbstractSiteScopedCrudController
         private readonly PaymentSynchronizer $paymentSynchronizer,
         private readonly ManualPaymentRecorder $manualPayments,
         private readonly ManualRegistrationEditor $manualEditor,
+        private readonly ManualRegistrationCreator $manualCreator,
     ) {
         parent::__construct($siteContext, $adminUrlGenerator);
     }
@@ -198,12 +201,32 @@ final class RegistrationCrudController extends AbstractSiteScopedCrudController
             ->linkToUrl(fn () => $this->generateUrl('admin_export_participants'))
             ->createAsGlobalAction();
 
+        $newRegistration = Action::new('newManualRegistration', 'Inscrire un participant', 'fa fa-user-plus')
+            ->linkToCrudAction('newManualRegistration')
+            ->displayIf(fn () => ManualRegistrationCreator::supports($this->siteContext->getCurrentSite()))
+            ->createAsGlobalAction();
+
+        $newQuickRegistration = Action::new('newQuickRegistration', 'Inscription rapide', 'fa fa-bolt')
+            ->linkToCrudAction('newQuickRegistration')
+            ->displayIf(fn () => ManualRegistrationCreator::supports($this->siteContext->getCurrentSite()))
+            ->createAsGlobalAction();
+
+        $completeRegistration = Action::new('completeRegistration', 'Compléter le formulaire', 'fa fa-pen-to-square')
+            ->linkToCrudAction('completeRegistration')
+            ->displayIf(fn (Registration $registration) => $this->manualCreator->canComplete($registration));
+
         return $actions
             // Le statut ne change que via le webhook Stripe, le constat manuel ou la
             // désinscription contrôlée (voir RegistrationCancellationService) - jamais
             // par édition libre. Le forfait n'est éditable qu'en paiement manuel non
-            // encore réglé (voir ManualRegistrationEditor).
+            // encore réglé (voir ManualRegistrationEditor). L'action NEW standard reste
+            // coupée : une inscription se crée par le formulaire de son site
+            // (voir ManualRegistrationCreator).
             ->disable(Action::DELETE, Action::NEW)
+            ->add(Crud::PAGE_INDEX, $newRegistration)
+            ->add(Crud::PAGE_INDEX, $newQuickRegistration)
+            ->add(Crud::PAGE_INDEX, $completeRegistration)
+            ->add(Crud::PAGE_DETAIL, $completeRegistration)
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->add(Crud::PAGE_INDEX, $downloadInvoice)
             ->add(Crud::PAGE_INDEX, $downloadCreditNote)
@@ -434,6 +457,131 @@ final class RegistrationCrudController extends AbstractSiteScopedCrudController
                 default => "La facture non acquittée est en cours de génération ; aucun email envoyé, elle est téléchargeable ici. Elle deviendra acquittée dès que vous constaterez le règlement.",
             },
         )];
+    }
+
+    #[AdminRoute]
+    public function newManualRegistration(AdminContext $context): Response
+    {
+        return $this->createRegistration(
+            $context,
+            ManualRegistrationType::MODE_COMPLETE,
+            'Inscrire un participant',
+            'Formulaire et questions du site, saisis pour le compte du participant.',
+        );
+    }
+
+    #[AdminRoute]
+    public function newQuickRegistration(AdminContext $context): Response
+    {
+        return $this->createRegistration(
+            $context,
+            ManualRegistrationType::MODE_QUICK,
+            'Inscription rapide',
+            'Les informations essentielles suffisent. Le formulaire et les questions pourront être complétés depuis l\'inscription.',
+        );
+    }
+
+    /** Les deux saisies mènent au constat de règlement : c'est lui qui confirme et facture. */
+    private function createRegistration(AdminContext $context, string $mode, string $title, string $intro): Response
+    {
+        if (null !== $redirect = $this->ensureSiteSelected()) {
+            return $redirect;
+        }
+
+        $site = $this->siteContext->getCurrentSite();
+        $this->denyAccessUnlessGranted('SITE_ACCESS', $site);
+
+        $indexUrl = $this->adminUrlGenerator->setController(self::class)->setAction(Action::INDEX)->generateUrl();
+        if (!ManualRegistrationCreator::supports($site)) {
+            $this->addFlash('warning', "Ce site n'a pas de formulaire d'inscription à saisir depuis le BO.");
+
+            return $this->redirect($indexUrl);
+        }
+
+        $form = $this->createForm(ManualRegistrationType::class, options: ['site_code' => $site->getCode(), 'mode' => $mode]);
+        $form->handleRequest($context->getRequest());
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $registration = $this->manualCreator->create(
+                $site,
+                $form->get('registration')->getData(),
+                $form->has('questionnaire') ? ($form->get('questionnaire')->getData() ?? []) : [],
+                $this->getUser()?->getUserIdentifier() ?? 'inconnu',
+            );
+
+            $this->addFlash('success', sprintf('Inscription #%d créée. Indiquez où en est le règlement.', $registration->getId()));
+
+            return $this->redirect($this->adminUrlGenerator
+                ->setController(self::class)
+                ->setAction('manualPayment')
+                ->setEntityId($registration->getId())
+                ->generateUrl());
+        }
+
+        return $this->render('admin/manual_registration.html.twig', [
+            'form' => $form,
+            'page_title' => $title,
+            'page_intro' => $intro,
+            'submit_label' => "Créer l'inscription",
+            'back_url' => $indexUrl,
+            'display_rules' => ManualRegistrationCreator::displayRules($site->getCode()),
+            'current_fare' => '',
+            'current_statut' => '',
+        ]);
+    }
+
+    #[AdminRoute]
+    public function completeRegistration(AdminContext $context): Response
+    {
+        /** @var Registration $registration */
+        $registration = $context->getEntity()->getInstance();
+        $this->denyAccessUnlessGranted('SITE_ACCESS', $registration->getSite());
+
+        $detailUrl = $this->adminUrlGenerator
+            ->setController(self::class)
+            ->setAction(Action::DETAIL)
+            ->setEntityId($registration->getId())
+            ->generateUrl();
+
+        if (!$this->manualCreator->canComplete($registration)) {
+            $this->addFlash('warning', "Le formulaire de cette inscription n'est pas à compléter.");
+
+            return $this->redirect($detailUrl);
+        }
+
+        $siteCode = $registration->getSite()->getCode();
+        $form = $this->createForm(ManualRegistrationType::class, $this->manualCreator->prefill($registration), [
+            'site_code' => $siteCode,
+            'mode' => ManualRegistrationType::MODE_FILL,
+        ]);
+        $form->handleRequest($context->getRequest());
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $this->manualCreator->complete(
+                $registration,
+                $form->get('registration')->getData(),
+                $form->has('questionnaire') ? ($form->get('questionnaire')->getData() ?? []) : [],
+                $this->getUser()?->getUserIdentifier() ?? 'inconnu',
+            );
+
+            // Une facture encore à régler reprend les coordonnées complétées ;
+            // une facture acquittée reste telle qu'émise.
+            $this->manualEditor->apply($registration);
+            $this->addFlash('success', 'Formulaire complété.');
+
+            return $this->redirect($detailUrl);
+        }
+
+        return $this->render('admin/manual_registration.html.twig', [
+            'form' => $form,
+            'page_title' => sprintf('Compléter l\'inscription #%d', $registration->getId()),
+            'page_intro' => sprintf('Formule retenue : %s. Elle n\'est pas modifiable ici.', $registration->getFareLabel()),
+            'submit_label' => 'Enregistrer',
+            'back_url' => $detailUrl,
+            'display_rules' => ManualRegistrationCreator::displayRules($siteCode),
+            'current_fare' => $registration->getFareCode(),
+            'current_statut' => $registration->getAnswers()['statut'] ?? '',
+        ]);
     }
 
     #[AdminRoute]

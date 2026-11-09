@@ -202,6 +202,17 @@ class Registration
         return $this;
     }
 
+    /**
+     * Inscription rapide du BO, questions pas encore renseignées. Le motif
+     * sert de témoin : tous les formulaires complets l'exigent.
+     */
+    public function isFormIncomplete(): bool
+    {
+        $participant = $this->getPrimaryParticipant();
+
+        return null !== $participant && null === $participant->getMotivation();
+    }
+
     public function getAnswers(): array
     {
         return $this->answers;
