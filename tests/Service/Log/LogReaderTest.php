@@ -53,6 +53,18 @@ final class LogReaderTest extends TestCase
         self::assertSame(1, $result['total']);
     }
 
+    public function testExactLevelKeepsOnlyThatLevelAndAllCounters(): void
+    {
+        $line = static fn (string $level): string => json_encode(['message' => 'm', 'context' => [], 'level_name' => $level, 'channel' => 'payment', 'datetime' => '2026-11-09T10:00:00+01:00'])."\n";
+        file_put_contents($this->path, $line('DEBUG').$line('INFO').$line('ERROR'));
+
+        $result = (new LogReader(sys_get_temp_dir(), 'test'))->read($this->path, new LogQuery(exactLevel: 'DEBUG'));
+
+        self::assertSame(1, $result['total']);
+        self::assertSame('DEBUG', $result['entries'][0]->level);
+        self::assertSame(['DEBUG' => 1, 'INFO' => 1, 'ERROR' => 1], $result['stats']);
+    }
+
     public function testTextLinesAndTheirContinuationsStillParse(): void
     {
         $result = $this->read("[2026-11-09T09:20:40+01:00] app.ERROR: boom {\"a\":1} []\n#0 trace\n");

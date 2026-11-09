@@ -55,7 +55,11 @@ final class DashboardController extends AbstractDashboardController
         // d'EasyAdmin, seule façon d'obtenir le layout (menu/sidebar) sur une
         // route Symfony classique - voir AdminRouterSubscriber, qui ignore
         // toute route qui n'a pas été générée par son propre chargeur.
-        return $this->redirect($this->adminUrlGenerator->setController(RegistrationCrudController::class)->generateUrl());
+        // Le site part dans l'URL : il devient celui de cet onglet seulement.
+        return $this->redirect($this->adminUrlGenerator
+            ->setController(RegistrationCrudController::class)
+            ->set(SiteContext::QUERY_PARAMETER, $site->getId())
+            ->generateUrl());
     }
 
     #[Route('/admin/export/participants', name: 'admin_export_participants')]

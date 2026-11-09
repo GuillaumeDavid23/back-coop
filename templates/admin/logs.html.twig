@@ -87,9 +87,10 @@
 
     <div class="logx-stats">
         {% for level, count in stats %}
-            {% set isOn = level == query.minLevel %}
-            <a class="logx-chip {{ isOn ? 'on' }}"
-               href="{{ path('admin', app.request.query.all|merge({'routeName': 'admin_logs', 'level': level})) }}">{{ level }} · {{ count }}</a>
+            {# Un badge montre ce seul niveau ; un second clic retire le filtre. #}
+            {% set isOn = level == query.exactLevel %}
+            <a class="logx-chip {{ isOn ? 'on' }}" {{ isOn ? 'aria-current=true' }}
+               href="{{ path('admin', app.request.query.all|merge({'routeName': 'admin_logs', 'level': isOn ? 'INFO' : 'DEBUG', 'only': isOn ? '' : level})) }}">{{ level }} · {{ count }}</a>
         {% else %}
             <span class="logx-chip">Aucune entrée</span>
         {% endfor %}

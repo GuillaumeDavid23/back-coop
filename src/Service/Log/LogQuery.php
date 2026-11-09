@@ -16,6 +16,7 @@ final class LogQuery
         public readonly ?string $channel = null,
         public readonly ?\DateTimeImmutable $since = null,
         public readonly int $limit = 100,
+        public readonly ?string $exactLevel = null,
     ) {
     }
 
@@ -40,6 +41,7 @@ final class LogQuery
             ($channel = (string) $request->query->get('channel', '')) !== '' ? $channel : null,
             $since,
             \in_array($limit, self::LIMITS, true) ? $limit : 100,
+            ($only = strtoupper((string) $request->query->get('only', ''))) !== '' ? $only : null,
         );
     }
 
@@ -51,6 +53,10 @@ final class LogQuery
 
     public function matches(LogEntry $entry): bool
     {
+        if (null !== $this->exactLevel && $entry->level !== $this->exactLevel) {
+            return false;
+        }
+
         $threshold = LogEntry::LEVELS[$this->minLevel] ?? 0;
         if ($threshold > 0 && $entry->severity() < $threshold) {
             return false;
