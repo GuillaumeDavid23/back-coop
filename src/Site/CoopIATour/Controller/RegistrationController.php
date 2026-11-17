@@ -49,6 +49,10 @@ final class RegistrationController extends AbstractController
     #[Route('/inscription/questionnaire', name: 'registration_questionnaire', methods: ['GET', 'POST'])]
     public function questionnaire(Request $request): Response
     {
+        if ($closed = $this->redirectIfClosed()) {
+            return $closed;
+        }
+
         $fare = (string) $request->query->get('fare', '');
         if (null !== FareCatalog::find($fare)) {
             $data = $request->getSession()->get(self::SESSION_KEY) ?? [];
@@ -72,6 +76,10 @@ final class RegistrationController extends AbstractController
     #[Route('/inscription', name: 'registration_step1', methods: ['GET', 'POST'])]
     public function step1(Request $request): Response
     {
+        if ($closed = $this->redirectIfClosed()) {
+            return $closed;
+        }
+
         if (null === $request->getSession()->get(self::QUESTIONNAIRE_KEY)) {
             $this->logger->info('iatour.registration.questionnaire_missing', ['method' => $request->getMethod()]);
 
@@ -111,6 +119,10 @@ final class RegistrationController extends AbstractController
     #[Route('/inscription/recapitulatif', name: 'registration_step2', methods: ['GET'])]
     public function step2(Request $request): Response
     {
+        if ($closed = $this->redirectIfClosed()) {
+            return $closed;
+        }
+
         $data = $request->getSession()->get(self::SESSION_KEY);
         if ($data === null) {
             $this->logger->info('iatour.registration.recap_session_missing');
@@ -302,6 +314,21 @@ final class RegistrationController extends AbstractController
     public function cancelled(): Response
     {
         return $this->render('sites/coop_ia_tour/registration/cancelled.html.twig');
+    }
+
+    /**
+     * Paiements fermés : le parcours renvoie à l'accueil, qui affiche l'annonce,
+     * plutôt que de laisser remplir un formulaire sans issue.
+     */
+    private function redirectIfClosed(): ?RedirectResponse
+    {
+        if ($this->paymentsOpen()) {
+            return null;
+        }
+
+        $this->logger->info('iatour.registration.closed_redirect');
+
+        return $this->redirectToRoute('iatour_home');
     }
 
     /** Interrupteur de la fiche Site ; fermé si la fiche manque. */
