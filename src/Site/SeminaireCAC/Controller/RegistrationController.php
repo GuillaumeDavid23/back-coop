@@ -12,6 +12,7 @@ use App\Service\Stripe\StripeCheckoutService;
 use App\Site\LogsInvalidSubmit;
 use App\Site\SeminaireCAC\Form\RegistrationStep1Type;
 use App\Site\SeminaireCAC\Service\FareCatalog;
+use App\Site\SeminaireCAC\Service\RegistrationGate;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -33,6 +34,7 @@ final class RegistrationController extends AbstractController
         private readonly EntityManagerInterface $em,
         private readonly StripeCheckoutService $stripeCheckout,
         private readonly PaymentSynchronizer $paymentSynchronizer,
+        private readonly RegistrationGate $gate,
         #[Autowire(service: 'monolog.logger.payment')]
         private readonly LoggerInterface $logger,
     ) {
@@ -41,6 +43,10 @@ final class RegistrationController extends AbstractController
     #[Route('/inscription', name: 'registration_step1', methods: ['GET', 'POST'])]
     public function step1(Request $request): Response
     {
+        if ($closed = $this->redirectIfClosed()) {
+            return $closed;
+        }
+
         // Retour depuis le récapitulatif : on repart de la saisie déjà faite,
         // pour n'avoir qu'à corriger l'information voulue. Un forfait passé en
         // paramètre (lien « Choisir ce forfait ») prime sur celui retenu.
@@ -70,6 +76,10 @@ final class RegistrationController extends AbstractController
     #[Route('/inscription/recapitulatif', name: 'registration_step2', methods: ['GET'])]
     public function step2(Request $request): Response
     {
+        if ($closed = $this->redirectIfClosed()) {
+            return $closed;
+        }
+
         $data = $request->getSession()->get(self::SESSION_KEY);
         if ($data === null) {
             $this->logger->info('cac.registration.recap_session_missing');
@@ -90,6 +100,10 @@ final class RegistrationController extends AbstractController
     #[Route('/inscription/paiement', name: 'registration_pay', methods: ['POST'])]
     public function pay(Request $request): RedirectResponse
     {
+        if ($closed = $this->redirectIfClosed()) {
+            return $closed;
+        }
+
         if (!$this->isCsrfTokenValid('cac_payment', (string) $request->request->get('_token'))) {
             $this->logger->warning('cac.registration.csrf_invalid');
 
@@ -248,5 +262,17 @@ final class RegistrationController extends AbstractController
     public function cancelled(): Response
     {
         return $this->render('sites/seminaire_cac/registration/cancelled.html.twig');
+    }
+
+    /** Inscriptions fermées : le parcours renvoie à l'accueil, qui l'annonce. */
+    private function redirectIfClosed(): ?RedirectResponse
+    {
+        if ($this->gate->isOpen()) {
+            return null;
+        }
+
+        $this->logger->info('cac.registration.closed_redirect');
+
+        return $this->redirectToRoute('cac_home');
     }
 }
